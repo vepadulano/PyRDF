@@ -35,7 +35,4 @@ class Operation(object):
         'Take':'a'
         }
         
-        try:
-            return operations_dict[name]
-        except Exception as e:
-            return None
+        return operations_dict.get(name)
