@@ -1,5 +1,7 @@
 from __future__ import print_function
-import sys
+from .Operation import Operation
+from .Proxy import Proxy
+import sys, gc
 
 class Node(object):
     """
@@ -16,18 +18,16 @@ class Node(object):
         
         self.operation = operation
         self.next_nodes = []
-        self.cur_attr = ""
+        self._cur_attr = ""
         self.value = None
-        self.init_refcount = sys.getrefcount(self)
 
     def __getattr__(self, attr):
-        print(attr)
-        self.cur_attr = attr
+        self._cur_attr = attr
         return self._call_handler
 
     def _call_handler(self, *args, **kwargs):
 
-        op = Operation(self.cur_attr, *args, **kwargs)
+        op = Operation(self._cur_attr, *args, **kwargs)
         newNode = Node(operation=op, _get_head=self._get_head)
         self.next_nodes.append(newNode)
 
@@ -42,12 +42,14 @@ class Node(object):
 
         """
         
-        ## Execution of the node
-        op = getattr(prev_object, node.operation.name)
-        node.value = op(node.operation.args, node.operation.kwargs)
-
         if not node.operation:
             prev_object = node._tdf
+            self._graph_prune()
+
+        else:
+            ## Execution of the node
+            op = getattr(prev_object, node.operation.name)
+            node.value = op(*node.operation.args, **node.operation.kwargs)
         
         for n in node.next_nodes:
             self._dfs(n, node.value)
@@ -55,8 +57,6 @@ class Node(object):
     
     def _graph_prune_util(self, node):
 
-        ## !! Still experimenting 
-        
         children = []
 
         for n in node.next_nodes:
@@ -64,7 +64,7 @@ class Node(object):
                 children.append(n)
         node.next_nodes = children
 
-        if len(node.next_nodes) == 0 and (sys.getrefcount(node) == 1):
+        if len(node.next_nodes) == 0 and (len(gc.get_referrers(node)) <= 3):
             return False
 
         return True

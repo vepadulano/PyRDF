@@ -1,5 +1,6 @@
 from __future__ import print_function
 from .Node import Node
+import ROOT
 
 class TDataFrame(Node):
     
@@ -18,7 +19,7 @@ class TDataFrame(Node):
         self.treename = treename
         self.npartitions = npartitions
         self.chain = ROOT.TChain(treename)
-        self._tdf = ROOT.Experimental.TDataFrame(self.chain)
+        self._tdf = self.get_tdf_temp()
         self.value = self._tdf
 
     def get_tdf_temp(self):
