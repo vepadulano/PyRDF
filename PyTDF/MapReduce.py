@@ -28,7 +28,7 @@ class MapReduce(object):
         necessary operations to carry out
 
         """
-        
+
         ops_copy = list(ops)
 
         if not node.operation: # If root
@@ -45,8 +45,8 @@ class MapReduce(object):
             self.operations.append((new_var_name, prev, ops_copy))
             self.action_node_map[new_var_name] = node
 
-        elif node.operation.op_type == "t":
-            if len(node.next_nodes) > 1:
+        else:
+            if len(node.next_nodes) != 1:
                 self.tfs+=1
 
                 ops_copy.append(node.operation)
@@ -55,17 +55,9 @@ class MapReduce(object):
                 self.operations.append((cur, prev, ops_copy))
                 new_tuple = (cur, [])
             
-            elif len(node.next_nodes) == 1:
+            else:
                 ops_copy.append(node.operation)
                 new_tuple = (prev, ops_copy)
-
-            else:
-                self.tfs += 1
-                
-                ops_copy.append(node.operation)
-                
-                cur = 'tt' + str(self.tfs)
-                self.operations.append((cur, prev, ops_copy))
 
             for n in node.next_nodes:
                 self._dfs(n, *new_tuple)
@@ -84,7 +76,7 @@ class MapReduce(object):
         # reduced_dict = dTree.ProcessAndMerge(self._get_mapper(root_node), self._get_reducer())
         # for val in reduced_dict:
         #     self.action_node_map[val].value = reduced_dict[val]
-        
+
         pass
 
     def _get_mapper(self, root_node):
