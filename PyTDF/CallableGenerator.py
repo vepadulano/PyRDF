@@ -1,7 +1,7 @@
-class MapReduce(object):
+class CallableGenerator(object):
     """
-    Class for performing 
-    MapReduce on datasets
+    Class that generates
+    mapper abd reducer functions
 
     """
     def __init__(self):
@@ -10,16 +10,6 @@ class MapReduce(object):
         self.tfs = 0
         self.operations = []
         self.action_node_map = {}
-
-    def execute_from_functions(self, mapper, reducer):
-        """
-        Use DistROOT to execute a distributed job
-        with the given mapper and reducer functions
-
-        TODO(shravan97)
-        """
-
-        pass
 
     def _dfs(self, node, prev = 't', ops = []):
         """
@@ -62,24 +52,8 @@ class MapReduce(object):
             for n in node.next_nodes:
                 self._dfs(n, *new_tuple)
 
-    def execute_from_graph(self, root_node):
-        """
-        Method that calls the _get_mapper and 
-        _get_reducer methods to pass the mapper
-        and reducer functions to DistROOT
 
-        TODO(shravan97)
-        """
-
-        # from DistROOT import DistTree
-        # dTree = DistTree(root_node.file_list, root_node.treename, root_node.npartitions)
-        # reduced_dict = dTree.ProcessAndMerge(self._get_mapper(root_node), self._get_reducer())
-        # for val in reduced_dict:
-        #     self.action_node_map[val].value = reduced_dict[val]
-
-        pass
-
-    def _get_mapper(self, root_node):
+    def get_mapper_callable(self, root_node):
         """
         Function that converts a given
         graph onto a mapper function and 
@@ -116,7 +90,7 @@ class MapReduce(object):
 
         return mapper
 
-    def _get_reducer(self):
+    def get_reducer_callable(self):
         """
         A method that returns a 
         generalized reducer function 

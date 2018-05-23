@@ -1,7 +1,7 @@
 from PyTDF import *
 import unittest
 
-class MapReduceTest(unittest.TestCase):
+class CallableGeneratorTest(unittest.TestCase):
     class Temp(object):
         def __init__(self):
             self.ord_list = []
@@ -18,8 +18,8 @@ class MapReduceTest(unittest.TestCase):
             self.ord_list.append(3)
             return self
 
-    def test_map_reduce_from_graph(self):
-        t = MapReduceTest.Temp()
+    def test_mapper_from_graph(self):
+        t = CallableGeneratorTest.Temp()
 
         node = Node(None, None)
         node.value = t
@@ -29,8 +29,8 @@ class MapReduceTest(unittest.TestCase):
         n5 = n1.Count()
         n6 = node.Filter()
 
-        mp = MapReduce()
-        mapper_func = mp._get_mapper(node)
+        mp = CallableGenerator()
+        mapper_func = mp.get_mapper_callable(node)
         actions = mapper_func(t)
 
         reqd_order = [1, 3, 2, 2, 3, 2]
@@ -38,8 +38,8 @@ class MapReduceTest(unittest.TestCase):
         self.assertEqual(t.ord_list, reqd_order)
         self.assertEqual(list(actions.keys()), ['ta1', 'ta2'])
 
-    def test_map_reduce_with_pruning(self):
-        t = MapReduceTest.Temp()
+    def test_mapper_with_pruning(self):
+        t = CallableGeneratorTest.Temp()
 
         node = Node(None, None)
         node.value = t
@@ -51,8 +51,8 @@ class MapReduceTest(unittest.TestCase):
 
         n5 = n1.Filter()
 
-        mp = MapReduce()
-        mapper_func = mp._get_mapper(node)
+        mp = CallableGenerator()
+        mapper_func = mp.get_mapper_callable(node)
         actions = mapper_func(t)
 
         reqd_order = [1, 2, 2, 2, 3, 2]
