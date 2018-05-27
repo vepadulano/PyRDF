@@ -4,16 +4,15 @@ import unittest
 class ClassifyTest(unittest.TestCase):
     def test_action(self):
         op = Operation("Count")
-        self.assertEqual(op.op_type, "a")
+        self.assertEqual(op.op_type, OpTypes.ACTION)
 
     def test_transformation(self):
         op = Operation("Define", "c1")
-        self.assertEqual(op.op_type, "t")
+        self.assertEqual(op.op_type, OpTypes.TRANSFORMATION)
 
     def test_none(self):
-        op = Operation("random")
-        self.assertIs(op.op_type, None)
-
+        with self.assertRaises(Exception):
+            op = Operation("random")
 
 class ArgsTest(unittest.TestCase):
     def test_without_kwargs(self):

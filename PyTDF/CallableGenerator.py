@@ -1,3 +1,5 @@
+from .Operation import OpTypes
+
 class CallableGenerator(object):
     """
     Class that generates
@@ -26,7 +28,7 @@ class CallableGenerator(object):
                 self._dfs(n)
             return
 
-        if node.operation.op_type == "a":
+        if node.operation.op_type == OpTypes.ACTION:
             self.actions+=1
             
             ops_copy.append(node.operation)

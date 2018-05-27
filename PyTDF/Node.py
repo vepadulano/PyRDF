@@ -1,5 +1,5 @@
 from __future__ import print_function
-from .Operation import Operation
+from .Operation import Operation, OpTypes
 from .Proxy import Proxy
 import sys, gc
 
@@ -9,7 +9,7 @@ class Node(object):
     a graph Node
 
     """
-    def __init__(self, _get_head, operation, tdf_object=None):
+    def __init__(self, _get_head, operation):
         
         if _get_head is None:
             self._get_head = lambda : self
@@ -31,7 +31,7 @@ class Node(object):
         newNode = Node(operation=op, _get_head=self._get_head)
         self.next_nodes.append(newNode)
 
-        if op.op_type == "a":
+        if op.op_type == OpTypes.ACTION:
             return Proxy(newNode)
 
         return newNode
@@ -41,7 +41,6 @@ class Node(object):
         Do a depth-first traversal of the graph from the root
 
         """
-        
         if not node.operation:
             prev_object = node._tdf
             self._graph_prune()
@@ -55,20 +54,32 @@ class Node(object):
             self._dfs(n, node.value)
 
     
-    def _graph_prune_util(self, node):
+    def _graph_prune(self, node=None):
+
+        if not node:
+            node = self._get_head()
 
         children = []
 
         for n in node.next_nodes:
-            if self._graph_prune_util(n):
+            if self._graph_prune(n):
                 children.append(n)
         node.next_nodes = children
 
-        if len(node.next_nodes) == 0 and (len(gc.get_referrers(node)) <= 3):
+        if not len(node.next_nodes) and (len(gc.get_referrers(node)) <= 3):
+            
+            ### The 3 referrers to the current node would be :
+            ### - The current function (_graph_prune())
+            ### - An internal reference (which every Python object has)
+            ### - The current node's parent node
+            ###
+            ### [If the user had a variable reference to the current node, 
+            ### the value would be at least 4. Hence nodes with less than 
+            ### 4 references will have to be removed ]
+
+            ### NOTE :- sys.getrefcount(node) gives a way higher value and hence
+            ### doesn't work in this case
+            
             return False
 
         return True
-
-    
-    def _graph_prune(self):
-        self._graph_prune_util(self._get_head())

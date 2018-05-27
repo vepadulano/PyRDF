@@ -1,4 +1,9 @@
 from __future__ import print_function
+from enum import Enum
+
+class OpTypes(Enum):
+    ACTION = 1
+    TRANSFORMATION = 2
 
 class Operation(object):
     
@@ -16,23 +21,28 @@ class Operation(object):
         self.op_type = self._classify_operation(name)
 
     def _classify_operation(self, name):
+        if name.lower() in ("range", "take"):
+            raise NotImplementedError("This operation ({}) isn't supported yet ! ".format(name))
+
         operations_dict = {
-        'Define':'t',
-        'Filter':'t',
-        'Range':'t',
-        'Histo1D':'a',
-        'Histo2D':'a',
-        'Histo3D':'a',
-        'Profile1D':'a',
-        'Profile2D':'a',
-        'Profile3D':'a',
-        'Count':'a',
-        'Min':'a',
-        'Max':'a',
-        'Mean':'a',
-        'Sum':'a',
-        'Fill':'a',
-        'Take':'a'
+        'Define':OpTypes.TRANSFORMATION,
+        'Filter':OpTypes.TRANSFORMATION,
+        'Histo1D':OpTypes.ACTION,
+        'Histo2D':OpTypes.ACTION,
+        'Histo3D':OpTypes.ACTION,
+        'Profile1D':OpTypes.ACTION,
+        'Profile2D':OpTypes.ACTION,
+        'Profile3D':OpTypes.ACTION,
+        'Count':OpTypes.ACTION,
+        'Min':OpTypes.ACTION,
+        'Max':OpTypes.ACTION,
+        'Mean':OpTypes.ACTION,
+        'Sum':OpTypes.ACTION,
+        'Fill':OpTypes.ACTION,
         }
         
-        return operations_dict.get(name)
+        op_type = operations_dict.get(name)
+
+        if not op_type:
+            raise Exception("Invalid operation \"{}\"".format(name))
+        return op_type
