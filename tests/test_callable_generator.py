@@ -29,8 +29,8 @@ class CallableGeneratorTest(unittest.TestCase):
         n5 = n1.Count()
         n6 = node.Filter()
 
-        mp = CallableGenerator()
-        mapper_func = mp.get_mapper_callable(node)
+        mp = CallableGenerator(node)
+        mapper_func = mp.get_mapper_callable()
         actions = mapper_func(t)
 
         reqd_order = [1, 3, 2, 2, 3, 2]
@@ -51,8 +51,8 @@ class CallableGeneratorTest(unittest.TestCase):
 
         n5 = n1.Filter()
 
-        mp = CallableGenerator()
-        mapper_func = mp.get_mapper_callable(node)
+        mp = CallableGenerator(node)
+        mapper_func = mp.get_mapper_callable()
         actions = mapper_func(t)
 
         reqd_order = [1, 2, 2, 2, 3, 2]

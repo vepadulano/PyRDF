@@ -4,11 +4,11 @@ import unittest
 class ClassifyTest(unittest.TestCase):
     def test_action(self):
         op = Operation("Count")
-        self.assertEqual(op.op_type, OpTypes.ACTION)
+        self.assertEqual(op.op_type, op.TYPES.ACTION)
 
     def test_transformation(self):
         op = Operation("Define", "c1")
-        self.assertEqual(op.op_type, OpTypes.TRANSFORMATION)
+        self.assertEqual(op.op_type, op.TYPES.TRANSFORMATION)
 
     def test_none(self):
         with self.assertRaises(Exception):

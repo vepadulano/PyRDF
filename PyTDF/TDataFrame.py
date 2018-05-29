@@ -17,15 +17,16 @@ class TDataFrame(Node):
         super(TDataFrame, self).__init__(None, None)
         self.filelist = filelist
         self.treename = treename
-        self.chain = ROOT.TChain(treename)
-        self._tdf = self.get_tdf_temp()
 
-    def get_tdf_temp(self):
-        # TODO (shravan97) : shift this to mapper generator
-        # Temporary function to get 
-        # TDF object until mapper is done
+    def create_tdf(self):
+        """
+        Method to create a TDataFrame object
+
+        """
+
+        self.Tchain = ROOT.TChain(self.treename)
 
         for f in self.filelist:
-            self.chain.Add(f)
+            self.Tchain.Add(f)
 
-        return ROOT.Experimental.TDataFrame(self.chain)
+        self._tdf = ROOT.Experimental.TDataFrame(self.Tchain)

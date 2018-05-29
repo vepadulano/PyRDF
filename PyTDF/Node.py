@@ -1,5 +1,5 @@
 from __future__ import print_function
-from .Operation import Operation, OpTypes
+from .Operation import Operation
 from .Proxy import Proxy
 import sys, gc
 
@@ -31,7 +31,7 @@ class Node(object):
         newNode = Node(operation=op, _get_head=self._get_head)
         self.next_nodes.append(newNode)
 
-        if op.op_type == OpTypes.ACTION:
+        if op.op_type == op.TYPES.ACTION:
             return Proxy(newNode)
 
         return newNode

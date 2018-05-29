@@ -1,4 +1,6 @@
 from __future__ import print_function
+from .backend import Executor
+from .CallableGenerator import CallableGenerator
 
 class Proxy(object):
     """
@@ -19,8 +21,10 @@ class Proxy(object):
         return self._call_handler
     
     def _call_handler(self, *args, **kwargs):
-        
+
         if not self.action_node.value:
-            self.action_node._dfs(self.action_node._get_head())
-        
+            generator = CallableGenerator(self.action_node._get_head())
+            executor = Executor()
+            executor.execute(generator)
+
         return getattr(self.action_node.value, self._cur_attr)(*args, **kwargs)

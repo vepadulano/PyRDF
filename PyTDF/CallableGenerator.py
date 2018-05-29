@@ -1,17 +1,16 @@
-from .Operation import OpTypes
-
 class CallableGenerator(object):
     """
     Class that generates
     mapper abd reducer functions
 
     """
-    def __init__(self):
+    def __init__(self, root_node):
         
         self.actions = 0
         self.tfs = 0
         self.operations = []
         self.action_node_map = {}
+        self.root_node = root_node
 
     def _dfs(self, node, prev = 't', ops = []):
         """
@@ -28,7 +27,7 @@ class CallableGenerator(object):
                 self._dfs(n)
             return
 
-        if node.operation.op_type == OpTypes.ACTION:
+        if node.operation.op_type == node.operation.TYPES.ACTION:
             self.actions+=1
             
             ops_copy.append(node.operation)
@@ -55,7 +54,7 @@ class CallableGenerator(object):
                 self._dfs(n, *new_tuple)
 
 
-    def get_mapper_callable(self, root_node):
+    def get_mapper_callable(self):
         """
         Function that converts a given
         graph onto a mapper function and 
@@ -63,13 +62,13 @@ class CallableGenerator(object):
 
         """
 
-        root_node._graph_prune()
+        self.root_node._graph_prune()
 
         self.actions = 0
         self.tfs = 0
         self.operations = []
         self.action_node_map = {}
-        self._dfs(root_node)
+        self._dfs(self.root_node)
 
         def mapper(t):
             ops = {'t':t}

@@ -1,7 +1,7 @@
-try:
-  from setuptools import setup
-except ImportError:
-  from distutils.core import setup
+# try:
+from setuptools import setup, find_packages
+# except ImportError:
+#   from distutils.core import setup
 import sys
 
 req_file = open('requirements.txt','r')
@@ -14,7 +14,7 @@ if sys.version_info >= (3,):
 setup(
   name = 'PyTDF',
 
-  packages = ['PyTDF'],
+  packages = find_packages(),
 
   version = '0.0.1',
 
