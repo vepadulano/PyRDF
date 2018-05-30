@@ -20,12 +20,7 @@ def local_executor(generator):
 
     node_map = generator.action_node_map
 
-    event_loop_done = False
+    list(output.values())[0].GetValue() # Trigger event-loop
 
     for n in node_map:
-        if not event_loop_done:
-            # Trigger event-loop
-            output[n].GetValue()
-            event_loop_done = True
-
         node_map[n].value = output[n]
