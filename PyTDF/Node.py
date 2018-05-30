@@ -63,7 +63,7 @@ class Node(object):
                 children.append(n)
         self.next_nodes = children
 
-        if (not self.next_nodes) and (len(gc.get_referrers(self)) <= 3):
+        if not self.next_nodes and (len(gc.get_referrers(self)) <= 3):
             
             ### The 3 referrers to the current node would be :
             ### - The current function (_graph_prune())

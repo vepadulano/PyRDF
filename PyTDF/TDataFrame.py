@@ -17,5 +17,3 @@ class TDataFrame(Node):
         super(TDataFrame, self).__init__(None, None)
         self.filelist = filelist
         self.treename = treename
-        self.TChain = None
-        self.TDF = None

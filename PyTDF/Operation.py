@@ -26,7 +26,9 @@ class Operation(object):
 
         future_ops = [
         "Range",
-        "Take"
+        "Take",
+        "Snapshot",
+        "Foreach"
         ]
 
         if name in future_ops:
