@@ -6,7 +6,7 @@ def local_executor(generator):
     in local environment
 
     """
-    mapper = generator.get_mapper_callable()
+    mapper = generator.get_callable()
 
     TChain = ROOT.TChain(generator.root_node.treename)
     # TODO(shravan97) : Change the ctor to RDataFrame's

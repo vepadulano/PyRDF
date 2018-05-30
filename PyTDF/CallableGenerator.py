@@ -54,7 +54,7 @@ class CallableGenerator(object):
                 self._dfs(n, *new_tuple)
 
 
-    def get_mapper_callable(self):
+    def get_callable(self):
         """
         Function that converts a given
         graph onto a mapper function and 
