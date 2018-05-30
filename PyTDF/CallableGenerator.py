@@ -1,7 +1,7 @@
 class CallableGenerator(object):
     """
     Class that generates
-    mapper abd reducer functions
+    mapper and reducer functions
 
     """
     def __init__(self, root_node):
@@ -27,7 +27,7 @@ class CallableGenerator(object):
                 self._dfs(n)
             return
 
-        if node.operation.op_type == node.operation.TYPES.ACTION:
+        if node.operation.op_type == node.operation.Types.ACTION:
             self.actions+=1
             
             ops_copy.append(node.operation)

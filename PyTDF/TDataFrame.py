@@ -17,16 +17,5 @@ class TDataFrame(Node):
         super(TDataFrame, self).__init__(None, None)
         self.filelist = filelist
         self.treename = treename
-
-    def create_tdf(self):
-        """
-        Method to create a TDataFrame object
-
-        """
-
-        self.Tchain = ROOT.TChain(self.treename)
-
-        for f in self.filelist:
-            self.Tchain.Add(f)
-
-        self._tdf = ROOT.Experimental.TDataFrame(self.Tchain)
+        self.TChain = None
+        self.TDF = None

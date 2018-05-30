@@ -9,7 +9,7 @@ class Operation(object):
 
     """
 
-    TYPES = Enum("TYPES", "ACTION TRANSFORMATION")
+    Types = Enum("Types", "ACTION TRANSFORMATION")
 
     def __init__(self, name, *args, **kwargs):
         self.name = name
@@ -18,24 +18,37 @@ class Operation(object):
         self.op_type = self._classify_operation(name)
 
     def _classify_operation(self, name):
-        if name.lower() in ("range", "take"):
+        """
+        Method to classify the given
+        operation as action or 
+        transformation
+        """
+
+        future_ops = [
+        "Range",
+        "Take"
+        ]
+
+        if name in future_ops:
             raise NotImplementedError("This operation ({}) isn't supported yet ! ".format(name))
 
+        ops = Operation.Types
+
         operations_dict = {
-        'Define':Operation.TYPES.TRANSFORMATION,
-        'Filter':Operation.TYPES.TRANSFORMATION,
-        'Histo1D':Operation.TYPES.ACTION,
-        'Histo2D':Operation.TYPES.ACTION,
-        'Histo3D':Operation.TYPES.ACTION,
-        'Profile1D':Operation.TYPES.ACTION,
-        'Profile2D':Operation.TYPES.ACTION,
-        'Profile3D':Operation.TYPES.ACTION,
-        'Count':Operation.TYPES.ACTION,
-        'Min':Operation.TYPES.ACTION,
-        'Max':Operation.TYPES.ACTION,
-        'Mean':Operation.TYPES.ACTION,
-        'Sum':Operation.TYPES.ACTION,
-        'Fill':Operation.TYPES.ACTION,
+        'Define':ops.TRANSFORMATION,
+        'Filter':ops.TRANSFORMATION,
+        'Histo1D':ops.ACTION,
+        'Histo2D':ops.ACTION,
+        'Histo3D':ops.ACTION,
+        'Profile1D':ops.ACTION,
+        'Profile2D':ops.ACTION,
+        'Profile3D':ops.ACTION,
+        'Count':ops.ACTION,
+        'Min':ops.ACTION,
+        'Max':ops.ACTION,
+        'Mean':ops.ACTION,
+        'Sum':ops.ACTION,
+        'Fill':ops.ACTION,
         }
         
         op_type = operations_dict.get(name)

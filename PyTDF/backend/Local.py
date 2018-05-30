@@ -7,9 +7,17 @@ def local_executor(generator):
 
     """
     mapper = generator.get_mapper_callable()
-    generator.root_node.create_tdf()
+    TChain = ROOT.TChain(generator.root_node.treename)
 
-    output = mapper(generator.root_node._tdf)
+    for f in generator.root_node.filelist:
+        TChain.Add(f)
+
+    TDF = ROOT.Experimental.TDataFrame(TChain)
+
+    generator.root_node.TChain = TChain
+    generator.root_node.TDF = TDF
+
+    output = mapper(generator.root_node.TDF)
 
     node_map = generator.action_node_map
 
