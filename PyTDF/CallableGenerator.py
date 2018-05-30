@@ -1,3 +1,5 @@
+from .Operation import Operation
+
 class CallableGenerator(object):
     """
     Class that generates
@@ -27,7 +29,7 @@ class CallableGenerator(object):
                 self._dfs(n)
             return
 
-        if node.operation.op_type == node.operation.Types.ACTION:
+        if node.operation.op_type == Operation.Types.ACTION:
             self.actions+=1
             
             ops_copy.append(node.operation)

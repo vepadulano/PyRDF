@@ -31,7 +31,7 @@ class Node(object):
         newNode = Node(operation=op, _get_head=self._get_head)
         self.next_nodes.append(newNode)
 
-        if op.op_type == op.Types.ACTION:
+        if op.op_type == Operation.Types.ACTION:
             return Proxy(newNode)
 
         return newNode
@@ -63,7 +63,7 @@ class Node(object):
                 children.append(n)
         self.next_nodes = children
 
-        if not self.next_nodes and (len(gc.get_referrers(self)) <= 3):
+        if not self.next_nodes and len(gc.get_referrers(self)) <= 3:
             
             ### The 3 referrers to the current node would be :
             ### - The current function (_graph_prune())
