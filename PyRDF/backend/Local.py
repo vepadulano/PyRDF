@@ -8,13 +8,11 @@ def local_executor(generator):
     """
     mapper = generator.get_callable()
 
-    TChain = ROOT.TChain(generator.root_node.treename)
-    # TODO(shravan97) : Change the ctor to RDataFrame's
-
+    filenames_vec = ROOT.std.vector('string')()
     for f in generator.root_node.filelist:
-        TChain.Add(f)
+        filenames_vec.push_back(f)
 
-    TDF = ROOT.Experimental.TDataFrame(TChain)
+    TDF = ROOT.ROOT.RDataFrame(generator.root_node.treename, filenames_vec)
 
     output = mapper(TDF)
 
