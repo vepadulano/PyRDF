@@ -1,4 +1,4 @@
-from PyTDF import *
+from PyRDF import *
 import unittest
 
 class CallableGeneratorTest(unittest.TestCase):

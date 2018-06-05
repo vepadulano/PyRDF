@@ -1,4 +1,4 @@
-from PyTDF import *
+from PyRDF import *
 import unittest
 
 ## Tests for Node class
