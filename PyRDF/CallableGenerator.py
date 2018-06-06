@@ -64,7 +64,7 @@ class CallableGenerator(object):
 
         """
 
-        self.root_node._graph_prune()
+        self.root_node.graph_prune()
 
         self.actions = 0
         self.tfs = 0

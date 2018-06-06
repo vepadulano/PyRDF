@@ -36,37 +36,19 @@ class Node(object):
 
         return newNode
     
-    def _dfs(self, node, prev_object= None):
-        """
-        Do a depth-first traversal of the graph from the root
-
-        """
-        if not node.operation:
-            prev_object = node._tdf
-            self._graph_prune()
-
-        else:
-            ## Execution of the node
-            op = getattr(prev_object, node.operation.name)
-            node.value = op(*node.operation.args, **node.operation.kwargs)
-        
-        for n in node.next_nodes:
-            self._dfs(n, node.value)
-
-    
-    def _graph_prune(self):
+    def graph_prune(self):
 
         children = []
 
         for n in self.next_nodes:
-            if n._graph_prune():
+            if n.graph_prune():
                 children.append(n)
         self.next_nodes = children
 
         if not self.next_nodes and len(gc.get_referrers(self)) <= 3:
             
             ### The 3 referrers to the current node would be :
-            ### - The current function (_graph_prune())
+            ### - The current function (graph_prune())
             ### - An internal reference (which every Python object has)
             ### - The current node's parent node
             ###

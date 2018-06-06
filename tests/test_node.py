@@ -46,39 +46,32 @@ class DfsTest(unittest.TestCase):
             self.ord_list.append(3)
             return self
 
-    def test_dfs_order_small(self):
-        t = DfsTest.Temp()
+    @classmethod
+    def traverse(cls, node, prev_object= None):
+        """
+        Do a depth-first traversal of the graph from the root
+
+        """
+        if not node.operation:
+            prev_object = DfsTest.Temp()
+            node.value = prev_object
+            node.graph_prune()
+
+        else:
+            ## Execution of the node
+            op = getattr(prev_object, node.operation.name)
+            node.value = op(*node.operation.args, **node.operation.kwargs)
+
+        for n in node.next_nodes:
+            DfsTest.traverse(n, node.value)
+
+        return prev_object.ord_list
+
+
+    def test_dfs_graph_with_pruning_actions(self):
 
         node = Node(None, None)
-        node.value = t
 
-        node._dfs(node = node._get_head())
-
-        self.assertEqual(t.ord_list, [])
-
-    def test_dfs_order_big(self):
-        t = DfsTest.Temp()
-
-        node = Node(None, None)
-        node.value = t
-        n1 = node.Define()
-        n2 = node.Filter()
-        n3 = n2.Filter()
-        n4 = n3.Count()
-        n5 = n1.Count()
-        n6 = node.Filter()
-
-        node._dfs(node = node._get_head())
-
-        reqd_order = [1, 3, 2, 2, 3, 2]
-
-        self.assertEqual(t.ord_list, reqd_order)
-
-    def test_dfs_graph_pruning(self):
-        t = DfsTest.Temp()
-
-        node = Node(None, None)
-        node.value = t
         n1 = node.Define()
         n2 = node.Filter()
         n3 = n2.Filter()
@@ -88,8 +81,44 @@ class DfsTest(unittest.TestCase):
 
         n5 = n1.Filter()
 
-        node._dfs(node = node._get_head())
+        obtained_order = DfsTest.traverse(node = node._get_head())
 
         reqd_order = [1, 2, 2, 2, 3, 2]
 
-        self.assertEqual(t.ord_list, reqd_order)
+        self.assertEqual(obtained_order, reqd_order)
+
+    def test_dfs_graph_with_pruning_transformations(self):
+
+        node = Node(None, None)
+
+        n1 = node.Define()
+        n2 = node.Filter()
+        n3 = n2.Filter()
+        n4 = n3.Count()
+        n5 = n1.Filter()
+        n6 = node.Filter()
+
+        n5 = n1.Count()
+
+        obtained_order = DfsTest.traverse(node = node._get_head())
+
+        reqd_order = [1, 3, 2, 2, 3, 2]
+
+        self.assertEqual(obtained_order, reqd_order)
+
+    def test_dfs_graph_without_pruning(self):
+
+        node = Node(None, None)
+
+        n1 = node.Define()
+        n2 = node.Filter()
+        n3 = n2.Filter()
+        n4 = n3.Count()
+        n5 = n1.Count()
+        n6 = node.Filter()
+
+        obtained_order = DfsTest.traverse(node = node._get_head())
+
+        reqd_order = [1, 3, 2, 2, 3, 2]
+
+        self.assertEqual(obtained_order, reqd_order)
