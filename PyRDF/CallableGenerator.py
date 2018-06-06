@@ -7,11 +7,6 @@ class CallableGenerator(object):
 
     """
     def __init__(self, root_node):
-        
-        self.actions = 0
-        self.tfs = 0
-        self.operations = []
-        self.action_node_map = {}
         self.root_node = root_node
 
     def _dfs(self, node, prev = 't', ops = []):
@@ -66,30 +61,22 @@ class CallableGenerator(object):
 
         self.root_node.graph_prune()
 
-        self.actions = 0
-        self.tfs = 0
-        self.operations = []
-        self.action_node_map = {}
-        self._dfs(self.root_node)
+        def mapper(t, node=None, return_vals=[], return_nodes=[]):
+            ## TODO : Somehow remove references to any Node object 
+            ## for this to work on Spark
 
-        def mapper(t):
-            ops = {'t':t}
-            ret_actions = {}
-            for tp in self.operations:
-                obj = None
-                for i in range(len(tp[2])):
-                    if i==0:
-                        obj = getattr(ops[tp[1]], tp[2][i].name)(*tp[2][i].args, **tp[2][i].kwargs)
-                    else:
-                        obj = getattr(obj, tp[2][i].name)(*tp[2][i].args, **tp[2][i].kwargs)
+            if not node:
+                node = self.root_node
+            else:
+                t = getattr(t, node.operation.name)(*node.operation.args, **node.operation.kwargs)
+                if node.operation.op_type==Operation.Types.ACTION:
+                    return_vals.append(t)
+                    return_nodes.append(node)
 
-                ops[tp[0]] = obj
+            for n in node.next_nodes:
+                mapper(t, n, return_vals)
 
-                if tp[0][:2] == "ta":
-                    ret_actions[tp[0]] = obj
-
-
-            return ret_actions
+            return (return_vals, return_nodes)
 
         return mapper
 

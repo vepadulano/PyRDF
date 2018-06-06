@@ -16,9 +16,7 @@ def local_executor(generator):
 
     output = mapper(TDF)
 
-    node_map = generator.action_node_map
+    output[0][0].GetValue() # Trigger event-loop
 
-    list(output.values())[0].GetValue() # Trigger event-loop
-
-    for n in node_map:
-        node_map[n].value = output[n]
+    for i in range(len(output[0])):
+        output[1][i].value = output[0][i]
