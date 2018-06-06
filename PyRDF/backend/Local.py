@@ -1,22 +1,27 @@
 import ROOT
+from .Backend import Backend
 
-def local_executor(generator):
-    """
-    Execution of the event-loop
-    in local environment
+class Local(Backend):
 
-    """
-    mapper = generator.get_callable()
+    def __init__(self, config):
+        self.config = config
 
-    filenames_vec = ROOT.std.vector('string')()
-    for f in generator.root_node.filelist:
-        filenames_vec.push_back(f)
+    def execute(self, generator):
+        """
+        Execution of the event-loop
+        in local environment
+        """
+        mapper = generator.get_callable()
 
-    rdf = ROOT.ROOT.RDataFrame(generator.root_node.treename, filenames_vec)
+        filenames_vec = ROOT.std.vector('string')()
+        for f in generator.root_node.filelist:
+            filenames_vec.push_back(f)
 
-    values, nodes = mapper(rdf)
+        rdf = ROOT.ROOT.RDataFrame(generator.root_node.treename, filenames_vec)
 
-    values[0].GetValue() # Trigger event-loop
+        values, nodes = mapper(rdf)
 
-    for i in range(len(values)):
-        nodes[i].value = values[i]
+        values[0].GetValue() # Trigger event-loop
+
+        for i in range(len(values)):
+            nodes[i].value = values[i]
