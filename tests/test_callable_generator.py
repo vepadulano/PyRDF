@@ -31,12 +31,13 @@ class CallableGeneratorTest(unittest.TestCase):
 
         mp = CallableGenerator(node)
         mapper_func = mp.get_callable()
-        actions = mapper_func(t)
+        output = mapper_func(t)
 
         reqd_order = [1, 3, 2, 2, 3, 2]
 
         self.assertEqual(t.ord_list, reqd_order)
-        self.assertEqual(list(actions.keys()), ['ta1', 'ta2'])
+        self.assertListEqual(output[1], [n5.action_node, n4.action_node])
+        self.assertListEqual(output[0], [t, t])
 
     def test_mapper_with_pruning(self):
         t = CallableGeneratorTest.Temp()
@@ -52,9 +53,10 @@ class CallableGeneratorTest(unittest.TestCase):
 
         mp = CallableGenerator(node)
         mapper_func = mp.get_callable()
-        actions = mapper_func(t)
+        output = mapper_func(t)
 
         reqd_order = [1, 2, 2, 2, 3, 2]
 
         self.assertEqual(t.ord_list, reqd_order)
-        self.assertEqual(list(actions.keys()), ['ta1'])
+        self.assertListEqual(output[1], [n4.action_node])
+        self.assertListEqual(output[0], [t])
