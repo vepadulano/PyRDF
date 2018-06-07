@@ -25,11 +25,6 @@ class Proxy(object):
 
         if not self.action_node.value:
             generator = CallableGenerator(self.action_node._get_head())
-
-            if not Proxy.backend:
-                from .backend import Local
-                Proxy.backend = Local({})
-
             Proxy.backend.execute(generator)
 
         return getattr(self.action_node.value, self._cur_attr)(*args, **kwargs)

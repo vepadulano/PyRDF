@@ -5,6 +5,8 @@ from .Operation import Operation
 from .CallableGenerator import CallableGenerator
 from .backend import Local, Dist
 
+Proxy.backend = Local({})
+
 def use(backend, conf = {}):
 
     future_backends = [
