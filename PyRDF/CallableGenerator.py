@@ -61,22 +61,27 @@ class CallableGenerator(object):
 
         self.root_node.graph_prune()
 
-        def mapper(t, node=None, return_vals=[], return_nodes=[]):
+        def mapper(node_cpp, node_py=None):
             ## TODO : Somehow remove references to any Node object 
             ## for this to work on Spark
 
-            if not node:
-                node = self.root_node
+            return_vals = []
+            return_nodes = []
+
+            if not node_py:
+                node_py = self.root_node
             else:
-                t = getattr(t, node.operation.name)(*node.operation.args, **node.operation.kwargs)
-                if node.operation.op_type==Operation.Types.ACTION:
-                    return_vals.append(t)
-                    return_nodes.append(node)
+                node_cpp = getattr(node_cpp, node_py.operation.name)(*node_py.operation.args, **node_py.operation.kwargs)
+                if node_py.operation.op_type==Operation.Types.ACTION:
+                    return_vals.append(node_cpp)
+                    return_nodes.append(node_py)
 
-            for n in node.next_nodes:
-                mapper(t, n, return_vals)
+            for n in node_py.next_nodes:
+                prev_vals, prev_nodes = mapper(node_cpp, n)
+                return_vals.extend(prev_vals)
+                return_nodes.extend(prev_nodes)
 
-            return (return_vals, return_nodes)
+            return return_vals, return_nodes
 
         return mapper
 
