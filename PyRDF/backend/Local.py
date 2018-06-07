@@ -3,9 +3,6 @@ from .Backend import Backend
 
 class Local(Backend):
 
-    def __init__(self, config):
-        self.config = config
-
     def execute(self, generator):
         """
         Execution of the event-loop
