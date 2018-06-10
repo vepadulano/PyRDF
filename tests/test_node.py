@@ -99,10 +99,32 @@ class DfsTest(unittest.TestCase):
         n6 = node.Filter()
 
         n5 = n1.Count()
+        ## This node removes references from the filter
+        ## node defined against n5 above
 
         obtained_order = DfsTest.traverse(node = node._get_head())
 
         reqd_order = [1, 3, 2, 2, 3, 2]
+
+        self.assertEqual(obtained_order, reqd_order)
+
+    def test_dfs_graph_with_recursive_pruning(self):
+
+        node = Node(None, None)
+
+        n1 = node.Define()
+        n2 = node.Filter()
+        n3 = n2.Filter()
+        n4 = n3.Count()
+        n5 = n1.Filter()
+        n6 = node.Filter()
+
+        n4 = n3 = n2 = None
+        ## Remove references from n4 and it's parent nodes
+
+        obtained_order = DfsTest.traverse(node = node._get_head())
+
+        reqd_order = [1, 2, 2]
 
         self.assertEqual(obtained_order, reqd_order)
 
