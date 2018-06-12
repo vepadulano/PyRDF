@@ -128,6 +128,28 @@ class DfsTest(unittest.TestCase):
 
         self.assertEqual(obtained_order, reqd_order)
 
+    def test_dfs_graph_with_parent_pruning(self):
+
+        node = Node(None, None)
+
+        n1 = node.Define()
+        n2 = node.Filter()
+        n3 = n2.Filter()
+        n4 = n3.Count()
+        n5 = n1.Filter()
+        n6 = node.Filter()
+
+        n2 = None
+        ## Remove references from n2 (which shouldn't affect the graph)
+
+        obtained_order = DfsTest.traverse(node = node._get_head())
+
+        reqd_order = [1, 2, 2, 2, 3, 2]
+        ## Removing references from n2 will not prune any node 
+        ## because n2 still has children
+
+        self.assertEqual(obtained_order, reqd_order)
+
     def test_dfs_graph_without_pruning(self):
 
         node = Node(None, None)
