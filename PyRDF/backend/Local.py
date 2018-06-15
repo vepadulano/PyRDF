@@ -10,11 +10,7 @@ class Local(Backend):
         """
         mapper = generator.get_callable()
 
-        filenames_vec = ROOT.std.vector('string')()
-        for f in generator.root_node.filelist:
-            filenames_vec.push_back(f)
-
-        rdf = ROOT.ROOT.RDataFrame(generator.root_node.treename, filenames_vec)
+        rdf = ROOT.ROOT.RDataFrame(*generator.root_node.args)
 
         values, nodes = mapper(rdf)
 
