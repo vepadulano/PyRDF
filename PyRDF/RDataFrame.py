@@ -33,9 +33,10 @@ class RDataFrame(Node):
         try:
             ROOT.ROOT.RDataFrame(*args) # Check if the args are correct
         except TypeError as e:
-            raise RDataFrameException(e, "Error creating the RDataFrame !") from None
-            # 'from None' is to supress the traceback of
-            # the redundant error 'e'
+            rdf_exception = RDataFrameException(e, "Error creating the RDataFrame !")
+            rdf_exception.__cause__ = None
+            # The above line is to supress the traceback of error 'e'
+            raise rdf_exception
 
         self.args = args
 
