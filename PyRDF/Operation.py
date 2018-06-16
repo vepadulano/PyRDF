@@ -51,6 +51,7 @@ class Operation(object):
         'Mean':ops.ACTION,
         'Sum':ops.ACTION,
         'Fill':ops.ACTION,
+        'Report':ops.ACTION
         }
         
         op_type = operations_dict.get(name)
