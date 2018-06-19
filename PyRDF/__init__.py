@@ -1,4 +1,4 @@
-from .RDataFrame import RDataFrame
+from .RDataFrame import RDataFrame, RDataFrameException
 from .Node import Node
 from .Proxy import Proxy
 from .Operation import Operation
