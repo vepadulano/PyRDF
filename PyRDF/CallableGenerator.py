@@ -74,7 +74,7 @@ class CallableGenerator(object):
                 # Execute the current operation using the output of the parent node (node_cpp)
                 node_cpp = getattr(node_cpp, node_py.operation.name)(*node_py.operation.args, **node_py.operation.kwargs)
 
-                if node_py.operation.op_type==Operation.Types.ACTION:
+                if node_py.operation.is_action():
                     # Collect all action nodes in order to return them
                     return_vals.append(node_cpp)
                     return_nodes.append(node_py)

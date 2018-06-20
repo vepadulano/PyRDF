@@ -124,3 +124,27 @@ class Operation(object):
         if not op_type:
             raise Exception("Invalid operation \"{}\"".format(name))
         return op_type
+
+    def is_action(self):
+        """
+        Checks if the current operation is an action.
+
+        Returns
+        -------
+        True
+            if the current operation is an action, False otherwise.
+
+        """
+        return self.op_type == Operation.Types.ACTION
+
+    def is_transformation(self):
+        """
+        Checks if the current operation is a transformation.
+
+        Returns
+        -------
+        True
+            if the current operation is a transformation, False otherwise.
+
+        """
+        return self.op_type == Operation.Types.TRANSFORMATION

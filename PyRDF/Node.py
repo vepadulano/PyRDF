@@ -99,7 +99,7 @@ class Node(object):
 
         # Return a Proxy object if the new node
         # is an action node
-        if op.op_type == Operation.Types.ACTION:
+        if op.is_action():
             return Proxy(newNode)
 
         return newNode
