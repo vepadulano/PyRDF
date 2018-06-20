@@ -57,7 +57,7 @@ class Proxy(object):
         # and returns result of the current action node.
 
         if not self.action_node.value: # If event-loop not triggered
-            generator = CallableGenerator(self.action_node._get_head())
+            generator = CallableGenerator(self.action_node.get_head())
             Proxy.backend.execute(generator)
 
         return getattr(self.action_node.value, self._cur_attr)(*args, **kwargs)

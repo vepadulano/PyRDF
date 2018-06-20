@@ -124,7 +124,7 @@ class DfsTest(unittest.TestCase):
             op = getattr(prev_object, node.operation.name)
             node.value = op(*node.operation.args, **node.operation.kwargs)
 
-        for n in node.next_nodes:
+        for n in node.children:
             DfsTest.traverse(n, node.value)
 
         return prev_object.ord_list
@@ -151,7 +151,7 @@ class DfsTest(unittest.TestCase):
         # Action pruning
         n5 = n1.Filter() # n5 was an action node earlier
 
-        obtained_order = DfsTest.traverse(node = node._get_head())
+        obtained_order = DfsTest.traverse(node = node.get_head())
 
         reqd_order = [1, 2, 2, 2, 3, 2]
 
@@ -178,7 +178,7 @@ class DfsTest(unittest.TestCase):
         # Transformation pruning
         n5 = n1.Count() # n5 was earlier a transformation node
 
-        obtained_order = DfsTest.traverse(node = node._get_head())
+        obtained_order = DfsTest.traverse(node = node.get_head())
 
         reqd_order = [1, 3, 2, 2, 3, 2]
 
@@ -206,7 +206,7 @@ class DfsTest(unittest.TestCase):
         # Remove references from n4 and it's parent nodes
         n4 = n3 = n2 = None
 
-        obtained_order = DfsTest.traverse(node = node._get_head())
+        obtained_order = DfsTest.traverse(node = node.get_head())
 
         reqd_order = [1, 2, 2]
 
@@ -233,7 +233,7 @@ class DfsTest(unittest.TestCase):
         # Remove references from n2 (which shouldn't affect the graph)
         n2 = None
 
-        obtained_order = DfsTest.traverse(node = node._get_head())
+        obtained_order = DfsTest.traverse(node = node.get_head())
 
         reqd_order = [1, 2, 2, 2, 3, 2]
         # Removing references from n2 will not prune any node
@@ -260,7 +260,7 @@ class DfsTest(unittest.TestCase):
         n5 = n1.Count()
         n6 = node.Filter()
 
-        obtained_order = DfsTest.traverse(node = node._get_head())
+        obtained_order = DfsTest.traverse(node = node.get_head())
 
         reqd_order = [1, 3, 2, 2, 3, 2]
 

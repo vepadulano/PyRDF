@@ -22,7 +22,7 @@ class Local(Backend):
 
         mapper = generator.get_callable() # Get the callable
 
-        rdf = ROOT.ROOT.RDataFrame(*generator.root_node.args) # Create RDF object
+        rdf = ROOT.ROOT.RDataFrame(*generator.head_node.args) # Create RDF object
 
         values, nodes = mapper(rdf) # Execute the mapper function
 

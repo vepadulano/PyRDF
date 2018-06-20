@@ -15,11 +15,15 @@ class Node(object):
 
     Attributes
     ----------
+    get_head : function
+            A lambda function that returns the head
+            node of the current graph.
+
     operation
         The operation that this Node represents. This
         could be `None`.
 
-    next_nodes
+    children
         A list of `Node` objects which represent the
         children nodes connected to the current node.
 
@@ -31,13 +35,13 @@ class Node(object):
         execution.
 
     """
-    def __init__(self, _get_head, operation):
+    def __init__(self, get_head, operation):
         """
         Creates a new `Node` based on the 'operation'.
 
         Parameters
         ----------
-        _get_head : function
+        get_head : function
             A lambda function that returns the head
             node of the current graph. This value
             could be `None`.
@@ -46,14 +50,14 @@ class Node(object):
             The operation that this Node represents. This
             could be `None`.
         """
-        if _get_head is None:
+        if get_head is None:
             # Function to get 'head' Node
-            self._get_head = lambda : self
+            self.get_head = lambda : self
         else:
-            self._get_head = _get_head
+            self.get_head = get_head
         
         self.operation = operation
-        self.next_nodes = []
+        self.children = []
         self._cur_attr = "" # Name of the new incoming operation
         self.value = None
 
@@ -88,10 +92,10 @@ class Node(object):
         op = Operation(self._cur_attr, *args, **kwargs)
 
         # Create a new `Node` object to house the operation
-        newNode = Node(operation=op, _get_head=self._get_head)
+        newNode = Node(operation=op, get_head=self.get_head)
 
         # Add the new node as a child of the current node
-        self.next_nodes.append(newNode)
+        self.children.append(newNode)
 
         # Return a Proxy object if the new node
         # is an action node
@@ -115,15 +119,15 @@ class Node(object):
 
         children = []
 
-        for n in self.next_nodes:
+        for n in self.children:
             # Select children based on
             # pruning condition
             if n.graph_prune():
                 children.append(n)
 
-        self.next_nodes = children
+        self.children = children
 
-        if not self.next_nodes and len(gc.get_referrers(self)) <= 3:
+        if not self.children and len(gc.get_referrers(self)) <= 3:
             
             ### The 3 referrers to the current node would be :
             ### - The current function (graph_prune())
