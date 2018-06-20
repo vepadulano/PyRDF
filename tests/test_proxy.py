@@ -2,13 +2,33 @@ from PyRDF import *
 import unittest
 
 class AttrReadTest(unittest.TestCase):
+    """
+    Test cases to check working of
+    methods in Proxy class.
+
+    """
 
     class Temp(object):
+        """
+        A mock action node result class.
+
+        """
         def val(self, arg):
-            return arg+123
+            """
+            A test method to check function
+            call on the Temp class.
+
+            """
+            return arg+123 # A simple operation to check
 
     def test_attr_simple(self):
-        # Write a new class again
+        """
+        Test case to check that a Proxy
+        object reads the right input
+        attribute.
+
+        """
+
         node = Node(None, None)
         proxy = Proxy(node)
         func = proxy.attr
@@ -16,6 +36,12 @@ class AttrReadTest(unittest.TestCase):
         self.assertEqual(proxy._cur_attr, "attr")
 
     def test_return_value(self):
+        """
+        Test case to check that a Proxy
+        object computes and returns the
+        right output based on the function call.
+
+        """
 
         t = AttrReadTest.Temp()
         node = Node(None, None)

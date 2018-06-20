@@ -5,44 +5,122 @@ import sys, gc
 
 class Node(object):
     """
-    A Class that represents
-    a graph Node
+    A Class that represents a node in RDataFrame
+    operations graph. A Node houses an operation
+    and has references to child nodes. For details
+    on the types of operations supported, try :
+
+    import PyRDF
+    help(PyRDF.Operation)
+
+    Attributes
+    ----------
+    operation
+        The operation that this Node represents. This
+        could be `None`.
+
+    next_nodes
+        A list of `Node` objects which represent the
+        children nodes connected to the current node.
+
+    value
+        The computed value after executing the operation in
+        the current node for a particular PyRDF graph. This
+        is permanently `None` for transformation nodes and
+        the action nodes get a `RResultPtr` after event-loop
+        execution.
 
     """
     def __init__(self, _get_head, operation):
-        
+        """
+        Creates a new `Node` based on the 'operation'.
+
+        Parameters
+        ----------
+        _get_head : function
+            A lambda function that returns the head
+            node of the current graph. This value
+            could be `None`.
+
+        operation : PyRDF.Operation
+            The operation that this Node represents. This
+            could be `None`.
+        """
         if _get_head is None:
+            # Function to get 'head' Node
             self._get_head = lambda : self
         else:
             self._get_head = _get_head
         
         self.operation = operation
         self.next_nodes = []
-        self._cur_attr = ""
+        self._cur_attr = "" # Name of the new incoming operation
         self.value = None
 
     def __getattr__(self, attr):
-        self._cur_attr = attr
+        """
+        Intercepts any call to the current node and dispatches
+        it by means of a call handler.
+
+        Parameters
+        ----------
+        attr : str
+            The name of the operation in the new
+            child node.
+
+        Returns
+        -------
+        function
+            A method to handle an operation call to the
+            current node.
+
+        """
+
+        self._cur_attr = attr # Stores new operation name
         return self._call_handler
 
     def _call_handler(self, *args, **kwargs):
+        # Handles an operation call to the current node and
+        # returns the new node built using the operation call.
 
+        # Create a new `Operation` object for the
+        # incoming operation call
         op = Operation(self._cur_attr, *args, **kwargs)
+
+        # Create a new `Node` object to house the operation
         newNode = Node(operation=op, _get_head=self._get_head)
+
+        # Add the new node as a child of the current node
         self.next_nodes.append(newNode)
 
+        # Return a Proxy object if the new node
+        # is an action node
         if op.op_type == Operation.Types.ACTION:
             return Proxy(newNode)
 
         return newNode
     
     def graph_prune(self):
+        """
+        Prunes nodes from the current PyRDF graph under certain conditions. The current
+        node will be pruned if it has no children and the user application does not hold
+        any reference to it. The children of the current node will get recursively pruned.
+
+        Returns
+        -------
+        True
+            if the current node has to be pruned, False otherwise.
+
+        """
 
         children = []
 
         for n in self.next_nodes:
+            # Select children based on
+            # pruning condition
             if n.graph_prune():
                 children.append(n)
+
         self.next_nodes = children
 
         if not self.next_nodes and len(gc.get_referrers(self)) <= 3:
