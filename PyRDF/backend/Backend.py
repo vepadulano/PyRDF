@@ -1,4 +1,8 @@
-class Backend(object):
+from abc import ABCMeta, abstractmethod
+
+ABC = ABCMeta('ABC', (object,), {})
+
+class Backend(ABC):
     """
     Base class for RDataFrame backends. Subclasses
     of this class need to implement the 'execute' method.
@@ -26,5 +30,6 @@ class Backend(object):
         """
         self.config = config
 
+    @abstractmethod
     def execute(self, generator):
-        raise NotImplementedError("Incorrect backend environment !")
+        pass
