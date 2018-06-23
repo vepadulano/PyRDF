@@ -1,5 +1,3 @@
-from .Operation import Operation
-
 class CallableGenerator(object):
     """
     Class that generates a callable
