@@ -1,6 +1,5 @@
-import PyRDF
+import PyRDF, unittest, ROOT
 from PyRDF import Proxy, Local, Dist
-import unittest
 
 class SelectionTest(unittest.TestCase):
     """
@@ -17,7 +16,7 @@ class SelectionTest(unittest.TestCase):
         """
 
         PyRDF.use("local")
-        self.assertIsInstance(Proxy.backend, Local)
+        self.assertIsInstance(PyRDF.current_backend, Local)
 
     def test_dist_select(self):
         """
@@ -27,7 +26,7 @@ class SelectionTest(unittest.TestCase):
         """
 
         PyRDF.use("spark")
-        self.assertIsInstance(Proxy.backend, Dist)
+        self.assertIsInstance(PyRDF.current_backend, Dist)
 
     def test_future_env_select(self):
         """
@@ -67,3 +66,83 @@ class BackendInitTest(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             TestBackend()
+
+class OperationSupportTest(unittest.TestCase):
+    """
+    Test cases to ensure that incoming operations are
+    classified accurately in local environment.
+
+    """
+
+    def test_action(self):
+        """
+        Test case to check that action nodes
+        are classified accurately.
+
+        """
+
+        backend = Local()
+        op = backend.check_supported("Count")
+
+    def test_transformation(self):
+        """
+        Test case to check that transformation
+        nodes are classified accurately.
+
+        """
+
+        backend = Local()
+        op = backend.check_supported("Define")
+
+    def test_locally_unsupported_operations(self):
+        """
+        Test case to check that unsupported operations
+        raise an Exception.
+
+        """
+
+        backend = Local()
+        with self.assertRaises(Exception):
+            op = backend.check_supported("Take")
+
+        with self.assertRaises(Exception):
+            op = backend.check_supported("Snapshot")
+
+        with self.assertRaises(Exception):
+            op = backend.check_supported("Foreach")
+
+    def test_none(self):
+        """
+        Test case to check that incorrect operations
+        raise an Exception.
+
+        """
+
+        backend = Local()
+        with self.assertRaises(Exception):
+            op = backend.check_supported("random")
+
+    def test_range_operation_single_thread(self):
+        """
+        Test case to check that 'Range' operation
+        works in single-threaded mode and raises an
+        Exception in multi-threaded mode.
+
+        """
+
+        backend = Local()
+        backend.check_supported("Range")
+
+    def test_range_operation_multi_thread(self):
+        """
+        Test case to check that 'Range' operation
+        raises an Exception in multi-threaded mode.
+
+        """
+
+        ROOT.ROOT.EnableImplicitMT()
+        backend = Local()
+        with self.assertRaises(Exception):
+            op = backend.check_supported("Range")
+
+        ROOT.ROOT.DisableImplicitMT()
