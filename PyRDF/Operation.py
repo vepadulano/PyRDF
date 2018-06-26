@@ -89,16 +89,6 @@ class Operation(object):
         # Classifies the given operation as action or
         # transformation and returns the type.
 
-        future_ops = [
-        "Range",
-        "Take",
-        "Snapshot",
-        "Foreach"
-        ]
-
-        if name in future_ops:
-            raise NotImplementedError("This operation ({}) isn't supported yet ! ".format(name))
-
         ops = Operation.Types
 
         operations_dict = {

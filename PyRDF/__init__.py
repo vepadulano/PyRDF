@@ -5,19 +5,21 @@ from .Operation import Operation
 from .CallableGenerator import CallableGenerator
 from .backend import Local, Dist
 
-Proxy.backend = Local()
+current_backend = Local()
 
-def use(backend, conf = {}):
+def use(backend_name, conf = {}):
 
     future_backends = [
     "dask"
     ]
 
-    if backend in future_backends:
+    global current_backend
+
+    if backend_name in future_backends:
         raise NotImplementedError(" This backend environment will be considered in the future !")
-    elif backend == "local":
-        Proxy.backend = Local(conf)
-    elif backend == "spark":
-        Proxy.backend = Dist(conf)
+    elif backend_name == "local":
+        current_backend = Local(conf)
+    elif backend_name == "spark":
+        current_backend = Dist(conf)
     else:
         raise Exception(" Incorrect backend environment \"{}\"".format(backend))

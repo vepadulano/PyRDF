@@ -13,6 +13,33 @@ class Local(Backend):
         backend.
 
     """
+    def __init__(self, config={}):
+        """
+        Creates a new instance of the
+        Local implementation of `Backend`.
+
+        Parameters
+        ----------
+        config (optional)
+            The config object for the required
+            backend. The default value is an
+            empty Python dictionary `{}`.
+
+        """
+        super().__init__(config)
+        operations_not_supported = [
+        'Take',
+        'Snapshot',
+        'Foreach',
+        'Reduce',
+        'Aggregate'
+        ]
+        if ROOT.ROOT.IsImplicitMTEnabled():
+            # Add `Range` operation only if multi-threading
+            # is disabled.
+            operations_not_supported.append('Range')
+
+        self.supported_operations = [op for op in self.supported_operations if op not in operations_not_supported]
 
     def execute(self, generator):
         """

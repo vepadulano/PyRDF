@@ -87,6 +87,11 @@ class Node(object):
         # Handles an operation call to the current node and
         # returns the new node built using the operation call.
 
+        from . import current_backend
+        # Check if the current operation is supported by
+        # the backend
+        current_backend.check_supported(self._cur_attr)
+
         # Create a new `Operation` object for the
         # incoming operation call
         op = Operation(self._cur_attr, *args, **kwargs)

@@ -20,8 +20,6 @@ class Proxy(object):
         instance wraps.
 
     """
-    backend = None
-
     def __init__(self, action_node):
         """
         Creates a new `Proxy` object for a
@@ -57,7 +55,8 @@ class Proxy(object):
         # and returns result of the current action node.
 
         if not self.action_node.value: # If event-loop not triggered
+            from . import current_backend
             generator = CallableGenerator(self.action_node.get_head())
-            Proxy.backend.execute(generator)
+            current_backend.execute(generator)
 
         return getattr(self.action_node.value, self._cur_attr)(*args, **kwargs)
