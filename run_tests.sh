@@ -52,11 +52,12 @@ $nose_bin tests/*.py || {
 
 echo "\n \033[0;32m Ran tests successfully ! \033[0m \n"
 
-echo "======== Running tutorials ========\n"
+echo "======== Running single-threaded tutorials ========\n"
 
 {
 
-for filename in ./tutorials/*.py
+# Run single-threaded tutorials locally
+for filename in ./tutorials/local/sequential/df*.py
 do
 	echo "\n== Running $filename ==\n"
 	$python_bin "$filename"
@@ -68,4 +69,23 @@ done
 	exit 1
 }
 
-echo "\n======== \033[0;32m Ran tutorials successfully ! \033[0m ========\n"
+echo "\n======== \033[0;32m Ran single-threaded tutorials successfully ! \033[0m ========\n"
+
+echo "======== Running multi-threaded tutorials ========\n"
+
+{
+
+# Run multi-threaded tutorials locally
+for filename in ./tutorials/local/MT/df*.py
+do
+	echo "\n== Running $filename ==\n"
+	$python_bin "$filename"
+	echo "\n \033[0;32m Ran $filename successfully ! \033[0m"
+done
+
+} || {
+	echo "Error in running tutorials ! Check if you're in the PyRDF root directory !"
+	exit 1
+}
+
+echo "\n======== \033[0;32m Ran multi-threaded tutorials successfully ! \033[0m ========\n"
