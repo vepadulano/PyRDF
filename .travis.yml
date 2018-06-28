@@ -1,0 +1,11 @@
+# adapted from https://github.com/SuperNEMO-DBD/Falaise/blob/develop/.travis.yml
+
+matrix:
+  include:
+    - os: linux
+      services: docker
+
+install:
+  - docker run --name ub16 -idv ${TRAVIS_BUILD_DIR}:/app rootproject/root-ubuntu16:snapshot
+
+script: docker exec ub16 bash /app/.travis-script.sh
