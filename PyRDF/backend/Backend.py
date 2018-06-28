@@ -70,7 +70,7 @@ class Backend(ABC):
 
         """
         if operation_name not in self.supported_operations:
-            raise Exception("Invalid operation \"{}\"".format(operation_name))
+            raise Exception("The current backend doesn't support \"{}\" !".format(operation_name))
 
     @abstractmethod
     def execute(self, generator):
