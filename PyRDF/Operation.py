@@ -59,7 +59,7 @@ class Operation(object):
 
     """
 
-    Types = Enum("Types", "ACTION TRANSFORMATION")
+    Types = Enum("Types", "ACTION TRANSFORMATION INSTANT_ACTION")
 
     def __init__(self, name, *args, **kwargs):
         """
@@ -94,6 +94,8 @@ class Operation(object):
         operations_dict = {
         'Define':ops.TRANSFORMATION,
         'Filter':ops.TRANSFORMATION,
+        'Range':ops.TRANSFORMATION,
+        'Aggregate':ops.ACTION,
         'Histo1D':ops.ACTION,
         'Histo2D':ops.ACTION,
         'Histo3D':ops.ACTION,
@@ -106,9 +108,13 @@ class Operation(object):
         'Mean':ops.ACTION,
         'Sum':ops.ACTION,
         'Fill':ops.ACTION,
-        'Report':ops.ACTION
+        'Reduce':ops.ACTION,
+        'Report':ops.ACTION,
+        'Take':ops.ACTION,
+        'Snapshot':ops.INSTANT_ACTION,
+        'Foreach':ops.INSTANT_ACTION
         }
-        
+
         op_type = operations_dict.get(name)
 
         if not op_type:
