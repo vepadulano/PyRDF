@@ -18,6 +18,15 @@ class ClassifyTest(unittest.TestCase):
         op = Operation("Count")
         self.assertEqual(op.op_type, Operation.Types.ACTION)
 
+    def test_instant_action(self):
+        """
+        Test case to check that instant
+        actions are classified accurately.
+
+        """
+        op = Operation("Snapshot")
+        self.assertEqual(op.op_type, Operation.Types.INSTANT_ACTION)
+
     def test_transformation(self):
         """
         Test case to check that transformation
