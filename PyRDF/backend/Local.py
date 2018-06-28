@@ -26,7 +26,7 @@ class Local(Backend):
             empty Python dictionary `{}`.
 
         """
-        super().__init__(config)
+        super(Local, self).__init__(config)
         operations_not_supported = [
         'Take',
         'Snapshot',
