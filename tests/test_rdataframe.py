@@ -9,6 +9,24 @@ class RDataFrameConstructorTests(unittest.TestCase):
 
     """
 
+    def assertArgs(self, args_list1, args_list2):
+        """
+        Asserts the arguments from 2 given
+        arguments lists. Specifically for the cases :
+        * [str, list or vector or str]
+        * [str, list or vector or str, list or vector]
+
+        """
+        for elem1, elem2 in zip(args_list1, args_list2):
+            # Check if the types are equal
+            self.assertIsInstance(elem1, type(elem2))
+            # (this has to be done because, vector and
+            # list are iterables, but not of same type)
+
+            # Check the contents
+            self.assertListEqual(list(elem1), list(elem2))
+
+
     def test_integer_arg(self):
         """
         Test case to check the
@@ -44,9 +62,9 @@ class RDataFrameConstructorTests(unittest.TestCase):
         # RDataFrame constructor with 2nd argument as ROOT CPP Vector
         RDF_3 = RDataFrame("treename", reqd_vec)
 
-        self.assertListEqual(RDF_1.args, ["treename", "file.root"])
-        self.assertListEqual(RDF_2.args, ["treename", reqd_vec])
-        self.assertListEqual(RDF_3.args, ["treename", reqd_vec])
+        self.assertArgs(RDF_1.args, ["treename", "file.root"])
+        self.assertArgs(RDF_2.args, ["treename", reqd_vec])
+        self.assertArgs(RDF_3.args, ["treename", reqd_vec])
 
     def test_three_args_with_single_file(self):
         """
@@ -70,8 +88,8 @@ class RDataFrameConstructorTests(unittest.TestCase):
         # RDataFrame constructor with 3rd argument as ROOT CPP Vector
         RDF_2 = RDataFrame("treename", "file.root", reqd_vec)
 
-        self.assertListEqual(RDF_1.args, ["treename", "file.root", reqd_vec])
-        self.assertListEqual(RDF_2.args, ["treename", "file.root", reqd_vec])
+        self.assertArgs(RDF_1.args, ["treename", "file.root", reqd_vec])
+        self.assertArgs(RDF_2.args, ["treename", "file.root", reqd_vec])
 
     def test_three_args_with_multiple_files(self):
         """
@@ -113,10 +131,10 @@ class RDataFrameConstructorTests(unittest.TestCase):
         RDF_4 = RDataFrame("treename", reqd_files_vec, reqd_branches_vec)
 
         reqd_args_list = ["treename", reqd_files_vec, reqd_branches_vec]
-        self.assertListEqual(RDF_1.args, reqd_args_list)
-        self.assertListEqual(RDF_2.args, reqd_args_list)
-        self.assertListEqual(RDF_3.args, reqd_args_list)
-        self.assertListEqual(RDF_4.args, reqd_args_list)
+        self.assertArgs(RDF_1.args, reqd_args_list)
+        self.assertArgs(RDF_2.args, reqd_args_list)
+        self.assertArgs(RDF_3.args, reqd_args_list)
+        self.assertArgs(RDF_4.args, reqd_args_list)
 
     def test_incorrect_args(self):
         """
