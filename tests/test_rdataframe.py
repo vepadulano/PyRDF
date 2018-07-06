@@ -154,3 +154,95 @@ class RDataFrameConstructorTests(unittest.TestCase):
         with self.assertRaises(RDataFrameException):
             # No argument case
             RDF = RDataFrame()
+
+class NumEntriesTest(unittest.TestCase):
+    """
+    Test cases to ensure that the backend
+    method 'get_num_entries' returns the
+    number of entries in the given dataset
+    accurately.
+
+    """
+    def fill_tree(self, size):
+        """
+        Stores a RDataFrame object of given
+        size in 'data.root'.
+
+        """
+        tdf = ROOT.ROOT.RDataFrame(size)
+        tdf.Define("b1", "(double) tdfentry_").Snapshot("tree", "data.root")
+
+    def test_num_entries_single_arg_case(self):
+        """
+        Test case to ensure that the number of
+        entries recorded are correct in the case
+        of a single integer argument to RDataFrame.
+
+        """
+        rdf = RDataFrame(123) # Create RDataFrame instance
+
+        self.assertEqual(rdf.get_num_entries(), 123)
+
+    def test_num_entries_two_args_case(self):
+        """
+        Test cases to ensure that the number of
+        entries recorded are correct in the case
+        of two arguments to RDataFrame constructor.
+
+        """
+        self.fill_tree(1111) # Store RDataFrame object of size 1111
+        files_vec = ROOT.std.vector('string')()
+        files_vec.push_back("data.root")
+
+        # Create RDataFrame instances
+        rdf = RDataFrame("tree", "data.root")
+        rdf_1 = RDataFrame("tree", ["data.root"])
+        rdf_2 = RDataFrame("tree", files_vec)
+
+        self.assertEqual(rdf.get_num_entries(), 1111)
+        self.assertEqual(rdf_1.get_num_entries(), 1111)
+        self.assertEqual(rdf_2.get_num_entries(), 1111)
+
+    def test_num_entries_three_args_case(self):
+        """
+        Test cases to ensure that the number of
+        entries recorded are correct in the case
+        of two arguments to RDataFrame constructor.
+
+        """
+        self.fill_tree(1234) # Store RDataFrame object of size 1234
+        branches_vec_1 = ROOT.std.vector('string')()
+        branches_vec_2 = ROOT.std.vector('string')()
+        branches_vec_1.push_back("b1")
+        branches_vec_2.push_back("b2")
+
+        # Create RDataFrame instances
+        rdf = RDataFrame("tree", "data.root", ["b1"])
+        rdf_1 = RDataFrame("tree", "data.root", ["b2"])
+        rdf_2 = RDataFrame("tree", "data.root", branches_vec_1)
+        rdf_3 = RDataFrame("tree", "data.root", branches_vec_2)
+
+        self.assertEqual(rdf.get_num_entries(), 1234)
+        self.assertEqual(rdf_1.get_num_entries(), 1234)
+        self.assertEqual(rdf_2.get_num_entries(), 1234)
+        self.assertEqual(rdf_3.get_num_entries(), 1234)
+
+    def test_num_entries_with_ttree_arg(self):
+        """
+        Test cases to ensure that the number of
+        entries recorded are correct in the case
+        of RDataFrame constructor with a TTree.
+
+        """
+        tree = ROOT.TTree("tree", "test") # Create tree
+        tree.Branch("x", 1)
+        tree.Branch("y", 2)
+        num_entries = 4
+
+        for i in range(num_entries):
+            # Fill the tree with the same branches
+            tree.Fill()
+
+        rdf = RDataFrame(tree)
+
+        self.assertEqual(rdf.get_num_entries(), 4)
