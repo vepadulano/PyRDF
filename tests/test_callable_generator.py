@@ -45,16 +45,17 @@ class CallableGeneratorTest(unittest.TestCase):
         n6 = node.Filter()
 
         # Generate and execute the mapper
-        mp = CallableGenerator(node)
-        mapper_func = mp.get_callable()
-        nodes, values = mapper_func(t)
+        generator = CallableGenerator(node)
+        mapper_func = generator.get_callable()
+        values = mapper_func(t)
+        nodes = generator.get_action_nodes()
 
         reqd_order = [1, 3, 2, 2, 3, 2]
 
         # Assertions
         self.assertEqual(t.ord_list, reqd_order)
-        self.assertListEqual(values, [n5.action_node, n4.action_node])
-        self.assertListEqual(nodes, [t, t])
+        self.assertListEqual(nodes, [n5.action_node, n4.action_node])
+        self.assertListEqual(values, [t, t])
 
     def test_mapper_with_pruning(self):
         """
@@ -80,13 +81,14 @@ class CallableGeneratorTest(unittest.TestCase):
         n5 = n1.Filter() # Reason for pruning (change of reference)
 
         # Generate and execute the mapper
-        mp = CallableGenerator(node)
-        mapper_func = mp.get_callable()
-        nodes, values = mapper_func(t)
+        generator = CallableGenerator(node)
+        mapper_func = generator.get_callable()
+        values = mapper_func(t)
+        nodes = generator.get_action_nodes()
 
         reqd_order = [1, 2, 2, 2, 3, 2]
 
         # Assertions
         self.assertEqual(t.ord_list, reqd_order)
-        self.assertListEqual(values, [n4.action_node])
-        self.assertListEqual(nodes, [t])
+        self.assertListEqual(nodes, [n4.action_node])
+        self.assertListEqual(values, [t])
