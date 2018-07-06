@@ -51,7 +51,10 @@ class Local(Backend):
 
         rdf = ROOT.ROOT.RDataFrame(*generator.head_node.args) # Create RDF object
 
-        values, nodes = mapper(rdf) # Execute the mapper function
+        values = mapper(rdf) # Execute the mapper function
+
+        # Get the action nodes in the same order as values
+        nodes = generator.get_action_nodes()
 
         values[0].GetValue() # Trigger event-loop
 
