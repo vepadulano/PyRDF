@@ -61,6 +61,38 @@ class Node(object):
         self._cur_attr = "" # Name of the new incoming operation
         self.value = None
 
+    def __getstate__(self):
+        """
+        Converts the state of the current node
+        to a Python dictionary.
+
+        Returns
+        -------
+        Python Dictionary
+            A dictionary that stores all instance variables
+            that represent the current PyRDF node.
+
+        """
+        state_dict = {'children':self.children}
+        if self.operation:
+            state_dict['operation_name'] = self.operation.name
+            state_dict['operation_args'] = self.operation.args
+            state_dict['operation_kwargs'] = self.operation.kwargs
+
+        return state_dict
+
+    def __setstate__(self, state):
+        """
+        Retrieves the state dictionary of the current
+        node and sets the instance variables.
+
+        """
+        self.children = state['children']
+        if state.get('operation_name'):
+            self.operation = Operation(state['operation_name'], *state['operation_args'], **state["operation_kwargs"])
+        else:
+            self.operation = None
+
     def __getattr__(self, attr):
         """
         Intercepts any call to the current node and dispatches
@@ -81,6 +113,13 @@ class Node(object):
         """
 
         self._cur_attr = attr # Stores new operation name
+
+        # Check if the current call is a dunder method call
+        import re
+        if re.search("^__[a-z]+__$", attr):
+            # Raise an AttributeError for all dunder method calls
+            raise AttributeError("Such an attribute is not set ! ")
+
         return self._call_handler
 
     def _call_handler(self, *args, **kwargs):
