@@ -78,6 +78,37 @@ class RDataFrame(Node):
 
         return reqd_vec
 
+    def get_num_entries(self):
+        """
+        Gets the number of entries in
+        the given dataset.
+
+        """
+        first_arg = self.args[0]
+        if isinstance(first_arg, int):
+            # If there's only one argument
+            # which is an integer, return it.
+            return first_arg
+        elif isinstance(first_arg, ROOT.TTree):
+            # If the argument is a TTree or TChain,
+            # get the number of entries from it.
+            return first_arg.GetEntries()
+
+        second_arg = self.args[1]
+
+        # Construct a ROOT.TChain object
+        chain = ROOT.TChain(first_arg)
+
+        if isinstance(second_arg, str):
+            # If the second argument is a string
+            chain.Add(second_arg)
+        else:
+            # If the second argument is a list or vector
+            for fname in second_arg:
+                chain.Add(fname)
+
+        return chain.GetEntries()
+
 
 class RDataFrameException(Exception):
     """
