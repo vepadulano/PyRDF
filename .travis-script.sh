@@ -5,8 +5,7 @@ sudo apt-get --yes install wget
 sudo apt-get --yes install default-jdk
 
 # Install required packages
-sudo pip install enum34
-sudo pip install nose
+sudo pip install -r /app/requirements.txt
 
 # Pyspark installation
 mkdir /home/builder/spark
