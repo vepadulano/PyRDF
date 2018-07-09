@@ -18,7 +18,7 @@ class SelectionTest(unittest.TestCase):
         PyRDF.use("local")
         self.assertIsInstance(PyRDF.current_backend, Local)
 
-    def test_dist_select(self):
+    def test_spark_select(self):
         """
         Test to check if 'spark'
         environment gets set correctly.
