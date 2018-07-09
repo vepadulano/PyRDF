@@ -45,7 +45,12 @@ then
 	nose_bin=nosetests
 fi
 
-$nose_bin tests/*.py || {
+$nose_bin tests/unit/*.py || {
+	echo "Please install nose and make sure that you're inside the PyRDF directory !"
+	exit 1
+}
+
+$nose_bin tests/integration/local/*.py || {
 	echo "Please install nose and make sure that you're inside the PyRDF directory !"
 	exit 1
 }
