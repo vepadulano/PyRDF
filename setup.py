@@ -12,7 +12,7 @@ if sys.version_info >= (3,):
   extra['use_2to3'] = True
 
 setup(
-  name = 'PyTDF',
+  name = 'PyRDF',
 
   packages = find_packages(),
 
