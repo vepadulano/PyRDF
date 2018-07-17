@@ -3,7 +3,7 @@ from .Node import Node
 from .Proxy import Proxy
 from .Operation import Operation
 from .CallableGenerator import CallableGenerator
-from .backend import Local, Dist
+from .backend import Local, Spark
 
 current_backend = Local()
 
@@ -20,6 +20,6 @@ def use(backend_name, conf = {}):
     elif backend_name == "local":
         current_backend = Local(conf)
     elif backend_name == "spark":
-        current_backend = Dist(conf)
+        current_backend = Spark(conf)
     else:
         raise Exception(" Incorrect backend environment \"{}\"".format(backend))
