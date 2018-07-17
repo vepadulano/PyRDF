@@ -50,6 +50,11 @@ $nose_bin tests/unit/*.py || {
 	exit 1
 }
 
+$nose_bin tests/unit/backend/*.py || {
+	echo "Please install nose and make sure that you're inside the PyRDF directory !"
+	exit 1
+}
+
 $nose_bin tests/integration/local/*.py || {
 	echo "Please install nose and make sure that you're inside the PyRDF directory !"
 	exit 1

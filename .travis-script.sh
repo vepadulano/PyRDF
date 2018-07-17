@@ -27,6 +27,7 @@ sudo python setup.py install
 
 # Run tests
 nosetests tests/unit/*.py || exit 1
+nosetests tests/unit/backend/*.py || exit 1
 nosetests tests/integration/local/*.py || exit 1
 
 # Run tutorials
