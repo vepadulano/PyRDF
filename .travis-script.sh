@@ -29,6 +29,7 @@ sudo python setup.py install
 nosetests tests/unit/*.py || exit 1
 nosetests tests/unit/backend/*.py || exit 1
 nosetests tests/integration/local/*.py || exit 1
+nosetests tests/integration/spark/*.py || exit 1
 
 # Run tutorials
 echo " ======== Running single-threaded tutorials ======== "

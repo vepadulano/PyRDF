@@ -60,6 +60,11 @@ $nose_bin tests/integration/local/*.py || {
 	exit 1
 }
 
+$nose_bin tests/integration/spark/*.py || {
+	echo "Please install nose and make sure that you're inside the PyRDF directory !"
+	exit 1
+}
+
 echo "\n \033[0;32m Ran tests successfully ! \033[0m \n"
 
 echo "======== Running single-threaded tutorials ========\n"
