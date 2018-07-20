@@ -1,7 +1,4 @@
 from .RDataFrame import RDataFrame, RDataFrameException
-from .Node import Node
-from .Proxy import Proxy
-from .Operation import Operation
 from .CallableGenerator import CallableGenerator
 from .backend import Local, Spark
 
