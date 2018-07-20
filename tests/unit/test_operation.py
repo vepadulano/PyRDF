@@ -1,4 +1,4 @@
-from PyRDF import *
+from PyRDF.Operation import Operation
 import unittest
 
 class ClassifyTest(unittest.TestCase):

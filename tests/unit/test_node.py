@@ -1,4 +1,5 @@
-from PyRDF import *
+from PyRDF.Node import Node
+from PyRDF.Proxy import Proxy
 import unittest
 
 class OperationReadTest(unittest.TestCase):

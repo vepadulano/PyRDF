@@ -1,4 +1,5 @@
-from PyRDF import *
+from PyRDF.Proxy import Proxy
+from PyRDF.Node import Node
 import unittest
 
 class AttrReadTest(unittest.TestCase):

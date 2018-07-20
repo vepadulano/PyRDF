@@ -1,4 +1,5 @@
-from PyRDF import *
+from PyRDF import CallableGenerator
+from PyRDF.Node import Node
 import unittest
 
 class CallableGeneratorTest(unittest.TestCase):
