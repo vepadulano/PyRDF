@@ -1,5 +1,6 @@
 import ROOT
 from .Backend import Backend
+from .Utils import Utils
 
 class Local(Backend):
     """
@@ -46,8 +47,11 @@ class Local(Backend):
         Executes locally the current RDataFrame graph.
 
         """
+        from .. import includes
 
         mapper = generator.get_callable() # Get the callable
+
+        Utils.declare_headers(includes) # Declare headers if any
 
         rdf = ROOT.ROOT.RDataFrame(*generator.head_node.args) # Create RDF object
 

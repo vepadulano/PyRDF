@@ -1,6 +1,7 @@
 from __future__ import print_function
 from .Backend import Backend
 from .Local import Local
+from .Utils import Utils
 from abc import abstractmethod
 
 class Dist(Backend):
@@ -98,6 +99,8 @@ class Dist(Backend):
         # Arguments needed to create PyROOT RDF object
         rdf_args = generator.head_node.args
 
+        from .. import includes
+
         def mapper(current_range):
             """
             Triggers the event-loop and executes all
@@ -118,6 +121,8 @@ class Dist(Backend):
 
             """
             import ROOT
+
+            Utils.declare_headers(includes) # Declare headers if any
             rdf = ROOT.ROOT.RDataFrame(*rdf_args) # PyROOT RDF object
 
             # TODO : If we want to run multi-threaded in a Spark node in
