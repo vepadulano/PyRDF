@@ -63,6 +63,10 @@ class Local(Backend):
         values[0].GetValue() # Trigger event-loop
 
         for i in range(len(values)):
-            # Set the values of action nodes to
-            # 'TResultPtr's obtained
-            nodes[i].value = values[i]
+            # Set the obtained values and
+            # 'RResultPtr's of action nodes
+            nodes[i].value = values[i].GetValue()
+            # We store the 'RResultPtr's because,
+            # those should be in scope while doing
+            # a 'GetValue' call on them
+            nodes[i].ResultPtr = values[i]
