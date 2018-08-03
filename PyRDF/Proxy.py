@@ -3,11 +3,10 @@ from .CallableGenerator import CallableGenerator
 
 class Proxy(object):
     """
-    This class wraps action nodes and instances of Proxy act as
-    futures of the result produced by some action. They implement
-    a lazy synchronization mechanism, i.e., when they are accessed
-    for the first time, they trigger the execution of the whole
-    RDataFrame graph.
+    Instances of Proxy act as futures of the result produced
+    by some action. They implement a lazy synchronization
+    mechanism, i.e., when they are accessed for the first time,
+    they trigger the execution of the whole RDataFrame graph.
 
     Attributes
     ----------
@@ -50,13 +49,23 @@ class Proxy(object):
         self._cur_attr = attr # Stores the name of operation call
         return self._call_handler
     
-    def _call_handler(self, *args, **kwargs):
-        # Handles an operation call to the current action node
-        # and returns result of the current action node.
+    def GetValue(self):
+        """
+        Returns the result value of the current action
+        node if it was executed before, else triggers
+        the execution of the entire PyRDF graph before
+        returning the value.
 
+        """
         if not self.action_node.value: # If event-loop not triggered
             from . import current_backend
             generator = CallableGenerator(self.action_node.get_head())
             current_backend.execute(generator)
 
-        return getattr(self.action_node.value, self._cur_attr)(*args, **kwargs)
+        return self.action_node.value
+
+    def _call_handler(self, *args, **kwargs):
+        # Handles an operation call to the current action node
+        # and returns result of the current action node.
+
+        return getattr(self.GetValue(), self._cur_attr)(*args, **kwargs)
