@@ -20,4 +20,5 @@ class Utils(object):
 
         """
         for header in includes:
-            ROOT.gInterpreter.Declare("#include \"{}\"\n".format(header))
+            if not ROOT.gInterpreter.Declare("#include \"{}\"\n".format(header)):
+                raise Exception("There was an error in including \"{}\" !".format(header))
