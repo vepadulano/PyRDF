@@ -24,6 +24,11 @@ class Dist(Backend):
         super(Dist, self).__init__(config)
         # Operations that aren't supported in distributed backends
         operations_not_supported = [
+        'Sum',
+        'Mean',
+        'Max',
+        'Min',
+        'Count',
         'Range',
         'Take',
         'Snapshot',
@@ -175,9 +180,19 @@ class Dist(Backend):
                 if isinstance(values_list1[i], ROOT.TH1) or isinstance(values_list1[i], ROOT.TH2):
                     # Merging two objects of type ROOT.TH1D or ROOT.TH2D
                     values_list1[i].Add(values_list2[i])
-                elif isinstance(values_list1[i], int):
-                    # Merging two objects of type `int`
-                    values_list1[i] += values_list2[i]
+                elif isinstance(values_list1[i], ROOT.TGraph):
+                    # Prepare a TList
+                    tlist = ROOT.TList()
+                    tlist.Add(values_list2[i])
+
+                    # Merge the second graph onto the first
+                    num_points = values_list1[i].Merge(tlist)
+
+                    # Check if there was an error in merging
+                    if num_points == -1:
+                        raise Exception("Error reducing two result values of type TGraph !")
+                else:
+                    raise NotImplementedError("The type \"{}\" isn't supported by the reducer yet !".format(type(values_list1[i])))
 
             return values_list1
 
