@@ -104,3 +104,22 @@ done
 }
 
 echo "\n======== \033[0;32m Ran multi-threaded tutorials successfully ! \033[0m ========\n"
+
+echo "======== Running Spark tutorials ========\n"
+
+{
+
+# Run Spark tutorials locally
+for filename in ./tutorials/spark/df*.py
+do
+	echo "\n== Running $filename ==\n"
+	$python_bin "$filename"
+	echo "\n \033[0;32m Ran $filename successfully ! \033[0m"
+done
+
+} || {
+	echo "Error in running tutorials ! Check if you're in the PyRDF root directory !"
+	exit 1
+}
+
+echo "\n======== \033[0;32m Ran Spark tutorials successfully ! \033[0m ========\n"

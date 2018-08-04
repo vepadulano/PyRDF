@@ -56,3 +56,16 @@ do
 done
 
 echo " ======== Ran multi-threaded tutorials successfully ! ======== "
+
+echo "======== Running Spark tutorials ======== "
+
+
+# Run Spark tutorials locally
+for filename in ./tutorials/spark/df*.py
+do
+	echo " == Running $filename == "
+	python "$filename" || exit 1
+	echo "  Ran $filename successfully ! "
+done
+
+echo " ======== Ran Spark tutorials successfully ! ======== "
