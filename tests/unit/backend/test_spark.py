@@ -145,7 +145,7 @@ class OperationSupportTest(unittest.TestCase):
         """
         # Check in Spark env
         backend = Spark()
-        op = backend.check_supported("Count")
+        op = backend.check_supported("Histo1D")
 
     def test_transformation(self):
         """
