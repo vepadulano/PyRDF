@@ -35,7 +35,8 @@ class Backend(ABC):
         'Snapshot',
         'Foreach',
         'Reduce',
-        'Aggregate'
+        'Aggregate',
+        'Graph'
         ]
 
     def __init__(self, config={}):

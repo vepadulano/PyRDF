@@ -111,6 +111,7 @@ class Operation(object):
         'Reduce':ops.ACTION,
         'Report':ops.ACTION,
         'Take':ops.ACTION,
+        'Graph':ops.ACTION,
         'Snapshot':ops.INSTANT_ACTION,
         'Foreach':ops.INSTANT_ACTION
         }
