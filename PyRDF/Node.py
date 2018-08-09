@@ -7,11 +7,12 @@ class Node(object):
     """
     A Class that represents a node in RDataFrame
     operations graph. A Node houses an operation
-    and has references to child nodes. For details
+    and has references to children nodes. For details
     on the types of operations supported, try :
 
     import PyRDF
-    help(PyRDF.Operation)
+    PyRDF.use(...) # Choose your backend
+    print(PyRDF.current_backend.supported_operations)
 
     Attributes
     ----------
@@ -46,7 +47,7 @@ class Node(object):
             node of the current graph. This value
             could be `None`.
 
-        operation : PyRDF.Operation
+        operation : PyRDF.Operation.Operation
             The operation that this Node represents. This
             could be `None`.
         """
@@ -68,7 +69,7 @@ class Node(object):
 
         Returns
         -------
-        Python Dictionary
+        dictionary
             A dictionary that stores all instance variables
             that represent the current PyRDF node.
 
@@ -86,6 +87,12 @@ class Node(object):
         Retrieves the state dictionary of the current
         node and sets the instance variables.
 
+        Parameters
+        ----------
+        state : dictionary
+            This is the state dictionary that needs to
+            be converted to a `Node` object.
+
         """
         self.children = state['children']
         if state.get('operation_name'):
@@ -95,8 +102,8 @@ class Node(object):
 
     def __getattr__(self, attr):
         """
-        Intercepts any call to the current node and dispatches
-        it by means of a call handler.
+        Intercepts any non-dunder call to the current node
+        and dispatches it by means of a call handler.
 
         Parameters
         ----------

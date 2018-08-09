@@ -24,7 +24,7 @@ class CallableGenerator(object):
     def get_action_nodes(self, node_py=None):
         """
         Recurses through PyRDF graph and collects
-        the PyRDF nodes.
+        the PyRDF node objects.
 
         Parameters
         ----------
@@ -34,9 +34,9 @@ class CallableGenerator(object):
 
         Returns
         -------
-            list
-                A list of the action nodes of the graph in DFS order, which
-                coincides with the order of execution in the callable function.
+        list
+            A list of the action nodes of the graph in DFS order, which
+            coincides with the order of execution in the callable function.
 
         """
         return_nodes = []
@@ -67,12 +67,14 @@ class CallableGenerator(object):
         Returns
         -------
         function
-            The callable that traverses through
-            the given PyRDF graph and executes
-            the operations on all nodes.
+            The callable that takes in a PyROOT
+            RDataFrame object and executes all
+            operations from the PyRDF graph on it
+            recursively.
 
         """
 
+        # Prune the graph to check user references
         self.head_node.graph_prune()
 
         def mapper(node_cpp, node_py=None):
@@ -85,7 +87,7 @@ class CallableGenerator(object):
             ----------
             node_cpp
                 The current state's ROOT CPP node. Initially
-                this should be fed a value.
+                this should be given in as a PyROOT RDataFrame object.
 
             node_py (optional)
                 The current state's PyRDF node. If `None`,
@@ -93,13 +95,11 @@ class CallableGenerator(object):
 
             Returns
             -------
-                list
-                    A list of RResultPtr objects in DFS order
-                    of their corresponding actions in the graph.
+            list
+                A list of RResultPtr objects in DFS order
+                of their corresponding actions in the graph.
 
             """
-            ## TODO : Somehow remove references to any Node object 
-            ## for this to work on Spark
 
             return_vals = []
 
@@ -125,13 +125,3 @@ class CallableGenerator(object):
             return return_vals
 
         return mapper
-
-    def get_reducer_callable(self):
-        """
-        A method that returns a 
-        generalized reducer function.
-
-        TODO(shravan97)
-
-        """
-        pass

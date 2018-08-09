@@ -57,17 +57,18 @@ class Backend(ABC):
     def check_supported(self, operation_name):
         """
         Checks if a given operation is supported
-        in the given backend.
+        by the given backend.
 
         Parameters
         ----------
         operation_name
             Name of the operation to be checked.
 
-        Returns
-        -------
-        Operation.Types
-            The type of the current operation.
+        Raises
+        ------
+        Exception
+            This happens when `operation_name` doesn't
+            exist in `supported_operations` instance member.
 
         """
         if operation_name not in self.supported_operations:

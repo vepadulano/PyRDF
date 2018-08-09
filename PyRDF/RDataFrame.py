@@ -16,12 +16,10 @@ class RDataFrame(Node):
 
     Supported constructor arguments
     -------------------------------
-    - number of entries (int)
-        * For eg., RDataFrame(64)
-    - treename (str), fileslist (str or list of str)
-        * For eg., RDataFrame("myTree", "file.root") or RDataFrame("myTree", ["file1.root", "file2.root"])
-    - treename (str), fileslist (str or list of str or vector of str), default branches (list of str or vector of str)
-        * For eg., RDataFrame("myTree", ["file1.root", "file2.root"], ["branch1", "branch2"])
+    PyRDF's RDataFrame constructor accepts the same arguments as the ROOT's RDataFrame
+    constructor (see https://root.cern/doc/master/classROOT_1_1RDataFrame.html). In addition,
+    PyRDF allows you to use Python lists in place of C++ vectors as arguments of the constructor,
+    e.g., `RDataFrame("myTree", ["file1.root", "file2.root"]`.
 
     Raises
     ------
@@ -82,6 +80,12 @@ class RDataFrame(Node):
         """
         Gets the number of entries in
         the given dataset.
+
+        Returns
+        -------
+        int
+            This is the computed number of entries
+            in the input dataset.
 
         """
         first_arg = self.args[0]

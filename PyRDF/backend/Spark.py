@@ -67,7 +67,7 @@ class Spark(Dist):
 
         Returns
         -------
-        Python list
+        list
             This list represents the values of action nodes
             returned after computation (Map-Reduce).
 

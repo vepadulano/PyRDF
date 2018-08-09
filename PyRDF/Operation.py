@@ -11,7 +11,7 @@ class Operation(object):
     Types
         A class member that is an Enum of the types
         of operations supported. This can be ACTION
-        or TRANSFORMATION.
+        or TRANSFORMATION or INSTANT_ACTION.
 
     name
         Name of the current operation.
@@ -26,36 +26,15 @@ class Operation(object):
 
     op_type
         The type or category of the current
-        operation (ACTION OR TRANSFORMATION).
+        operation (ACTION OR TRANSFORMATION OR INSTANT_ACTION).
 
+    For the list of operations that your current
+    backend supports, try :
 
-    Supported operations
-    --------------------
+    import PyRDF
+    PyRDF.use(...) # Choose a backend
 
-    - Define
-    - Filter
-    - Histo1D
-    - Histo2D
-    - Histo3D
-    - Profile1D
-    - Profile2D
-    - Profile3D
-    - Count
-    - Min
-    - Max
-    - Mean
-    - Sum
-    - Fill
-    - Report
-
-
-    Upcoming (future) operations
-    ----------------------------
-
-    - Range
-    - Take
-    - Snapshot
-    - Foreach
+    print(PyRDF.current_backend.supported_operations)
 
     """
 

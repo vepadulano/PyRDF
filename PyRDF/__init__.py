@@ -6,7 +6,20 @@ current_backend = Local()
 includes = []
 
 def use(backend_name, conf = {}):
+    """
+    Allows the user to choose the execution backend.
 
+    Parameters
+    ----------
+    backend_name : str
+        This is the name of the chosen backend.
+
+    conf (optional) : str
+        This should be a dictionary with necessary
+        configuration parameters. Its default value
+        is an empty dictionary {}.
+
+    """
     future_backends = [
     "dask"
     ]

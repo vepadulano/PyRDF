@@ -56,6 +56,12 @@ class Proxy(object):
         the execution of the entire PyRDF graph before
         returning the value.
 
+        Returns
+        -------
+        Value of the current action node
+            This is the value obtained after executing the
+            current action node in the computational graph.
+
         """
         if not self.action_node.value: # If event-loop not triggered
             from . import current_backend

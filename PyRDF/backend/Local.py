@@ -46,6 +46,12 @@ class Local(Backend):
         """
         Executes locally the current RDataFrame graph.
 
+        Parameters
+        ----------
+        generator : PyRDF.CallableGenerator
+            An instance of type `CallableGenerator` that is
+            responsible for generating the callable function.
+
         """
         from .. import includes
 

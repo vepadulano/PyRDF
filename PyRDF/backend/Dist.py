@@ -54,7 +54,7 @@ class Dist(Backend):
 
         Returns
         -------
-        Python list
+        list
             This is a list of range pairs (represented here
             as 2-member tuples).
 
@@ -95,7 +95,7 @@ class Dist(Backend):
 
         Parameters
         ----------
-        generator : PyRDF.CallableGenerator.CallableGenerator
+        generator : PyRDF.CallableGenerator
             An instance of type `CallableGenerator` that is
             responsible for generating the callable function.
 
@@ -120,7 +120,7 @@ class Dist(Backend):
 
             Returns
             -------
-            Python list
+            list
                 This respresents the list of values of all
                 action nodes in the computational graph.
 
@@ -169,7 +169,7 @@ class Dist(Backend):
 
             Returns
             -------
-            Python list
+            list
                 This is a list of values obtained after
                 merging two given lists.
 
