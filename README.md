@@ -7,23 +7,20 @@ A pythonic wrapper around ROOT's [RDataFrame](https://root.cern/doc/master/class
 
 ### Sample usage 
 ```python
-import PyRDF
+import PyRDF, ROOT
 PyRDF.use('spark', {'npartitions':4})
 
-rdf = PyRDF.RDataFrame("data", ['https://root.cern/files/teaching/CMS_Open_Dataset.root',])
+df = PyRDF.RDataFrame("data", ['https://root.cern/files/teaching/CMS_Open_Dataset.root',])
 
-chargeCutStr = "C1 != C2"
-etaCutStr = "fabs(eta1) < 2.3 && fabs(eta2) < 2.3"
-ptCutStr = "pt1 > 2 && pt2 > 2"
-rdf_f = rdf.Filter(chargeCutStr, "Opposite Charge") \
-           .Filter(etaCutStr, "Central Muons") \
-           .Filter(ptCutStr, "Sane Pt")
+etaCutStr = "fabs(eta1) < 2.3"
+df_f = df.Filter(etaCutStr)
 
-num_rows = rdf_f.Count()
-print(num_rows.GetValue())
+df_histogram = df_f.Histo1D("eta1")
+
+canvas = ROOT.TCanvas()
+df_histogram.Draw()
+canvas.Draw()
+
 ```
-### Docs
-Coming up soon in [https://pyrdf.readthedocs.io](https://pyrdf.readthedocs.io) !
-
-### Google Summer of Code 2018
-This project is a part of [Google Summer of Code 2018](https://summerofcode.withgoogle.com/). Click this [link](https://hepsoftwarefoundation.org/gsoc/2018/proposal_ROOTspark.html) for description.
+### Report
+[http://shravanmurali.com/PyRDF/](http://shravanmurali.com/PyRDF/)
