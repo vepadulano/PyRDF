@@ -242,6 +242,38 @@ class DfsTest(unittest.TestCase):
 
         self.assertEqual(obtained_order, reqd_order)
 
+    def test_dfs_graph_with_computed_values_pruning(self):
+        """
+        """
+
+        # Head node
+        node = Node(None, None)
+
+        # Graph nodes
+        n1 = node.Define()
+        n2 = node.Filter()
+        n3 = n2.Filter()
+        n4 = n3.Count()
+        n5 = n1.Filter()
+        n6 = n5.Count()
+        n7 = node.Filter()
+
+        # This is to make sure action nodes with
+        # already computed values are pruned.
+        n6.action_node.value = 1
+        # This is to make sure that transformation
+        # leaf nodes with value (possibly set intentionally)
+        # don't get pruned.
+        n7.value = 1
+
+        obtained_order = DfsTest.traverse(node = node.get_head())
+
+        # The node 'n6' will be pruned. Hence,
+        # there's only one '3' in this list.
+        reqd_order = [1, 2, 2, 2, 3, 2]
+
+        self.assertEqual(obtained_order, reqd_order)
+
     def test_dfs_graph_without_pruning(self):
         """
         Test case to check that node pruning does not
