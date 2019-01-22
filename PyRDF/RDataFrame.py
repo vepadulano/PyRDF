@@ -3,7 +3,6 @@ from .Node import Node
 import ROOT
 
 class RDataFrame(Node):
-    
     """
     The Python equivalent of ROOT C++'s
     RDataFrame class.
@@ -113,6 +112,55 @@ class RDataFrame(Node):
 
         return chain.GetEntries()
 
+    def get_treename(self):
+        """
+        Get name of the TTree
+
+        Returns
+        -------
+        str or None
+            Name of the TTree, or None if there is no tree.
+
+        """
+        first_arg =  self.args[0]
+        if isinstance(first_arg, ROOT.TChain):
+            # Get name from a given TChain
+            return first_arg.GetName()
+        elif isinstance(first_arg, ROOT.TTree):
+            # Get name directly from the TTree
+            return first_arg.GetUserInfo().At(0).GetName()
+        elif isinstance(first_arg, str):
+            # First argument was the name of the tree
+            return first_arg
+        # RDataFrame may have been created without any TTree or TChain
+        return None
+
+    def get_inputfiles(self):
+        """
+        Get list of input files
+
+        This list can be extracted from a given TChain or from the list of
+        arguments.
+
+        Returns
+        -------
+        str, list or None
+            Name of a single file, list of files (both may contain globbing
+            characters), or None if there are no input files.
+
+        """
+        first_arg = self.args[0]
+        if isinstance(first_arg, ROOT.TChain):
+            # Extract file names from a given TChain
+            chain = first_arg
+            return [chainElem.GetTitle() for chainElem in chain.GetListOfFiles()]
+        if len(self.args) > 1:
+            second_arg = self.args[1]
+            if isinstance(second_arg, str):
+                # Get file(s) from second argument (may contain globbing characters)
+                return second_arg
+        # RDataFrame may have been created with no input files
+        return None
 
 class RDataFrameException(Exception):
     """
