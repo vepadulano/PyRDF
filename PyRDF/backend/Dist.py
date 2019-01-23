@@ -11,7 +11,8 @@ class Range(object):
     Base class to represent ranges.
 
     A range represents a logical partition of the entries of a chain and is
-    the basis for parallelization.
+    the basis for parallelization. First entry of the range (start) is inclusive
+    while the second one is not (end).
     """
     def __init__(self, start, end, filelist=None):
         self.start = start
@@ -234,7 +235,8 @@ class Dist(Backend):
         if isinstance(files, str):
             files = [files, ]
         expanded_files = map(glob, files)
-        return expanded_files
+        flattened_list = [fname for flist in expanded_files for fname in flist ]
+        return flattened_list
 
     def BuildRanges(self, npartitions):
         """
@@ -245,10 +247,10 @@ class Dist(Backend):
             # than 'nentries'
             npartitions = self.nentries
 
-        if self.treename and self.files:
+        try:
             filelist = self._getFilelist(self.files)
             return self._getClusteredRanges(self.nentries, npartitions, self.treename, filelist)
-        else:
+        except AttributeError:
             return self._getBalancedRanges(self.nentries, npartitions)
 
 

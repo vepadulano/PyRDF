@@ -125,3 +125,168 @@ class DistBuildRangesTest(unittest.TestCase):
         ranges_reqd = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5)]
 
         self.assertListEqual(ranges, ranges_reqd)
+
+    def test_clustered_ranges_with_one_cluster(self):
+        """
+        Check that _getClusteredRanges returns one range when the dataset
+        contains a single cluster and the number of partitions is 1
+
+        """
+        backend = DistBuildRangesTest.TestBackend()
+        treename = "TotemNtuple"
+        filelist = ["tests/unit/backend/Slimmed_ntuple.root"]
+        nentries = 10
+        npartitions = 1
+
+        crs = backend._getClusteredRanges(nentries, npartitions, treename, filelist)
+        ranges = rangesToTuples(crs)
+
+        ranges_reqd = [(0L, 10L)]
+
+        self.assertListEqual(ranges, ranges_reqd)
+
+    def test_warning_in_clustered_ranges_npartitions_greater_than_clusters(self):
+        """
+        Check that _getClusteredRanges raises a warning when the number of
+        partitions is bigger than the number of clusters in the dataset.
+
+        """
+        import warnings
+
+        backend = DistBuildRangesTest.TestBackend()
+        treename = "TotemNtuple"
+        filelist = ["tests/unit/backend/Slimmed_ntuple.root"]
+        nentries = 10
+        npartitions = 2
+
+        ranges_reqd = [(0L, 10L)]
+
+        with warnings.catch_warnings(record=True) as w:
+            # Trigger warning
+            crs = backend._getClusteredRanges(nentries, npartitions, treename, filelist)
+            ranges = rangesToTuples(crs)
+
+            # Verify ranges
+            self.assertListEqual(ranges, ranges_reqd)
+
+            # Verify warning
+            assert issubclass(w[-1].category, UserWarning)
+
+    def test_clustered_ranges_with_two_clusters_two_partitions(self):
+        """
+        Check that _getClusteredRanges creates clustered ranges respecting
+        the cluster boundaries even if that implies to have ranges with very
+        different numbers of entries.
+
+        """
+        backend = DistBuildRangesTest.TestBackend()
+        treename = "DataSet/TestA1.cel"
+        filelist = ["tests/unit/backend/2clusters.root"]
+        nentries = 1000
+        npartitions = 2
+
+        crs = backend._getClusteredRanges(nentries, npartitions, treename, filelist)
+        ranges = rangesToTuples(crs)
+
+        ranges_reqd = [
+            (0L,     15875L),
+            (15875L, 15876L)
+        ]
+
+        self.assertListEqual(ranges, ranges_reqd)
+
+    def test_clustered_ranges_with_many_clusters_four_partitions(self):
+        """
+        Check that _getClusteredRanges creates clustered ranges as equal as
+        possible for four partitions
+
+        """
+        backend = DistBuildRangesTest.TestBackend()
+        treename = "myTree"
+        filelist = ["tests/unit/backend/1000clusters.root"]
+        nentries = 1000
+        npartitions = 4
+
+        crs = backend._getClusteredRanges(nentries, npartitions, treename, filelist)
+        ranges = rangesToTuples(crs)
+
+        ranges_reqd = [
+            (0L,   250L),
+            (250L, 500L),
+            (500L, 750L),
+            (750L, 1000L)
+        ]
+
+        self.assertListEqual(ranges, ranges_reqd)
+
+    def test_clustered_ranges_with_many_clusters_many_partitions(self):
+        """
+        Check that _getClusteredRanges creates clustered ranges as equal as
+        possible for the maximum number of possible partitions (number of
+        clusters)
+
+        """
+        backend = DistBuildRangesTest.TestBackend()
+        treename = "myTree"
+        filelist = ["tests/unit/backend/1000clusters.root"]
+        nentries = 1000
+        npartitions = 1000
+
+        crs = backend._getClusteredRanges(nentries, npartitions, treename, filelist)
+        ranges = rangesToTuples(crs)
+
+        start = 0
+        end = 1000
+        step = 1
+
+        ranges_reqd = [ (a,b) for a,b in zip(range(start, end, step), range(step, end+1, step)) ]
+
+        self.assertListEqual(ranges, ranges_reqd)
+
+    def test_buildranges_with_clustered_ranges(self):
+        """
+        Check that BuildRanges produces clustered ranges when the dataset
+        contains clusters.
+
+        """
+        backend = DistBuildRangesTest.TestBackend()
+
+        # Mock attributes accessed through self. inside BuildRanges
+        backend.treename = "myTree"
+        backend.files = "tests/unit/backend/1000clusters.root"
+        backend.nentries = 1000
+        npartitions = 1000
+
+        crs = backend.BuildRanges(npartitions)
+        ranges = rangesToTuples(crs)
+
+        start = 0
+        end = 1000
+        step = 1
+
+        ranges_reqd = [ (a,b) for a,b in zip(range(start, end, step), range(step, end+1, step)) ]
+
+        self.assertListEqual(ranges, ranges_reqd)
+
+    def test_buildranges_with_balanced_ranges(self):
+        """
+        Check that BuildRanges produces balanced ranges when there are no
+        clusters involved.
+
+        """
+        backend = DistBuildRangesTest.TestBackend()
+
+        # Mock attributes accessed through self. inside BuildRanges
+        backend.nentries = 50
+        npartitions = 16
+
+        crs = backend.BuildRanges(npartitions)
+        ranges = rangesToTuples(crs)
+
+        ranges_reqd = [
+            (0,  4) , (4,  8) , (8,  11), (11, 14), (14, 17), (17, 20),
+            (20, 23), (23, 26), (26, 29), (29, 32), (32, 35), (35, 38),
+            (38, 41), (41, 44), (44, 47), (47, 50)
+        ]
+
+        self.assertListEqual(ranges, ranges_reqd)
