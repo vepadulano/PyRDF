@@ -7,4 +7,3 @@ dist/
 build/
 .ipynb_checkpoints
 .circleci
-*.root
