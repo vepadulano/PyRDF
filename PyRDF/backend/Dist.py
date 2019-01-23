@@ -3,6 +3,26 @@ from .Backend import Backend
 from .Local import Local
 from .Utils import Utils
 from abc import abstractmethod
+from glob import glob
+import warnings
+
+class Range(object):
+    """
+    Base class to represent ranges.
+
+    A range represents a logical partition of the entries of a chain and is
+    the basis for parallelization.
+    """
+    def __init__(self, start, end, filelist=None):
+        self.start = start
+        self.end = end
+        self.filelist = filelist
+
+    def __repr__(self):
+        if self.filelist:
+            return "(" + str(self.start) + "," + str(self.end) + "), " + str(self.filelist)
+        else:
+            return "(" + str(self.start) + "," + str(self.end) + ")"
 
 class Dist(Backend):
     """
@@ -38,11 +58,57 @@ class Dist(Backend):
         ]
         self.supported_operations = [op for op in self.supported_operations if op not in operations_not_supported]
 
-    def BuildRanges(self, nentries, npartitions):
+    def GetClusters(self, treename, filelist):
         """
-        Builds range pairs from the given values
-        of the number of entries in the dataset and
-        number of partitions required.
+        Extract a list of cluster boundaries for the given tree and files
+
+        Parameters
+        ----------
+        treename: str
+            Name of the TTree split into one or more files
+
+        filelist: list
+            List of one or more ROOT files
+
+        Returns
+        -------
+        list
+            List of tuples defining the cluster boundaries
+
+            Each tuple contains four elements: first entry of a cluster, last
+            entry of cluster, offset of the cluster and file where the cluster
+            belongs to.
+
+        """
+        import ROOT
+
+        clusters = []
+        offset = 0
+
+        for filename in filelist:
+            f = ROOT.TFile.Open(filename)
+            t = f.Get(treename)
+
+            entries = t.GetEntriesFast()
+            it = t.GetClusterIterator(0)
+            start = it()
+            end = 0
+
+            while start < entries:
+              end = it()
+              clusters.append((start + offset, end + offset, offset, filename))
+              start = end
+
+            offset += entries
+
+        return clusters
+
+    def _getBalancedRanges(self, nentries, npartitions):
+        """
+        Builds range pairs from the given values of the number of entries in the
+        dataset and number of partitions required. Each range contains the same
+        amount of entries, except for those cases where the number of
+        entries is not a multiple of the partitions.
 
         Parameters
         ----------
@@ -55,15 +121,9 @@ class Dist(Backend):
         Returns
         -------
         list
-            This is a list of range pairs (represented here
-            as 2-member tuples).
+            List of ranges
 
         """
-        if npartitions > nentries:
-            # Restrict 'npartitions' if it's greater
-            # than 'nentries'
-            npartitions = nentries
-
         partition_size = int(nentries/npartitions)
 
         i = 0 # Iterator
@@ -84,9 +144,113 @@ class Dist(Backend):
                 end = i = end+1
                 remainder -= 1
 
-            ranges.append((start, end))
+            ranges.append(Range(start, end))
 
         return ranges
+
+    def _getClusteredRanges(self, nentries, npartitions, treename, filelist):
+        """
+        Builds range pairs taking into account the clusters of the dataset.
+
+        Parameters
+        ----------
+        nentries : int
+            The total number of entries in a dataset.
+
+        npartitions : int
+            The number of parallel computations.
+
+        treename : str
+            Name of the tree
+
+        filelist : list
+            List of ROOT files
+
+        Returns
+        -------
+        list
+            List of ranges
+
+        """
+        clusters = self.GetClusters(treename, filelist)
+        numclusters = len(clusters)
+
+        # Restrict 'npartitions' if it's greater
+        # than number of clusters in the filelist
+        if npartitions > numclusters:
+            msg = "Number of partitions is greater than number of clusters in the filelist"
+            msg += "\nUsing {} partition(s)".format(numclusters)
+            warnings.warn(msg, UserWarning, stacklevel=2)
+            npartitions = numclusters
+
+        partSize = numclusters / npartitions
+        remainder = numclusters % npartitions
+
+        i = 0 # Iterator
+        ranges = []
+        entries_to_process = 0
+
+        while i < numclusters:
+            index_start = i
+            start = clusters[i][0]
+            i = i + partSize
+            if remainder > 0:
+                i += 1
+                remainder -= 1
+            index_end = i
+            if i == numclusters:
+                end = clusters[-1][1]
+            else:
+                end = clusters[i-1][1]
+
+            range_files = []
+            for idx in range(index_start, index_end):
+                current_file = clusters[idx][3]
+                if range_files and range_files[-1] == current_file:
+                    continue
+                range_files.append(clusters[idx][3])
+
+            offset_first_cluster = clusters[index_start][2]
+            ranges.append(Range(start - offset_first_cluster, end - offset_first_cluster, range_files))
+            entries_to_process += (end - start)
+
+        return ranges
+
+    def _getFilelist(self, files):
+        """
+        Convert single file into list of files and expand globbing
+
+        Parameters
+        ----------
+        files : str or list
+            String containing name of a single file or list with several file
+            names, both cases may contain globbing characters.
+
+        Returns
+        -------
+        list
+            List of file names
+        """
+        if isinstance(files, str):
+            files = [files, ]
+        expanded_files = map(glob, files)
+        return expanded_files
+
+    def BuildRanges(self, npartitions):
+        """
+        Define ranges based on the arguments passed the RDataFrame head node
+        """
+        if npartitions > self.nentries:
+            # Restrict 'npartitions' if it's greater
+            # than 'nentries'
+            npartitions = self.nentries
+
+        if self.treename and self.files:
+            filelist = self._getFilelist(self.files)
+            return self._getClusteredRanges(self.nentries, npartitions, self.treename, filelist)
+        else:
+            return self._getBalancedRanges(self.nentries, npartitions)
+
 
     def execute(self, generator):
         """
@@ -132,7 +296,7 @@ class Dist(Backend):
 
             # TODO : If we want to run multi-threaded in a Spark node in
             # the future, use `TEntryList` instead of `Range`
-            rdf_range = rdf.Range(current_range[0], current_range[1])
+            rdf_range = rdf.Range(current_range.start, current_range.end)
 
             output = callable_function(rdf_range) # output of the callable
 
@@ -199,6 +363,8 @@ class Dist(Backend):
         # Get number of entries in the input dataset using
         # arguments passed to RDataFrame constructor
         self.nentries = generator.head_node.get_num_entries()
+        self.treename = generator.head_node.get_treename()
+        self.files    = generator.head_node.get_inputfiles()
 
         if not self.nentries:
             # Fall back to local execution

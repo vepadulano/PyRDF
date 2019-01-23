@@ -72,7 +72,7 @@ class Spark(Dist):
             returned after computation (Map-Reduce).
 
         """
-        ranges = self.BuildRanges(self.nentries, self.npartitions) # Get range pairs
+        ranges = self.BuildRanges(self.npartitions) # Get range pairs
         # Build parallel collection
         parallel_collection = self.sparkContext.parallelize(ranges, self.npartitions)
 
