@@ -1,6 +1,9 @@
 import PyRDF, unittest, ROOT
 from PyRDF import backend
 
+def rangesToTuples(ranges):
+    return map(lambda r: (r.start, r.end), ranges)
+
 class DistBackendInitTest(unittest.TestCase):
     """
     Tests to ensure that the Dist abstract
@@ -61,8 +64,8 @@ class DistBuildRangesTest(unittest.TestCase):
         nentries_large = 100
         npartitions_large = 10
 
-        ranges_small = backend.BuildRanges(nentries_small, npartitions_small)
-        ranges_large = backend.BuildRanges(nentries_large, npartitions_large)
+        ranges_small = rangesToTuples(backend._getBalancedRanges(nentries_small, npartitions_small))
+        ranges_large = rangesToTuples(backend._getBalancedRanges(nentries_large, npartitions_large))
 
         ranges_small_reqd = [(0, 2), (2, 4), (4, 6), (6, 8), (8, 10)]
         ranges_large_reqd = [
@@ -95,10 +98,10 @@ class DistBuildRangesTest(unittest.TestCase):
 
         # Example in which fractional part of
         # (nentries/npartitions) >= 0.5
-        ranges_1 = backend.BuildRanges(nentries_1, npartitions_1)
+        ranges_1 = rangesToTuples(backend._getBalancedRanges(nentries_1, npartitions_1))
         # Example in which fractional part of
         # (nentries/npartitions) < 0.5
-        ranges_2 = backend.BuildRanges(nentries_2, npartitions_2)
+        ranges_2 = rangesToTuples(backend._getBalancedRanges(nentries_2, npartitions_2))
 
         # Required output pairs
         ranges_1_reqd = [(0, 3), (3, 6), (6, 8), (8, 10)]
@@ -117,7 +120,7 @@ class DistBuildRangesTest(unittest.TestCase):
         nentries = 5
         npartitions = 7 # > nentries
 
-        ranges = backend.BuildRanges(nentries, npartitions)
+        ranges = rangesToTuples(backend._getBalancedRanges(nentries, npartitions))
 
         ranges_reqd = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5)]
 
