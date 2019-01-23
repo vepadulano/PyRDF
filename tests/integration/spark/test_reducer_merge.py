@@ -141,6 +141,7 @@ class ReducerMergeTest(unittest.TestCase):
         # Compare the 2 profiles
         self.assertHistoOrProfile(profile_py, profile_cpp)
 
+    @unittest.skipIf(ROOT.gROOT.GetVersion() < '6.16', "Graph featured included in ROOT-6.16 for the first time")
     def test_tgraph_merge(self):
         """
         Integration test to check the working of
