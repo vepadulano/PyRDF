@@ -277,6 +277,8 @@ class DistBuildRangesTest(unittest.TestCase):
         backend = DistBuildRangesTest.TestBackend()
 
         # Mock attributes accessed through self. inside BuildRanges
+        backend.treename = None
+        backend.files = None
         backend.nentries = 50
         npartitions = 16
 

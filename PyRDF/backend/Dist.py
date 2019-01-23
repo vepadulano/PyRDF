@@ -247,10 +247,10 @@ class Dist(Backend):
             # than 'nentries'
             npartitions = self.nentries
 
-        try:
+        if self.treename and self.files:
             filelist = self._getFilelist(self.files)
             return self._getClusteredRanges(self.nentries, npartitions, self.treename, filelist)
-        except AttributeError:
+        else:
             return self._getBalancedRanges(self.nentries, npartitions)
 
 
