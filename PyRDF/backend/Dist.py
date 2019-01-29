@@ -3,7 +3,7 @@ from .Backend import Backend
 from .Local import Local
 from .Utils import Utils
 from abc import abstractmethod
-from glob import glob
+import glob
 import warnings
 
 class Range(object):
@@ -233,10 +233,15 @@ class Dist(Backend):
             List of file names
         """
         if isinstance(files, str):
-            files = [files, ]
-        expanded_files = map(glob, files)
-        flattened_list = [fname for flist in expanded_files for fname in flist ]
-        return flattened_list
+            # Expand globbing excluding remote files
+            remote_prefixes = ("root:", "http:", "https:")
+            if not files.startswith(remote_prefixes):
+                files = glob.glob(files)
+            else:
+                # Convert single file into a filelist
+                files = [files, ]
+
+        return files
 
     def BuildRanges(self, npartitions):
         """
