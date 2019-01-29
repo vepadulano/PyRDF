@@ -156,7 +156,7 @@ class RDataFrame(Node):
             return [chainElem.GetTitle() for chainElem in chain.GetListOfFiles()]
         if len(self.args) > 1:
             second_arg = self.args[1]
-            if isinstance(second_arg, str):
+            if isinstance(second_arg, str) or isinstance(second_arg, ROOT.std.vector('string')):
                 # Get file(s) from second argument (may contain globbing characters)
                 return second_arg
         # RDataFrame may have been created with no input files

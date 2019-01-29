@@ -180,7 +180,7 @@ class DistBuildRangesTest(unittest.TestCase):
 
         """
         backend = DistBuildRangesTest.TestBackend()
-        treename = "DataSet/TestA1.cel"
+        treename = "myTree"
         filelist = ["tests/unit/backend/2clusters.root"]
         nentries = 1000
         npartitions = 2
@@ -189,8 +189,32 @@ class DistBuildRangesTest(unittest.TestCase):
         ranges = rangesToTuples(crs)
 
         ranges_reqd = [
-            (0L,     15875L),
-            (15875L, 15876L)
+            (0L,   777L),
+            (777L, 1000L)
+        ]
+
+        self.assertListEqual(ranges, ranges_reqd)
+
+    def test_clustered_ranges_with_four_clusters_four_partitions(self):
+        """
+        Check that _getClusteredRanges creates clustered ranges as equal as
+        possible for four partitions
+
+        """
+        backend = DistBuildRangesTest.TestBackend()
+        treename = "myTree"
+        filelist = ["tests/unit/backend/4clusters.root"]
+        nentries = 1000
+        npartitions = 4
+
+        crs = backend._getClusteredRanges(nentries, npartitions, treename, filelist)
+        ranges = rangesToTuples(crs)
+
+        ranges_reqd = [
+            (0L,   250L),
+            (250L, 500L),
+            (500L, 750L),
+            (750L, 1000L)
         ]
 
         self.assertListEqual(ranges, ranges_reqd)
@@ -290,5 +314,135 @@ class DistBuildRangesTest(unittest.TestCase):
             (20, 23), (23, 26), (26, 29), (29, 32), (32, 35), (35, 38),
             (38, 41), (41, 44), (44, 47), (47, 50)
         ]
+
+        self.assertListEqual(ranges, ranges_reqd)
+
+class DistRDataFrameInterface(unittest.TestCase):
+    """
+    Check `BuildRanges` when instantiating RDataFrame with different parameters
+    """
+
+    from PyRDF import current_backend
+
+    class TestBackend(backend.Dist):
+        """
+        A Dummy backend class to test the
+        BuildRanges method in Dist class.
+        """
+        def ProcessAndMerge(self, mapper, reducer):
+            """
+            Dummy implementation of ProcessAndMerge.
+            Return a mock list of a single value.
+
+            """
+            values = [1]
+            return values
+
+    def getRangesFromRDF(self, rdf):
+        """
+        Common test setup to create ranges out of an RDataFrame head node
+        """
+
+        PyRDF.current_backend = DistRDataFrameInterface.TestBackend()
+        backend = PyRDF.current_backend
+
+        hist = rdf.Define("b1", "tdfentry_")\
+                  .Histo1D("b1")
+
+        # Trigger call to `execute` where number of entries, treename
+        # and input files are extracted from the arguments passed to
+        # the RDataFrame head node
+        hist.GetValue()
+
+        partitions = 2
+        ranges = rangesToTuples(backend.BuildRanges(partitions))
+        return ranges
+
+    def test_empty_rdataframe_with_number_of_entries(self):
+        """
+        An RDataFrame instantiated with a number of entries leads to balanced
+        ranges.
+
+        """
+        rdf = PyRDF.RDataFrame(10)
+
+        ranges = self.getRangesFromRDF(rdf)
+        ranges_reqd = [ (0, 5), (5, 10) ]
+        self.assertListEqual(ranges, ranges_reqd)
+
+    def test_rdataframe_with_treename_and_simple_filename(self):
+        """
+        Check clustered ranges produced when the dataset is a single ROOT file.
+
+        """
+        treename = "myTree"
+        filename = "tests/unit/backend/2clusters.root"
+        rdf = PyRDF.RDataFrame(treename, filename)
+
+        ranges = self.getRangesFromRDF(rdf)
+        ranges_reqd = [ (0L, 777L), (777L, 1000L) ]
+
+        self.assertListEqual(ranges, ranges_reqd)
+
+
+    def test_rdataframe_with_treename_and_filename_with_globbing(self):
+        """
+        Check clustered ranges produced when the dataset is a single ROOT file
+        with globbing.
+
+        """
+        treename = "myTree"
+        filename = "tests/unit/backend/2cluste*.root"
+        rdf = PyRDF.RDataFrame(treename, filename)
+
+        ranges = self.getRangesFromRDF(rdf)
+        ranges_reqd = [ (0L, 777L), (777L, 1000L) ]
+
+        self.assertListEqual(ranges, ranges_reqd)
+
+    def test_rdataframe_with_treename_and_list_of_one_file(self):
+        """
+        Check clustered ranges produced when the dataset is a list of a single
+        ROOT file.
+
+        """
+        treename = "myTree"
+        filelist = ["tests/unit/backend/2clusters.root"]
+        rdf = PyRDF.RDataFrame(treename, filelist)
+
+        ranges = self.getRangesFromRDF(rdf)
+        ranges_reqd = [ (0L, 777L), (777L, 1000L) ]
+
+        self.assertListEqual(ranges, ranges_reqd)
+
+    def test_rdataframe_with_treename_and_list_of_files(self):
+        """
+        Check clustered ranges produced when the dataset is a list of a multiple
+        ROOT files.
+
+        Explanation about required ranges:
+        - 2clusters.root contains 1000 entries split into 2 clusters
+            ([0, 776], [777, 999]) being 776 and 999 inclusive entries
+        - 4clusters.root contains 1000 entries split into 4 clusters
+            ([0, 249], [250, 499], [500, 749], [750, 999]) being 249, 499, 749
+            and 999 inclusive entries
+        Current mechanism to create clustered ranges takes only into account the
+        the number of clusters, it is assumed that clusters inside a ROOT file
+        are properly distributed and balanced with respect to the number of entries.
+        Thus, if a dataset is composed by two ROOT files which are poorly balanced
+        in terms of clusters and entries, the resultant ranges will still respect
+        the cluster boundaries but each one may contain a different number of
+        entries.
+
+        Since this case should not be common, ranges required on this test are
+        considered the expected result.
+        """
+        treename = "myTree"
+        filelist = ["tests/unit/backend/2clusters.root", "tests/unit/backend/4clusters.root"]
+
+        rdf = PyRDF.RDataFrame(treename, filelist)
+
+        ranges = self.getRangesFromRDF(rdf)
+        ranges_reqd = [ (0L, 1250L), (250L, 1000L) ]
 
         self.assertListEqual(ranges, ranges_reqd)
