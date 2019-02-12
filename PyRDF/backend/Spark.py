@@ -1,6 +1,7 @@
 from __future__ import print_function
 from .Dist import Dist
 from pyspark import SparkConf, SparkContext
+from .Utils import Utils
 
 class Spark(Dist):
     """
@@ -72,6 +73,10 @@ class Spark(Dist):
             returned after computation (Map-Reduce).
 
         """
+        from .. import includes
+
+        Utils.declare_headers(includes) # Declare headers if any
+
         ranges = self.BuildRanges(self.npartitions) # Get range pairs
         # Build parallel collection
         parallel_collection = self.sparkContext.parallelize(ranges, self.npartitions)
