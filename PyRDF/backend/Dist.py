@@ -55,6 +55,7 @@ class Dist(Backend):
         'Snapshot',
         'Foreach',
         'Reduce',
+        'Report',
         'Aggregate'
         ]
         self.supported_operations = [op for op in self.supported_operations if op not in operations_not_supported]
