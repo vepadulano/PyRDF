@@ -275,6 +275,7 @@ class Dist(Backend):
         callable_function = generator.get_callable()
         # Arguments needed to create PyROOT RDF object
         rdf_args = generator.head_node.args
+        treename = generator.head_node.get_treename()
 
         from .. import includes
 
@@ -300,7 +301,28 @@ class Dist(Backend):
             import ROOT
 
             Utils.declare_headers(includes) # Declare headers if any
-            rdf = ROOT.ROOT.RDataFrame(*rdf_args) # PyROOT RDF object
+
+            # Call initialization method if it exists
+            if hasattr(ROOT, 'initialize'):
+                ROOT.initialize()
+
+            # Build rdf
+            start = int(current_range.start)
+            end = int(current_range.end)
+
+            if treename:
+                # Build TChain of files for this range:
+                chain = ROOT.TChain(treename)
+                for f in current_range.filelist:
+                    chain.Add(f)
+
+                # We assume 'end' is exclusive
+                chain.SetCacheEntryRange(start, end)
+                rdf = ROOT.ROOT.RDataFrame(chain)
+
+            else:
+                rdf = ROOT.ROOT.RDataFrame(*rdf_args) # PyROOT RDF object
+
 
             # TODO : If we want to run multi-threaded in a Spark node in
             # the future, use `TEntryList` instead of `Range`
