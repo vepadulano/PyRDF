@@ -35,6 +35,10 @@ class Node(object):
         the action nodes get a `RResultPtr` after event-loop
         execution.
 
+    pyroot_node
+        Reference to the PyROOT object that implements the
+        functionality of this node on the cpp side.
+
     """
     def __init__(self, get_head, operation):
         """
@@ -56,11 +60,12 @@ class Node(object):
             self.get_head = lambda : self
         else:
             self.get_head = get_head
-        
+
         self.operation = operation
         self.children = []
         self._cur_attr = "" # Name of the new incoming operation
         self.value = None
+        self.pyroot_node = None
 
     def __getstate__(self):
         """
@@ -154,7 +159,7 @@ class Node(object):
             return Proxy(newNode)
 
         return newNode
-    
+
     def graph_prune(self):
         """
         Prunes nodes from the current PyRDF graph under certain conditions. The current

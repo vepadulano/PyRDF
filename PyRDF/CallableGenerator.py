@@ -103,21 +103,32 @@ class CallableGenerator(object):
 
             return_vals = []
 
+            parent_node = node_cpp
             if not node_py:
                 # In the first recursive state, just set the
                 # current PyRDF node as the head node
                 node_py = self.head_node
             else:
                 # Execute the current operation using the output of the parent node (node_cpp)
-                node_cpp = getattr(node_cpp, node_py.operation.name)(*node_py.operation.args, **node_py.operation.kwargs)
+                RDFOperation = getattr(node_cpp, node_py.operation.name)
+                pyroot_node = RDFOperation(*node_py.operation.args, **node_py.operation.kwargs)
+                # The result is a pyroot object which is stored together with
+                # the pyrdf node. This binds the pyroot object lifetime to the
+                # pyrdf node, so both nodes will be kept alive as long as there
+                # is a valid reference poiting to the pyrdf node.
+                node_py.pyroot_node = pyroot_node
+
+                # The new pyroot_node becomes the parent_node for the next
+                # recursive call
+                parent_node = pyroot_node
 
                 if node_py.operation.is_action():
                     # Collect all action nodes in order to return them
-                    return_vals.append(node_cpp)
+                    return_vals.append(pyroot_node)
 
             for n in node_py.children:
                 # Recurse through children and get their output
-                prev_vals = mapper(node_cpp, n)
+                prev_vals = mapper(parent_node, n)
 
                 # Attach the output of the children node
                 return_vals.extend(prev_vals)
