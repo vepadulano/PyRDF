@@ -60,6 +60,13 @@ class Local(Backend):
 
         Utils.declare_headers(includes) # Declare headers if any
 
+        # Run initialization method to prepare the worker runtime environment
+        try:
+            self.initialization()
+        except TypeError as e:
+            # User did not specify any initialization function
+            pass
+
         if not self.pyroot_rdf:
             self.pyroot_rdf = ROOT.ROOT.RDataFrame(*generator.head_node.args)
 

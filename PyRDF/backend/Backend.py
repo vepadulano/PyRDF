@@ -53,6 +53,12 @@ class Backend(ABC):
 
         """
         self.config = config
+        # Users can set a function to initialize the environment
+        self.initialization = None
+
+    def registerInitialization(self, fun, *args, **kwargs):
+        import functools
+        self.initialization = functools.partial(fun, *args, **kwargs)
 
     def check_supported(self, operation_name):
         """

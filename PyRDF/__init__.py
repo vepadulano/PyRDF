@@ -55,3 +55,6 @@ def include(includes_list):
         includes_list = [includes_list]
 
     includes.extend(includes_list)
+
+def broadcastInitialization(fun, *args, **kwargs):
+    current_backend.registerInitialization(fun, *args, **kwargs)

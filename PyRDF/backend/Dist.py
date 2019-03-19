@@ -278,6 +278,9 @@ class Dist(Backend):
         treename = generator.head_node.get_treename()
         selected_branches = generator.head_node.get_branches()
 
+        # Avoid having references to self inside the mapper
+        initialization = self.initialization
+
         from .. import includes
 
         def mapper(current_range):
@@ -303,9 +306,12 @@ class Dist(Backend):
 
             Utils.declare_headers(includes) # Declare headers if any
 
-            # Call initialization method if it exists
-            if hasattr(ROOT, 'initialize'):
-                ROOT.initialize()
+            # Run initialization method to prepare the worker runtime environment
+            try:
+                initialization()
+            except TypeError as e:
+                # User did not specify any initialization function
+                pass
 
             # Build rdf
             start = int(current_range.start)
@@ -390,7 +396,6 @@ class Dist(Backend):
                         raise Exception("Error reducing two result values of type TGraph !")
                 else:
                     raise NotImplementedError("The type \"{}\" isn't supported by the reducer yet !".format(type(values_list1[i])))
-
             return values_list1
 
         # Get number of entries in the input dataset using
