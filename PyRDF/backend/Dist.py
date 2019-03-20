@@ -276,6 +276,7 @@ class Dist(Backend):
         # Arguments needed to create PyROOT RDF object
         rdf_args = generator.head_node.args
         treename = generator.head_node.get_treename()
+        selected_branches = generator.head_node.get_branches()
 
         from .. import includes
 
@@ -318,11 +319,13 @@ class Dist(Backend):
 
                 # We assume 'end' is exclusive
                 chain.SetCacheEntryRange(start, end)
-                rdf = ROOT.ROOT.RDataFrame(chain)
+                if selected_branches:
+                    rdf = ROOT.ROOT.RDataFrame(chain, selected_branches)
+                else:
+                    rdf = ROOT.ROOT.RDataFrame(chain)
 
             else:
                 rdf = ROOT.ROOT.RDataFrame(*rdf_args) # PyROOT RDF object
-
 
             # TODO : If we want to run multi-threaded in a Spark node in
             # the future, use `TEntryList` instead of `Range`

@@ -61,6 +61,17 @@ class RDataFrame(Node):
 
         self.args = args
 
+    def get_branches(self):
+        # RDataFrame(TTree& tree, const vector<string>& defaultBranches = {})
+        if len(self.args) == 2 and isinstance(self.args[0], ROOT.TTree):
+            return self.args[1]
+        # RDataFrame(treeName, filenameglob, const vector<string>& defaultBranches = {})
+        # RDataFrame(treename, filenames, const vector<string>& defaultBranches = {})
+        # RDataFrame(treeName, dirPtr, const vector<string>& defaultBranches = {})
+        if len(self.args) == 3:
+            return self.args[2]
+
+        return None
 
     def _get_vector_from_list(self, arg):
         """
