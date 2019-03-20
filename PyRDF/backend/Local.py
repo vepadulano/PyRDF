@@ -41,6 +41,7 @@ class Local(Backend):
             operations_not_supported.append('Range')
 
         self.supported_operations = [op for op in self.supported_operations if op not in operations_not_supported]
+        self.pyroot_rdf = None
 
     def execute(self, generator):
         """
@@ -59,9 +60,10 @@ class Local(Backend):
 
         Utils.declare_headers(includes) # Declare headers if any
 
-        rdf = ROOT.ROOT.RDataFrame(*generator.head_node.args) # Create RDF object
+        if not self.pyroot_rdf:
+            self.pyroot_rdf = ROOT.ROOT.RDataFrame(*generator.head_node.args)
 
-        values = mapper(rdf) # Execute the mapper function
+        values = mapper(self.pyroot_rdf) # Execute the mapper function
 
         # Get the action nodes in the same order as values
         nodes = generator.get_action_nodes()
