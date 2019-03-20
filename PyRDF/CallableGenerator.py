@@ -128,7 +128,7 @@ class CallableGenerator(object):
 
             for n in node_py.children:
                 # Recurse through children and get their output
-                prev_vals = mapper(parent_node, n)
+                prev_vals = mapper(parent_node, node_py=n)
 
                 # Attach the output of the children node
                 return_vals.extend(prev_vals)
