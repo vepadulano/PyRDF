@@ -1,6 +1,6 @@
 from .RDataFrame import RDataFrame, RDataFrameException
 from .CallableGenerator import CallableGenerator
-from .backend import Local, Spark
+from backend.Local import Local
 
 current_backend = Local()
 includes = []
@@ -31,6 +31,7 @@ def use(backend_name, conf = {}):
     elif backend_name == "local":
         current_backend = Local(conf)
     elif backend_name == "spark":
+        from backend.Spark import Spark
         current_backend = Spark(conf)
     else:
         raise Exception(" Incorrect backend environment \"{}\"".format(backend))

@@ -1,5 +1,5 @@
 import PyRDF, unittest, ROOT
-from PyRDF import Spark
+from PyRDF.backend.Spark import Spark
 
 class SelectionTest(unittest.TestCase):
     """

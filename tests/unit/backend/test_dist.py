@@ -1,5 +1,5 @@
 import PyRDF, unittest, ROOT
-from PyRDF import backend
+from PyRDF.backend.Dist import Dist
 
 def rangesToTuples(ranges):
     return map(lambda r: (r.start, r.end), ranges)
@@ -18,7 +18,7 @@ class DistBackendInitTest(unittest.TestCase):
 
         """
         with self.assertRaises(TypeError):
-            backend.Dist()
+            Dist()
 
     def test_subclass_without_method_error(self):
         """
@@ -27,7 +27,7 @@ class DistBackendInitTest(unittest.TestCase):
         method throws a `TypeError`.
 
         """
-        class TestBackend(backend.Dist):
+        class TestBackend(Dist):
             pass
 
         with self.assertRaises(TypeError):
@@ -39,7 +39,7 @@ class DistBuildRangesTest(unittest.TestCase):
     instance method in `Dist` class.
 
     """
-    class TestBackend(backend.Dist):
+    class TestBackend(Dist):
         """
         A Dummy backend class to test the
         BuildRanges method in Dist class.
@@ -324,7 +324,7 @@ class DistRDataFrameInterface(unittest.TestCase):
 
     from PyRDF import current_backend
 
-    class TestBackend(backend.Dist):
+    class TestBackend(Dist):
         """
         A Dummy backend class to test the
         BuildRanges method in Dist class.

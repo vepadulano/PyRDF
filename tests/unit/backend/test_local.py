@@ -1,5 +1,6 @@
 import PyRDF, unittest, ROOT
-from PyRDF import Proxy, Local
+from PyRDF.backend.Local import Local
+from PyRDF.Proxy import Proxy
 
 class SelectionTest(unittest.TestCase):
     """
