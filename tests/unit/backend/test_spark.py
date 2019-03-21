@@ -200,19 +200,35 @@ class OperationSupportTest(unittest.TestCase):
         with self.assertRaises(Exception):
             backend.check_supported("Range")
 
-class BroadcastInitializationTest(unittest.TestCase):
+class InitializationTest(unittest.TestCase):
     """
     Check initialization method in the Spark backend
+
     """
     def test_initialization_method(self):
-       # Define a method in the ROOT interprete called getValue
-       # that returns the value defined by the user
+       # Define a method in the ROOT interpreter called getValue which
+       # returns the value defined by the user on the python side
        def init(value):
-           cpp_code = '''auto getUserValue = [](){return %s ;};''' % value
-           ROOT.gInterpreter.Declare(cpp_code)
+           import ROOT
+           cpp_code = '''int userValue = %s ;''' % value
+           ROOT.gInterpreter.ProcessLine(cpp_code)
 
-       PyRDF.broadcastInitialization(init, 123)
-       backend = Spark()
-       df = PyRDF.RDataFrame(1)
-       s = df.Define("userValue", "getUserValue()").Sum("userValue")
-       self.assertEqual(s.GetValue(), 123)
+       PyRDF.initialize(init, 123)
+       PyRDF.current_backend = Spark()
+       # Spark backend has a limited list of supported methods, so we use Histo1D
+       # which is a supported action.
+       # The code below creates an RDataFrame instance with one single entry and
+       # defines a column 'u' whose value is taken from the variable 'userValue'.
+       # This variable is only declared inside the ROOT interpreter, however the
+       # value of the variable is passed by the user from the python side.
+       # If the init function defined by the user is properly propagated to the
+       # Spark backend, each workers will run the init function as a first step
+       # and hence the variable 'userValue' will be defined at runtime.
+       # As a result the define operation should read the variable 'userValue'
+       # and assign it to the entries of the column 'u' (only one entry).
+       # Finally, Histo1D returns a histogram filled with one value. The mean
+       # of this single value has to be the value itself, independently of
+       # the number of spawned workers.
+       df = PyRDF.RDataFrame(1).Define("u", "userValue").Histo1D("u")
+       h = df.GetValue()
+       self.assertEqual(h.GetMean(), 123)

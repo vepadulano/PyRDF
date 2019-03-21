@@ -130,18 +130,22 @@ class DeclareHeadersTest(unittest.TestCase):
         self.assertEqual(ROOT.f(1), True)
         self.assertEqual(ROOT.f1(2), 2)
         self.assertEqual(ROOT.f2("myString"), "myString")
- 
-class BroadcastInitializationTest(unittest.TestCase):
-   """
-   Check the broadcastInitialization method
-   """
-   from PyRDF import current_backend
 
-   def test_initialization(self):
-      def returnNumber(n):
+class InitializationTest(unittest.TestCase):
+    """
+    Check the initialize method
+
+    """
+    from PyRDF import current_backend
+
+    def test_initialization(self):
+        """
+        Check that the user initialization method is assigned to the backend
+
+        """
+        def returnNumber(n):
          return n
 
-      PyRDF.broadcastInitialization(returnNumber, 123)
-      f = PyRDF.current_backend.initialization 
-      self.assertEqual(f(), 123)
-
+        PyRDF.initialize(returnNumber, 123)
+        f = PyRDF.current_backend.initialization
+        self.assertEqual(f(), 123)

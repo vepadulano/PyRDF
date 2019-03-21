@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+import functools
 
 ABC = ABCMeta('ABC', (object,), {})
 
@@ -53,12 +54,40 @@ class Backend(ABC):
 
         """
         self.config = config
-        # Users can set a function to initialize the environment
-        self.initialization = None
 
-    def registerInitialization(self, fun, *args, **kwargs):
-        import functools
-        self.initialization = functools.partial(fun, *args, **kwargs)
+    @classmethod
+    def initialization(cls):
+        """
+        Store user's initialization method, if defined.
+
+        Parameters
+        ----------
+        cls : class
+            Backend metaclass
+        """
+        return None
+
+    @classmethod
+    def register_initialization(cls, fun, *args, **kwargs):
+        """
+        Convert the initialization function and its arguments into a callable
+        without arguments. This callable is saved on the backend parent class.
+        Therefore, changes on the runtime backend do not require users to set
+        the initialization function again.
+
+        Parameters
+        ----------
+        fun : function
+            Function to be executed.
+
+        *args
+            Variable length argument list used to execute the function.
+
+        **kwargs
+            Keyword arguments used to execute the function.
+
+        """
+        cls.initialization = functools.partial(fun, *args, **kwargs)
 
     def check_supported(self, operation_name):
         """

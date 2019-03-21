@@ -1,6 +1,7 @@
 from .RDataFrame import RDataFrame, RDataFrameException
 from .CallableGenerator import CallableGenerator
 from backend.Local import Local
+from backend.Backend import Backend
 
 current_backend = Local()
 includes = []
@@ -56,5 +57,24 @@ def include(includes_list):
 
     includes.extend(includes_list)
 
-def broadcastInitialization(fun, *args, **kwargs):
-    current_backend.registerInitialization(fun, *args, **kwargs)
+def initialize(fun, *args, **kwargs):
+    """
+    Set a function that will be executed as a first step on every backend before
+    any other operation.
+
+    This allows users to inject and execute custom code on the worker environment
+    without being part of the RDataFrame computational graph.
+
+    Parameters
+    ----------
+    fun : function
+        Function to be executed.
+
+    *args
+        Variable length argument list used to execute the function.
+
+    **kwargs
+        Keyword arguments used to execute the function.
+
+    """
+    Backend.register_initialization(fun, *args, **kwargs)

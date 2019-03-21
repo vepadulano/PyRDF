@@ -278,8 +278,8 @@ class Dist(Backend):
         treename = generator.head_node.get_treename()
         selected_branches = generator.head_node.get_branches()
 
-        # Avoid having references to self inside the mapper
-        initialization = self.initialization
+        # Avoid having references to the instance inside the mapper
+        initialization = Backend.initialization
 
         from .. import includes
 
@@ -307,11 +307,7 @@ class Dist(Backend):
             Utils.declare_headers(includes) # Declare headers if any
 
             # Run initialization method to prepare the worker runtime environment
-            try:
-                initialization()
-            except TypeError as e:
-                # User did not specify any initialization function
-                pass
+            initialization()
 
             # Build rdf
             start = int(current_range.start)
