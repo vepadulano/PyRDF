@@ -130,3 +130,18 @@ class DeclareHeadersTest(unittest.TestCase):
         self.assertEqual(ROOT.f(1), True)
         self.assertEqual(ROOT.f1(2), 2)
         self.assertEqual(ROOT.f2("myString"), "myString")
+ 
+class BroadcastInitializationTest(unittest.TestCase):
+   """
+   Check the broadcastInitialization method
+   """
+   from PyRDF import current_backend
+
+   def test_initialization(self):
+      def returnNumber(n):
+         return n
+
+      PyRDF.broadcastInitialization(returnNumber, 123)
+      f = PyRDF.current_backend.initialization 
+      self.assertEqual(f(), 123)
+
