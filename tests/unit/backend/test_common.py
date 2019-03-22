@@ -136,7 +136,6 @@ class InitializationTest(unittest.TestCase):
     Check the initialize method
 
     """
-    from PyRDF import current_backend
 
     def test_initialization(self):
         """
@@ -144,7 +143,7 @@ class InitializationTest(unittest.TestCase):
 
         """
         def returnNumber(n):
-         return n
+            return n
 
         PyRDF.initialize(returnNumber, 123)
         f = PyRDF.current_backend.initialization
