@@ -7,3 +7,7 @@ dist/
 build/
 .ipynb_checkpoints
 .circleci
+.coverage
+*.root
+*.png
+.pytest_cache
