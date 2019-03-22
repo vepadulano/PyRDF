@@ -15,6 +15,15 @@ class ReducerMergeTest(unittest.TestCase):
         """
         PyRDF.use("spark", {'npartitions':2, 'spark.executor.instances':2})
 
+    @classmethod
+    def tearDownClass(cls):
+        """
+        Restore current_backend to default Local backend after running all tests
+
+        """
+        PyRDF.use("local")
+
+
     def assertHistoOrProfile(self, obj_1, obj_2):
         """
         Asserts equality between two 'ROOT.TH1' or
