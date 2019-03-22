@@ -1,11 +1,44 @@
-# adapted from https://github.com/SuperNEMO-DBD/Falaise/blob/develop/.travis.yml
+# adapted from https://github.com/astrofrog/example-travis-conda/blob/master/.travis.yml
+language: python
 
 matrix:
   include:
-    - os: linux
-      services: docker
+
+    # Here you can add or remove specific builds, and Python versions. You
+    # should currently be able to use Python 2.6, 2.7, or 3.3 or later.
+
+    - python: 2.7
+
+    #- python: 2.7
+    #  env: NUMPY=1.8 SCIPY=0.14
+
+before_install:
+
+  # Here we just install Miniconda, which you shouldn't have to change.
+
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+  - chmod +x miniconda.sh
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - conda info -a
 
 install:
-  - docker run --name ub16 -idv ${TRAVIS_BUILD_DIR}:/app rootproject/root-ubuntu16:snapshot
 
-script: docker exec ub16 bash /app/.travis-script.sh
+  # We just set up a conda environment with the right Python version. This
+  # should not need changing.
+
+  - conda create -q --yes -n test python=$TRAVIS_PYTHON_VERSION
+  - source activate test
+
+  # Below, include the dependencies you want to install with conda, optionally
+  # specifying versions used in the matrix above.
+
+  - conda install --yes -q pyspark pytest
+  # Do not use -q option, travis may kill the build since the
+  # dependency resolution takes so long for root in conda
+  - conda install --yes -c conda-forge root
+
+script:
+
+  - python setup.py install --user # install PyRDF
+  - bash .travis-script.sh  # will run all tests in the package

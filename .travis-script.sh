@@ -1,35 +1,5 @@
-# All apt-get installs
-sudo apt-get --yes update
-sudo apt-get --yes install python-pip
-sudo apt-get --yes install wget
-sudo apt-get --yes install default-jdk
-
-# Install required packages
-sudo pip install -r /app/requirements.txt
-
-# Pyspark installation
-mkdir /home/builder/spark
-cd /home/builder/spark
-wget http://www-eu.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.7.tgz
-tar -xvzf spark-2.3.1-bin-hadoop2.7.tgz
-cd spark-2.3.1-bin-hadoop2.7/python/
-sudo python setup.py install
-
-# Making ROOT available
-source /usr/local/bin/thisroot.sh
-
-# Change permissions of source code dir
-sudo chown -R $UID:$UID /app
-
-# Install PyRDF from source
-cd /app
-sudo python setup.py install
-
 # Run tests
-nosetests tests/unit/*.py || exit 1
-nosetests tests/unit/backend/*.py || exit 1
-nosetests tests/integration/local/*.py || exit 1
-nosetests tests/integration/spark/*.py || exit 1
+pytest
 
 # Run tutorials
 echo " ======== Running single-threaded tutorials ======== "
