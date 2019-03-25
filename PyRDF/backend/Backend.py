@@ -10,9 +10,11 @@ class Backend(ABC):
 
     Attributes
     ----------
-    config
-        The config object for the required
-        backend.
+    supported_operations
+        List of operations supported by the backend.
+
+    initialization
+        Store user's initialization method, if defined.
 
     """
     supported_operations = [
@@ -40,6 +42,8 @@ class Backend(ABC):
         'Graph'
         ]
 
+    initialization = staticmethod(lambda : None)
+
     def __init__(self, config={}):
         """
         Creates a new instance of the
@@ -54,18 +58,6 @@ class Backend(ABC):
 
         """
         self.config = config
-
-    @classmethod
-    def initialization(cls):
-        """
-        Store user's initialization method, if defined.
-
-        Parameters
-        ----------
-        cls : class
-            Backend metaclass
-        """
-        return None
 
     @classmethod
     def register_initialization(cls, fun, *args, **kwargs):
