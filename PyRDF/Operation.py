@@ -1,10 +1,11 @@
 from __future__ import print_function
 from enum import Enum
 
+
 class Operation(object):
     """
-    A Generic representation of an operation. The
-    operation could be a transformation or an action.
+    A Generic representation of an operation. The operation could be a
+    transformation or an action.
 
     Attributes
     ----------
@@ -71,28 +72,28 @@ class Operation(object):
         ops = Operation.Types
 
         operations_dict = {
-        'Define':ops.TRANSFORMATION,
-        'Filter':ops.TRANSFORMATION,
-        'Range':ops.TRANSFORMATION,
-        'Aggregate':ops.ACTION,
-        'Histo1D':ops.ACTION,
-        'Histo2D':ops.ACTION,
-        'Histo3D':ops.ACTION,
-        'Profile1D':ops.ACTION,
-        'Profile2D':ops.ACTION,
-        'Profile3D':ops.ACTION,
-        'Count':ops.ACTION,
-        'Min':ops.ACTION,
-        'Max':ops.ACTION,
-        'Mean':ops.ACTION,
-        'Sum':ops.ACTION,
-        'Fill':ops.ACTION,
-        'Reduce':ops.ACTION,
-        'Report':ops.ACTION,
-        'Take':ops.ACTION,
-        'Graph':ops.ACTION,
-        'Snapshot':ops.INSTANT_ACTION,
-        'Foreach':ops.INSTANT_ACTION
+            'Define': ops.TRANSFORMATION,
+            'Filter': ops.TRANSFORMATION,
+            'Range': ops.TRANSFORMATION,
+            'Aggregate': ops.ACTION,
+            'Histo1D': ops.ACTION,
+            'Histo2D': ops.ACTION,
+            'Histo3D': ops.ACTION,
+            'Profile1D': ops.ACTION,
+            'Profile2D': ops.ACTION,
+            'Profile3D': ops.ACTION,
+            'Count': ops.ACTION,
+            'Min': ops.ACTION,
+            'Max': ops.ACTION,
+            'Mean': ops.ACTION,
+            'Sum': ops.ACTION,
+            'Fill': ops.ACTION,
+            'Reduce': ops.ACTION,
+            'Report': ops.ACTION,
+            'Take': ops.ACTION,
+            'Graph': ops.ACTION,
+            'Snapshot': ops.INSTANT_ACTION,
+            'Foreach': ops.INSTANT_ACTION
         }
 
         op_type = operations_dict.get(name)
