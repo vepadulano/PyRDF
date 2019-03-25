@@ -13,29 +13,16 @@ if sys.version_info >= (3,):
 
 setup(
   name = 'PyRDF',
-
   packages = find_packages(),
-
   version = '0.0.1',
-
-  description = 'Python Library for doing TDataFrame Analysis',
-
+  description = 'Python Library for doing RDataFrame Analysis',
   author = 'Shravan Murali',
-
   author_email = 'shravanmurali@gmail.com',
-
+  maintainer='Javier Cervantes, Enric Tejedor',
+  maintainer_email='javier.cervantes@cern.ch, etejedor@cern.ch',
   install_requires= req_list,
-
-  # entry_points= {
-  #     'console_scripts':['competitive-dl = competitiveDl:'\
-  #     'mains']
-  # },
-
-  url = 'https://github.com/shravan97/PyTDF',
-
+  url = 'https://github.com/JavierCVilla/PyRDF',
   keywords = [],
-
   classifiers = [],
-
   license='MIT License'
 )
