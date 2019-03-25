@@ -162,6 +162,35 @@ class Node(object):
 
         return newNode
 
+    def _is_prunable(self):
+        # Condition 1 - Not enough references
+
+        # If the number of referrers to the current node is
+        # less than 4, then the node has to be pruned.
+
+        # The 3 referrers to the current node would be :
+        # - The current function (graph_prune())
+        # - An internal reference (which every Python object has)
+        # - The current node's parent node
+        #
+        # (If the user had a variable reference to the current node,
+        # the value would be at least 4. Hence nodes with less than
+        # 4 references will have to be removed)
+
+        # NOTE :- sys.getrefcount(node) gives a way higher value
+        # and hence doesn't work in this case
+        if len(gc.get_referrers(self)) <= 3:
+            return True
+
+        # Condition 2 - Action value already computed
+
+        # If the current node's value was already computed, it should get
+        # pruned only if it's an action node.
+        if self.operation and self.operation.is_action() and self.value:
+            return True
+
+        return False
+
     def graph_prune(self):
         """
         Prunes nodes from the current PyRDF graph under certain conditions.
@@ -175,46 +204,16 @@ class Node(object):
             if the current node has to be pruned, False otherwise.
 
         """
-
         children = []
 
         for n in self.children:
-            # Select children based on
-            # pruning condition
+            # Select children based on pruning condition
             if not n.graph_prune():
                 children.append(n)
 
         self.children = children
 
         if not self.children:
-
-            # Every pruning condition is written on
-            # a separate line
-            if len(gc.get_referrers(self)) <= 3 \
-            or \
-            (self.operation and self.operation.is_action() and self.value):
-
-                ###### Condition 1 ######
-                ### If the current node's value was already
-                ### computed, it should get pruned only if it's
-                ### an action node.
-
-                ###### Condition 2 ######
-                ### If the number of referrers to the current node is
-                ### less than 4, then the node has to be pruned.
-
-                ### The 3 referrers to the current node would be :
-                ### - The current function (graph_prune())
-                ### - An internal reference (which every Python object has)
-                ### - The current node's parent node
-                ###
-                ### [If the user had a variable reference to the current node,
-                ### the value would be at least 4. Hence nodes with less than
-                ### 4 references will have to be removed ]
-
-                ### NOTE :- sys.getrefcount(node) gives a way higher value and hence
-                ### doesn't work in this case
-
-                return True
+            return self._is_prunable()
 
         return False
