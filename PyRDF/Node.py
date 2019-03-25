@@ -1,14 +1,14 @@
 from __future__ import print_function
 from .Operation import Operation
 from .Proxy import Proxy
-import sys, gc
+import gc
+
 
 class Node(object):
     """
-    A Class that represents a node in RDataFrame
-    operations graph. A Node houses an operation
-    and has references to children nodes. For details
-    on the types of operations supported, try :
+    A Class that represents a node in RDataFrame operations graph. A Node houses
+    an operation and has references to children nodes. For details on the types
+    of operations supported, try :
 
     import PyRDF
     PyRDF.use(...) # Choose your backend
@@ -40,6 +40,7 @@ class Node(object):
         functionality of this node on the cpp side.
 
     """
+
     def __init__(self, get_head, operation):
         """
         Creates a new `Node` based on the 'operation'.
@@ -57,13 +58,13 @@ class Node(object):
         """
         if get_head is None:
             # Function to get 'head' Node
-            self.get_head = lambda : self
+            self.get_head = lambda: self
         else:
             self.get_head = get_head
 
         self.operation = operation
         self.children = []
-        self._cur_attr = "" # Name of the new incoming operation
+        self._cur_attr = ""  # Name of the new incoming operation
         self.value = None
         self.pyroot_node = None
 
@@ -79,7 +80,7 @@ class Node(object):
             that represent the current PyRDF node.
 
         """
-        state_dict = {'children':self.children}
+        state_dict = {'children': self.children}
         if self.operation:
             state_dict['operation_name'] = self.operation.name
             state_dict['operation_args'] = self.operation.args
@@ -101,7 +102,9 @@ class Node(object):
         """
         self.children = state['children']
         if state.get('operation_name'):
-            self.operation = Operation(state['operation_name'], *state['operation_args'], **state["operation_kwargs"])
+            self.operation = Operation(state['operation_name'],
+                                       *state['operation_args'],
+                                       **state["operation_kwargs"])
         else:
             self.operation = None
 
@@ -123,8 +126,7 @@ class Node(object):
             current node.
 
         """
-
-        self._cur_attr = attr # Stores new operation name
+        self._cur_attr = attr  # Stores new operation name
 
         # Check if the current call is a dunder method call
         import re
@@ -162,9 +164,10 @@ class Node(object):
 
     def graph_prune(self):
         """
-        Prunes nodes from the current PyRDF graph under certain conditions. The current
-        node will be pruned if it has no children and the user application does not hold
-        any reference to it. The children of the current node will get recursively pruned.
+        Prunes nodes from the current PyRDF graph under certain conditions.
+        The current node will be pruned if it has no children and the user
+        application does not hold any reference to it. The children of the
+        current node will get recursively pruned.
 
         Returns
         -------
