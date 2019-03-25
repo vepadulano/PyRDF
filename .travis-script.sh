@@ -1,35 +1,25 @@
-# All apt-get installs
-sudo apt-get --yes update
-sudo apt-get --yes install python-pip
-sudo apt-get --yes install wget
-sudo apt-get --yes install default-jdk
+#!/bin/bash
 
-# Install required packages
-sudo pip install -r /app/requirements.txt
+# This script is meant to be called by the "install" step defined in
+# .travis.yml.
 
-# Pyspark installation
-mkdir /home/builder/spark
-cd /home/builder/spark
-wget http://www-eu.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.7.tgz
-tar -xvzf spark-2.3.1-bin-hadoop2.7.tgz
-cd spark-2.3.1-bin-hadoop2.7/python/
-sudo python setup.py install
-
-# Making ROOT available
-source /usr/local/bin/thisroot.sh
-
-# Change permissions of source code dir
-sudo chown -R $UID:$UID /app
-
-# Install PyRDF from source
-cd /app
-sudo python setup.py install
+check_error()
+{
+    local last_exit_code=$1
+    local last_cmd=$2
+    if [[ ${last_exit_code} -ne 0 ]]; then
+        echo "${last_cmd} exited with code ${last_exit_code}"
+        echo "TERMINATING TEST"
+        exit 1
+    else
+        echo "${last_cmd} completed successfully"
+    fi
+}
 
 # Run tests
-nosetests tests/unit/*.py || exit 1
-nosetests tests/unit/backend/*.py || exit 1
-nosetests tests/integration/local/*.py || exit 1
-nosetests tests/integration/spark/*.py || exit 1
+# -x exit instantly on first error or failed test
+# -v increase verbosity
+pytest -x -v
 
 # Run tutorials
 echo " ======== Running single-threaded tutorials ======== "
@@ -38,34 +28,28 @@ echo " ======== Running single-threaded tutorials ======== "
 for filename in ./tutorials/local/sequential/df*.py
 do
 	echo " == Running $filename == "
-	python "$filename" || exit 1
-	echo "  Ran $filename successfully ! "
+	python "$filename" &> /dev/null
+  check_error $? "$filename"
 done
 
-echo " ======== Ran single-threaded tutorials successfully ! ======== "
 
 echo "======== Running multi-threaded tutorials ======== "
-
 
 # Run multi-threaded tutorials locally
 for filename in ./tutorials/local/MT/df*.py
 do
 	echo " == Running $filename == "
-	python "$filename" || exit 1
-	echo "  Ran $filename successfully ! "
+	python "$filename" &> /dev/null
+  check_error $? "$filename"
 done
 
-echo " ======== Ran multi-threaded tutorials successfully ! ======== "
 
 echo "======== Running Spark tutorials ======== "
-
 
 # Run Spark tutorials locally
 for filename in ./tutorials/spark/df*.py
 do
 	echo " == Running $filename == "
-	python "$filename" || exit 1
-	echo "  Ran $filename successfully ! "
+	python "$filename" &> /dev/null
+  check_error $? "$filename"
 done
-
-echo " ======== Ran Spark tutorials successfully ! ======== "
