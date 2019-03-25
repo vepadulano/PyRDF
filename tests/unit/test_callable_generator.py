@@ -2,36 +2,40 @@ from PyRDF import CallableGenerator
 from PyRDF.Node import Node
 import unittest
 
-class CallableGeneratorTest(unittest.TestCase):
-    class Temp(object):
-        """
-        A Class for mocking RDF
-        CPP object.
 
-        """
+class CallableGeneratorTest(unittest.TestCase):
+    """
+    Check mechanism to create a callable function that returns a PyROOT object
+    per each PyRDF graph node. This callable takes care of the grape pruning.
+    """
+
+    class Temp(object):
+        """A Class for mocking RDF CPP object."""
 
         def __init__(self):
+            """
+            Creates a mock instance. Each mock method adds an unique number to
+            the `ord_list` so we can check the order in which they were called.
+            """
             self.ord_list = []
 
         def Define(self):
+            """Mock Define method"""
             self.ord_list.append(1)
             return self
 
         def Filter(self):
+            """Mock Filter method"""
             self.ord_list.append(2)
             return self
 
         def Count(self):
+            """Mock Count method"""
             self.ord_list.append(3)
             return self
 
     def test_mapper_from_graph(self):
-        """
-        A simple test case to check
-        the working of mapper.
-
-        """
-
+        """A simple test case to check the working of mapper."""
         # A mock RDF object
         t = CallableGeneratorTest.Temp()
 
@@ -43,7 +47,7 @@ class CallableGeneratorTest(unittest.TestCase):
         n2 = node.Filter().Filter()
         n4 = n2.Count()
         n5 = n1.Count()
-        n6 = node.Filter()
+        n6 = node.Filter()  # noqa: avoid PEP8 F841
 
         # Generate and execute the mapper
         generator = CallableGenerator(node)
@@ -53,19 +57,16 @@ class CallableGeneratorTest(unittest.TestCase):
 
         reqd_order = [1, 3, 2, 2, 3, 2]
 
-        # Assertions
         self.assertEqual(t.ord_list, reqd_order)
         self.assertListEqual(nodes, [n5.action_node, n4.action_node])
         self.assertListEqual(values, [t, t])
 
     def test_mapper_with_pruning(self):
         """
-        A test case to check that the
-        mapper works even in the case
-        of pruning.
+        A test case to check that the mapper works even in the case of
+        pruning.
 
         """
-
         # A mock RDF object
         t = CallableGeneratorTest.Temp()
 
@@ -77,9 +78,10 @@ class CallableGeneratorTest(unittest.TestCase):
         n2 = node.Filter().Filter()
         n4 = n2.Count()
         n5 = n1.Count()
-        n6 = node.Filter()
+        n6 = node.Filter()  # noqa: avoid PEP8 F841
 
-        n5 = n1.Filter() # Reason for pruning (change of reference)
+        # Reason for pruning (change of reference)
+        n5 = n1.Filter()  # noqa: avoid PEP8 F841
 
         # Generate and execute the mapper
         generator = CallableGenerator(node)
@@ -89,7 +91,6 @@ class CallableGeneratorTest(unittest.TestCase):
 
         reqd_order = [1, 2, 2, 2, 3, 2]
 
-        # Assertions
         self.assertEqual(t.ord_list, reqd_order)
         self.assertListEqual(nodes, [n4.action_node])
         self.assertListEqual(values, [t])

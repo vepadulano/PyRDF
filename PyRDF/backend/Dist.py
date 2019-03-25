@@ -6,6 +6,7 @@ from abc import abstractmethod
 import glob
 import warnings
 
+
 class Range(object):
     """
     Base class to represent ranges.
@@ -14,53 +15,71 @@ class Range(object):
     the basis for parallelization. First entry of the range (start) is inclusive
     while the second one is not (end).
     """
+
     def __init__(self, start, end, filelist=None):
+        """
+        Create an instance of a Range
+
+        Parameters
+        ----------
+        start : int
+            First entry of the range.
+
+        end : int
+            Last entry of the range, which is exclusive.
+
+        filelist : list (optional)
+            Files where the range of entries belongs to.
+
+        """
         self.start = start
         self.end = end
         self.filelist = filelist
 
     def __repr__(self):
+        """Return a string representation of the range composition."""
         if self.filelist:
-            return "(" + str(self.start) + "," + str(self.end) + "), " + str(self.filelist)
+            return ("(" + str(self.start) + "," + str(self.end) + "), " +
+                    str(self.filelist))
         else:
             return "(" + str(self.start) + "," + str(self.end) + ")"
 
-class Dist(Backend):
-    """
-    Base class for implementing all distributed backends.
 
-    """
-    def __init__(self, config = {}):
+class Dist(Backend):
+    """Base class for implementing all distributed backends."""
+
+    def __init__(self, config={}):
         """
         Creates an instance of Dist.
 
         Parameters
         ----------
         config : dict (optional)
-            The config options for the current
-            distributed backend. Default value is
-            an empty python dictionary `{}`.
+            The config options for the current distributed backend. Default
+            value is an empty python dictionary `{}`.
 
         """
         super(Dist, self).__init__(config)
         # Operations that aren't supported in distributed backends
         operations_not_supported = [
-        'Sum',
-        'Mean',
-        'Max',
-        'Min',
-        'Count',
-        'Range',
-        'Take',
-        'Snapshot',
-        'Foreach',
-        'Reduce',
-        'Report',
-        'Aggregate'
+            'Sum',
+            'Mean',
+            'Max',
+            'Min',
+            'Count',
+            'Range',
+            'Take',
+            'Snapshot',
+            'Foreach',
+            'Reduce',
+            'Report',
+            'Aggregate'
         ]
-        self.supported_operations = [op for op in self.supported_operations if op not in operations_not_supported]
 
-    def GetClusters(self, treename, filelist):
+        self.supported_operations = [op for op in self.supported_operations
+                                     if op not in operations_not_supported]
+
+    def get_clusters(self, treename, filelist):
         """
         Extract a list of cluster boundaries for the given tree and files
 
@@ -97,15 +116,16 @@ class Dist(Backend):
             end = 0
 
             while start < entries:
-              end = it()
-              clusters.append((start + offset, end + offset, offset, filename))
-              start = end
+                end = it()
+                cluster = (start + offset, end + offset, offset, filename)
+                clusters.append(cluster)
+                start = end
 
             offset += entries
 
         return clusters
 
-    def _getBalancedRanges(self, nentries, npartitions):
+    def _get_balanced_ranges(self, nentries, npartitions):
         """
         Builds range pairs from the given values of the number of entries in the
         dataset and number of partitions required. Each range contains the same
@@ -126,13 +146,13 @@ class Dist(Backend):
             List of ranges
 
         """
-        partition_size = int(nentries/npartitions)
+        partition_size = int(nentries / npartitions)
 
-        i = 0 # Iterator
+        i = 0  # Iterator
 
         ranges = []
 
-        remainder = nentries%npartitions
+        remainder = nentries % npartitions
 
         while i < nentries:
             # Start value of current range
@@ -143,14 +163,14 @@ class Dist(Backend):
                 # If the modulo value is not
                 # exhausted, add '1' to the end
                 # of the current range
-                end = i = end+1
+                end = i = end + 1
                 remainder -= 1
 
             ranges.append(Range(start, end))
 
         return ranges
 
-    def _getClusteredRanges(self, nentries, npartitions, treename, filelist):
+    def _get_clustered_ranges(self, nentries, npartitions, treename, filelist):
         """
         Builds range pairs taking into account the clusters of the dataset.
 
@@ -174,13 +194,14 @@ class Dist(Backend):
             List of ranges
 
         """
-        clusters = self.GetClusters(treename, filelist)
+        clusters = self.get_clusters(treename, filelist)
         numclusters = len(clusters)
 
         # Restrict 'npartitions' if it's greater
         # than number of clusters in the filelist
         if npartitions > numclusters:
-            msg = "Number of partitions is greater than number of clusters in the filelist"
+            msg = ("Number of partitions is greater than number of clusters"
+                   "in the filelist")
             msg += "\nUsing {} partition(s)".format(numclusters)
             warnings.warn(msg, UserWarning, stacklevel=2)
             npartitions = numclusters
@@ -188,7 +209,7 @@ class Dist(Backend):
         partSize = numclusters / npartitions
         remainder = numclusters % npartitions
 
-        i = 0 # Iterator
+        i = 0  # Iterator
         ranges = []
         entries_to_process = 0
 
@@ -203,7 +224,7 @@ class Dist(Backend):
             if i == numclusters:
                 end = clusters[-1][1]
             else:
-                end = clusters[i-1][1]
+                end = clusters[i - 1][1]
 
             range_files = []
             for idx in range(index_start, index_end):
@@ -213,12 +234,14 @@ class Dist(Backend):
                 range_files.append(clusters[idx][3])
 
             offset_first_cluster = clusters[index_start][2]
-            ranges.append(Range(start - offset_first_cluster, end - offset_first_cluster, range_files))
+            ranges.append(Range(start - offset_first_cluster,
+                                end - offset_first_cluster,
+                                range_files))
             entries_to_process += (end - start)
 
         return ranges
 
-    def _getFilelist(self, files):
+    def _get_filelist(self, files):
         """
         Convert single file into list of files and expand globbing
 
@@ -244,9 +267,10 @@ class Dist(Backend):
 
         return files
 
-    def BuildRanges(self, npartitions):
+    def build_ranges(self, npartitions):
         """
-        Define ranges based on the arguments passed the RDataFrame head node
+        Define two type of ranges based on the arguments passed to the
+        RDataFrame head node.
         """
         if npartitions > self.nentries:
             # Restrict 'npartitions' if it's greater
@@ -254,11 +278,11 @@ class Dist(Backend):
             npartitions = self.nentries
 
         if self.treename and self.files:
-            filelist = self._getFilelist(self.files)
-            return self._getClusteredRanges(self.nentries, npartitions, self.treename, filelist)
+            filelist = self._get_filelist(self.files)
+            return self._get_clustered_ranges(self.nentries, npartitions,
+                                              self.treename, filelist)
         else:
-            return self._getBalancedRanges(self.nentries, npartitions)
-
+            return self._get_balanced_ranges(self.nentries, npartitions)
 
     def execute(self, generator):
         """
@@ -304,7 +328,7 @@ class Dist(Backend):
             """
             import ROOT
 
-            Utils.declare_headers(includes) # Declare headers if any
+            Utils.declare_headers(includes)  # Declare headers if any
 
             # Run initialization method to prepare the worker runtime environment
             initialization()
@@ -327,13 +351,13 @@ class Dist(Backend):
                     rdf = ROOT.ROOT.RDataFrame(chain)
 
             else:
-                rdf = ROOT.ROOT.RDataFrame(*rdf_args) # PyROOT RDF object
+                rdf = ROOT.ROOT.RDataFrame(*rdf_args)  # PyROOT RDF object
 
             # TODO : If we want to run multi-threaded in a Spark node in
             # the future, use `TEntryList` instead of `Range`
             rdf_range = rdf.Range(current_range.start, current_range.end)
 
-            output = callable_function(rdf_range) # output of the callable
+            output = callable_function(rdf_range)  # output of the callable
 
             for i in range(len(output)):
                 # FIX ME : RResultPtrs aren't serializable,
@@ -376,7 +400,8 @@ class Dist(Backend):
             import ROOT
             for i in range(len(values_list1)):
                 # A bunch of if-else conditions to merge two values
-                if isinstance(values_list1[i], ROOT.TH1) or isinstance(values_list1[i], ROOT.TH2):
+                if (isinstance(values_list1[i], ROOT.TH1) or
+                   isinstance(values_list1[i], ROOT.TH2)):
                     # Merging two objects of type ROOT.TH1D or ROOT.TH2D
                     values_list1[i].Add(values_list2[i])
                 elif isinstance(values_list1[i], ROOT.TGraph):
@@ -389,16 +414,20 @@ class Dist(Backend):
 
                     # Check if there was an error in merging
                     if num_points == -1:
-                        raise Exception("Error reducing two result values of type TGraph !")
+                        msg = "Error reducing two result values of type TGraph!"
+                        raise Exception(msg)
                 else:
-                    raise NotImplementedError("The type \"{}\" isn't supported by the reducer yet !".format(type(values_list1[i])))
+                    msg = ("Type \"{}\" is not supported by the reducer yet!"
+                           .format(type(values_list1[i])))
+                    raise NotImplementedError(msg)
+
             return values_list1
 
         # Get number of entries in the input dataset using
         # arguments passed to RDataFrame constructor
         self.nentries = generator.head_node.get_num_entries()
         self.treename = generator.head_node.get_treename()
-        self.files    = generator.head_node.get_inputfiles()
+        self.files = generator.head_node.get_inputfiles()
 
         if not self.nentries:
             # Fall back to local execution
@@ -416,4 +445,8 @@ class Dist(Backend):
 
     @abstractmethod
     def ProcessAndMerge(self, mapper, reducer):
+        """
+        Subclasses must define how to run map-reduce functions on a given
+        backend.
+        """
         pass
