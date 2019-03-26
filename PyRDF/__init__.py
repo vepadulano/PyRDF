@@ -1,3 +1,6 @@
+from .RDataFrame import RDataFrame  # noqa
+from .RDataFrame import RDataFrameException  # noqa
+from .CallableGenerator import CallableGenerator  # noqa
 from backend.Local import Local
 from backend.Backend import Backend
 
