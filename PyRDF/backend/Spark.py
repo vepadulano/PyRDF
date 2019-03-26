@@ -82,7 +82,7 @@ class Spark(Dist):
 
         Utils.declare_headers(includes)  # Declare headers if any
 
-        ranges = self.BuildRanges(self.npartitions)  # Get range pairs
+        ranges = self.build_ranges(self.npartitions)  # Get range pairs
 
         # Build parallel collection
         sc = self.sparkContext
