@@ -1,4 +1,3 @@
-# adapted from https://github.com/astrofrog/example-travis-conda/blob/master/.travis.yml
 language: python
 
 matrix:
@@ -36,6 +35,7 @@ install:
 
   - conda env create -f conda-python-$TRAVIS_PYTHON_VERSION-test-env.yaml -n test
   - source activate test
+  - conda install -q --yes flake8
 
 script:
   - bash .travis-$TEST_SUITE-script.sh
