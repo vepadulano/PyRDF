@@ -24,5 +24,6 @@ class MiscTests(unittest.TestCase):
         h.GetMean()
         self.assertEqual(0, ROOT.myCount)
 
+
 if __name__ == '__main__':
     unittest.main()

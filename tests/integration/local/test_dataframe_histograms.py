@@ -34,5 +34,6 @@ class HistogramsFromRDF(unittest.TestCase):
         self.assertEqual(h1.GetMean(), h2.GetMean())
         self.assertEqual(h1.GetStdDev(), h2.GetStdDev())
 
+
 if __name__ == '__main__':
     unittest.main()
