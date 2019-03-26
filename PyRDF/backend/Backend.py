@@ -44,7 +44,7 @@ class Backend(ABC):
         'Graph'
     ]
 
-    initialization = staticmethod(lambda : None)
+    initialization = staticmethod(lambda: None)
 
     def __init__(self, config={}):
         """

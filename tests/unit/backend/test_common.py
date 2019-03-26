@@ -98,15 +98,14 @@ class DeclareHeadersTest(unittest.TestCase):
         self.assertEqual(ROOT.f1(2), 2)
         self.assertEqual(ROOT.f2("myString"), "myString")
 
-class InitializationTest(unittest.TestCase):
-    """
-    Check the initialize method
 
-    """
+class InitializationTest(unittest.TestCase):
+    """Check the initialize method"""
 
     def test_initialization(self):
         """
-        Check that the user initialization method is assigned to the backend
+        Check that the user initialization method is assigned to the current
+        backend.
 
         """
         def returnNumber(n):

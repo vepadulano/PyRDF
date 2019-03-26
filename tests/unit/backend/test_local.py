@@ -70,20 +70,24 @@ class OperationSupportTest(unittest.TestCase):
 
         ROOT.ROOT.DisableImplicitMT()
 
+
 class InitializationTest(unittest.TestCase):
-    """
-    Check initialization method in the Local backend
+    """Check initialization method in the Local backend"""
 
-    """
     def test_initialization_method(self):
-       # Define a method in the ROOT interpreter called getValue which
-       # returns the value defined by the user on the python side
-       def init(value):
-           cpp_code = '''auto getUserValue = [](){return %s ;};''' % value
-           ROOT.gInterpreter.Declare(cpp_code)
+        """
+        Check initialization method in Local backend.
 
-       PyRDF.initialize(init, 123)
-       PyRDF.current_backend = Local()
-       df = PyRDF.RDataFrame(1)
-       s = df.Define("userValue", "getUserValue()").Sum("userValue")
-       self.assertEqual(s.GetValue(), 123)
+        Define a method in the ROOT interpreter called getValue which returns
+        the value defined by the user on the python side.
+
+        """
+        def init(value):
+            cpp_code = '''auto getUserValue = [](){return %s ;};''' % value
+            ROOT.gInterpreter.Declare(cpp_code)
+
+        PyRDF.initialize(init, 123)
+        PyRDF.current_backend = Local()
+        df = PyRDF.RDataFrame(1)
+        s = df.Define("userValue", "getUserValue()").Sum("userValue")
+        self.assertEqual(s.GetValue(), 123)

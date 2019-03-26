@@ -61,13 +61,14 @@ def include(includes_list):
 
     includes.extend(includes_list)
 
+
 def initialize(fun, *args, **kwargs):
     """
     Set a function that will be executed as a first step on every backend before
     any other operation.
 
-    This allows users to inject and execute custom code on the worker environment
-    without being part of the RDataFrame computational graph.
+    This allows users to inject and execute custom code on the worker
+    environment without being part of the RDataFrame computational graph.
 
     Parameters
     ----------

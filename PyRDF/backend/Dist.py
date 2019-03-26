@@ -330,7 +330,8 @@ class Dist(Backend):
 
             Utils.declare_headers(includes)  # Declare headers if any
 
-            # Run initialization method to prepare the worker runtime environment
+            # Run initialization method to prepare the worker runtime
+            # environment
             initialization()
 
             # Build rdf
