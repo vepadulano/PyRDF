@@ -1,13 +1,11 @@
-import unittest, ROOT
-from PyRDF import RDataFrame, RDataFrameException
+import unittest
+import ROOT
+from PyRDF import RDataFrame
+from PyRDF import RDataFrameException
+
 
 class RDataFrameConstructorTests(unittest.TestCase):
-    """
-    Tests to check the working of
-    various constructors of PyRDF's
-    RDataFrame
-
-    """
+    """Check various constructors of PyRDF's RDataFrame"""
 
     def assertArgs(self, args_list1, args_list2):
         """
@@ -26,26 +24,14 @@ class RDataFrameConstructorTests(unittest.TestCase):
             # Check the contents
             self.assertListEqual(list(elem1), list(elem2))
 
-
     def test_integer_arg(self):
-        """
-        Test case to check the
-        working of a single
-        integer argument
-        (one argument constructor)
-
-        """
+        """Constructor with number of entries"""
         RDF = RDataFrame(10)
 
         self.assertListEqual(RDF.args, [10])
 
     def test_two_args(self):
-        """
-        Test cases to check the
-        working of the two
-        argument contructor
-
-        """
+        """Constructor with list of input files"""
         rdf_2_files = ["file1.root", "file2.root"]
 
         # Convert RDF files list to ROOT CPP vector
@@ -67,14 +53,7 @@ class RDataFrameConstructorTests(unittest.TestCase):
         self.assertArgs(RDF_3.args, ["treename", reqd_vec])
 
     def test_three_args_with_single_file(self):
-        """
-        Test cases to check the
-        working of the three
-        argument contructor
-        with the second argument
-        as a string
-
-        """
+        """Constructor with TTree, one input file and selected branches"""
         rdf_branches = ["branch1", "branch2"]
 
         # Convert RDF branches list to ROOT CPP Vector
@@ -92,15 +71,7 @@ class RDataFrameConstructorTests(unittest.TestCase):
         self.assertArgs(RDF_2.args, ["treename", "file.root", reqd_vec])
 
     def test_three_args_with_multiple_files(self):
-        """
-        Test cases to check the
-        working of the three
-        argument contructor
-        with the second argument
-        as a List or a Vector
-        of strings
-
-        """
+        """Constructor with TTree, list of input files and selected branches"""
         rdf_branches = ["branch1", "branch2"]
         rdf_files = ["file1.root", "file2.root"]
 
@@ -137,60 +108,45 @@ class RDataFrameConstructorTests(unittest.TestCase):
         self.assertArgs(RDF_4.args, reqd_args_list)
 
     def test_incorrect_args(self):
-        """
-        Test cases to check the
-        exceptions raised for
-        incorrect arguments
-
-        """
+        """Constructor with incorrect arguments"""
         with self.assertRaises(RDataFrameException):
             # Incorrect first argument in 2-argument case
-            RDF = RDataFrame(10, "file.root")
+            RDataFrame(10, "file.root")
 
         with self.assertRaises(RDataFrameException):
             # Incorrect third argument in 3-argument case
-            RDF = RDataFrame("treename", "file.root", "column1")
+            RDataFrame("treename", "file.root", "column1")
 
         with self.assertRaises(RDataFrameException):
             # No argument case
-            RDF = RDataFrame()
+            RDataFrame()
+
 
 class NumEntriesTest(unittest.TestCase):
-    """
-    Test cases to ensure that the backend
-    method 'get_num_entries' returns the
-    number of entries in the given dataset
-    accurately.
+    """'get_num_entries' returns the number of entries in the input dataset"""
 
-    """
     def fill_tree(self, size):
-        """
-        Stores a RDataFrame object of given
-        size in 'data.root'.
-
-        """
+        """Stores an RDataFrame object of a given size in 'data.root'."""
         tdf = ROOT.ROOT.RDataFrame(size)
         tdf.Define("b1", "(double) tdfentry_").Snapshot("tree", "data.root")
 
     def test_num_entries_single_arg_case(self):
         """
-        Test case to ensure that the number of
-        entries recorded are correct in the case
+        Ensure that the number of entries recorded are correct in the case
         of a single integer argument to RDataFrame.
 
         """
-        rdf = RDataFrame(123) # Create RDataFrame instance
+        rdf = RDataFrame(123)  # Create RDataFrame instance
 
         self.assertEqual(rdf.get_num_entries(), 123)
 
     def test_num_entries_two_args_case(self):
         """
-        Test cases to ensure that the number of
-        entries recorded are correct in the case
+        Ensure that the number of entries recorded are correct in the case
         of two arguments to RDataFrame constructor.
 
         """
-        self.fill_tree(1111) # Store RDataFrame object of size 1111
+        self.fill_tree(1111)  # Store RDataFrame object of size 1111
         files_vec = ROOT.std.vector('string')()
         files_vec.push_back("data.root")
 
@@ -205,12 +161,11 @@ class NumEntriesTest(unittest.TestCase):
 
     def test_num_entries_three_args_case(self):
         """
-        Test cases to ensure that the number of
-        entries recorded are correct in the case
+        Ensure that the number of entries recorded are correct in the case
         of two arguments to RDataFrame constructor.
 
         """
-        self.fill_tree(1234) # Store RDataFrame object of size 1234
+        self.fill_tree(1234)  # Store RDataFrame object of size 1234
         branches_vec_1 = ROOT.std.vector('string')()
         branches_vec_2 = ROOT.std.vector('string')()
         branches_vec_1.push_back("b1")
@@ -229,12 +184,11 @@ class NumEntriesTest(unittest.TestCase):
 
     def test_num_entries_with_ttree_arg(self):
         """
-        Test cases to ensure that the number of
-        entries recorded are correct in the case
+        Ensure that the number of entries recorded are correct in the case
         of RDataFrame constructor with a TTree.
 
         """
-        tree = ROOT.TTree("tree", "test") # Create tree
+        tree = ROOT.TTree("tree", "test")  # Create tree
         tree.Branch("x", 1)
         tree.Branch("y", 2)
         num_entries = 4

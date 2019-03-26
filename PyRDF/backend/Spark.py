@@ -3,39 +3,40 @@ from .Dist import Dist
 from pyspark import SparkConf, SparkContext
 from .Utils import Utils
 
+
 class Spark(Dist):
     """
-    Backend that executes the computational graph
-    using using `Spark` framework for distributed
-    execution.
+    Backend that executes the computational graph using using `Spark` framework
+    for distributed execution.
 
     """
-    def __init__(self, config = {}):
+
+    MIN_NPARTITIONS = 2
+
+    def __init__(self, config={}):
         """
-        Creates an instance of the Spark
-        backend class.
+        Creates an instance of the Spark backend class.
 
         Parameters
         ----------
         config : dict (optional)
-            The config options for Spark backend. The default
-            value is an empty Python dictionary `{}`. Config
-            should be a dictionary of Spark configuration
-            options and their values with 'npartitions' as
-            the only allowed extra parameter.
+            The config options for Spark backend. The default value is an empty
+            Python dictionary `{}`. `config` should be a dictionary of Spark
+            configuration options and their values with 'npartitions' as the
+            only allowed extra parameter.
+
             For example :-
 
             config = {
-            'npartitions':20,
-            'spark.master':'myMasterURL',
-            'spark.executor.instances':10,
-            'spark.app.name':'mySparkAppName'
+                'npartitions':20,
+                'spark.master':'myMasterURL',
+                'spark.executor.instances':10,
+                'spark.app.name':'mySparkAppName'
             }
 
-            IMPORTANT NOTE :- If a SparkContext is already set
-            in the current environment, the Spark configuration
-            parameters from 'config' will be ignored and the already
-            existing SparkContext would be used.
+            IMPORTANT NOTE :- If a SparkContext is already set in the current
+            environment, the Spark configuration parameters from 'config' will
+            be ignored and the already existing SparkContext would be used.
 
         """
         super(Spark, self).__init__(config)
@@ -47,10 +48,14 @@ class Spark(Dist):
         self.sparkContext = SparkContext.getOrCreate(sparkConf)
 
         # Set the value of 'npartitions' if it doesn't exist
-        self.npartitions = self.npartitions or self.sparkContext.getConf().get('spark.executor.instances') or 2
+        self.npartitions = self._get_partitions()
 
+    def _get_partitions(self):
+        npart = (self.npartitions or
+                 self.sparkContext.getConf().get('spark.executor.instances') or
+                 Spark.MIN_NPARTITIONS)
         # getConf().get('spark.executor.instances') could return a string
-        self.npartitions = int(self.npartitions)
+        return int(npart)
 
     def ProcessAndMerge(self, mapper, reducer):
         """
@@ -75,10 +80,13 @@ class Spark(Dist):
         """
         from .. import includes
 
-        Utils.declare_headers(includes) # Declare headers if any
+        Utils.declare_headers(includes)  # Declare headers if any
 
-        ranges = self.BuildRanges(self.npartitions) # Get range pairs
+        ranges = self.build_ranges(self.npartitions)  # Get range pairs
+
         # Build parallel collection
-        parallel_collection = self.sparkContext.parallelize(ranges, self.npartitions)
+        sc = self.sparkContext
+        parallel_collection = sc.parallelize(ranges, self.npartitions)
 
-        return parallel_collection.map(mapper).treeReduce(reducer) # Map-Reduce using Spark
+        # Map-Reduce using Spark
+        return parallel_collection.map(mapper).treeReduce(reducer)

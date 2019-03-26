@@ -1,24 +1,22 @@
 import ROOT
 
-class Utils(object):
-    """
-    Class that houses general utility
-    functions.
 
-    """
+class Utils(object):
+    """Class that houses general utility functions."""
+
     @classmethod
     def declare_headers(cls, includes):
         """
-        Declares all required headers using
-        PyROOT's "ROOT.gInterpreter.Declare".
+        Declares all required headers using the ROOT's C++ Interpreter.
 
         parameters
         ----------
         includes : list
-            This list should consist of all necessary C++
-            headers as strings.
+            This list should consist of all necessary C++ headers as strings.
 
         """
         for header in includes:
-            if not ROOT.gInterpreter.Declare("#include \"{}\"\n".format(header)):
-                raise Exception("There was an error in including \"{}\" !".format(header))
+            include_code = "#include \"{}\"\n".format(header)
+            if not ROOT.gInterpreter.Declare(include_code):
+                msg = "There was an error in including \"{}\" !".format(header)
+                raise Exception(msg)

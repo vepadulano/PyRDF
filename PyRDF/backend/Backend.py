@@ -3,10 +3,11 @@ import functools
 
 ABC = ABCMeta('ABC', (object,), {})
 
+
 class Backend(ABC):
     """
-    Base class for RDataFrame backends. Subclasses
-    of this class need to implement the 'execute' method.
+    Base class for RDataFrame backends. Subclasses of this class need to
+    implement the 'execute' method.
 
     Attributes
     ----------
@@ -17,6 +18,7 @@ class Backend(ABC):
         Store user's initialization method, if defined.
 
     """
+
     supported_operations = [
         'Define',
         'Filter',
@@ -40,14 +42,13 @@ class Backend(ABC):
         'Reduce',
         'Aggregate',
         'Graph'
-        ]
+    ]
 
-    initialization = staticmethod(lambda : None)
+    initialization = staticmethod(lambda: None)
 
     def __init__(self, config={}):
         """
-        Creates a new instance of the
-        desired implementation of `Backend`.
+        Creates a new instance of the desired implementation of `Backend`.
 
         Parameters
         ----------
@@ -99,8 +100,15 @@ class Backend(ABC):
 
         """
         if operation_name not in self.supported_operations:
-            raise Exception("The current backend doesn't support \"{}\" !".format(operation_name))
+            raise Exception(
+                "The current backend doesn't support \"{}\" !"
+                .format(operation_name)
+            )
 
     @abstractmethod
     def execute(self, generator):
+        """
+        Subclasses must define how to run the RDataFrame graph on a given
+        environment.
+        """
         pass

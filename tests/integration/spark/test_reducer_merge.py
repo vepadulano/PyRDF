@@ -1,35 +1,27 @@
-import unittest, PyRDF, ROOT
+import unittest
+import ROOT
+import PyRDF
+
 
 class ReducerMergeTest(unittest.TestCase):
-    """
-    Integration tests to check the working of merge operations
-    in the reducer function.
+    """Check the working of merge operations in the reducer function."""
 
-    """
     @classmethod
     def setUpClass(cls):
-        """
-        Set up method to select Spark backend
-        before running all the tests.
-
-        """
-        PyRDF.use("spark", {'npartitions':2, 'spark.executor.instances':2})
+        """Select Spark backend before running all the tests."""
+        PyRDF.use("spark", {'npartitions': 2, 'spark.executor.instances': 2})
 
     @classmethod
     def tearDownClass(cls):
         """
-        Restore current_backend to default Local backend after running all tests
+        Restore global current_backend to default Local backend after running
+        all tests
 
         """
         PyRDF.use("local")
 
-
     def assertHistoOrProfile(self, obj_1, obj_2):
-        """
-        Asserts equality between two 'ROOT.TH1' or
-        'ROOT.TH2' objects.
-
-        """
+        """Asserts equality between two 'ROOT.TH1' or 'ROOT.TH2' objects."""
         # Compare the sizes of equivalent objects
         self.assertEqual(obj_1.GetEntries(), obj_2.GetEntries())
 
@@ -41,83 +33,71 @@ class ReducerMergeTest(unittest.TestCase):
 
     def define_two_columns(self, rdf):
         """
-        Helper method that Defines and returns
-        two columns with definitions "x = tdfentry_"
-        and "y = tdfentry_ * tdfentry_".
+        Helper method that Defines and returns two columns with definitions
+        "x = rdfentry_" and "y = rdfentry_ * rdfentry_".
 
         """
-        return rdf.Define("x", "tdfentry_").Define("y", "tdfentry_*tdfentry_")
+        return rdf.Define("x", "rdfentry_").Define("y", "rdfentry_*rdfentry_")
 
     def define_three_columns(self, rdf):
         """
-        Helper method that Defines and returns three columns
-        with definitions "x = tdfentry_", "y = tdfentry_ * tdfentry_"
-        and "z = tdfentry_ * tdfentry_ * tdfentry_".
+        Helper method that Defines and returns three columns with definitions
+        "x = rdfentry_", "y = rdfentry_ * rdfentry_" and
+        "z = rdfentry_ * rdfentry_ * rdfentry_".
 
         """
-        return rdf.Define("x", "tdfentry_").Define("y", "tdfentry_*tdfentry_").Define("z", "tdfentry_*tdfentry_*tdfentry_")
+        return rdf.Define("x", "rdfentry_")\
+                  .Define("y", "rdfentry_*rdfentry_")\
+                  .Define("z", "rdfentry_*rdfentry_*rdfentry_")
 
     def test_histo1d_merge(self):
-        """
-        Integration test to check the working of
-        Histo1D merge operation in the reducer.
-
-        """
+        """Check the working of Histo1D merge operation in the reducer."""
         # Operations with PyRDF
         rdf_py = PyRDF.RDataFrame(10)
-        histo_py = rdf_py.Histo1D("tdfentry_")
+        histo_py = rdf_py.Histo1D("rdfentry_")
 
         # Operations with PyROOT
         rdf_cpp = ROOT.ROOT.RDataFrame(10)
-        histo_cpp = rdf_cpp.Histo1D("tdfentry_")
+        histo_cpp = rdf_cpp.Histo1D("rdfentry_")
 
         # Compare the 2 histograms
         self.assertHistoOrProfile(histo_py, histo_cpp)
 
     def test_histo2d_merge(self):
-        """
-        Integration test to check the working of
-        Histo2D merge operation in the reducer.
+        """Check the working of Histo2D merge operation in the reducer."""
+        modelTH2D = ("", "", 64, -4, 4, 64, -4, 4)
 
-        """
         # Operations with PyRDF
         rdf_py = PyRDF.RDataFrame(10)
         columns_py = self.define_two_columns(rdf_py)
-        histo_py = columns_py.Histo2D(("", "", 64, -4, 4, 64, -4, 4), "x", "y")
+        histo_py = columns_py.Histo2D(modelTH2D, "x", "y")
 
         # Operations with PyROOT
         rdf_cpp = ROOT.ROOT.RDataFrame(10)
         columns_cpp = self.define_two_columns(rdf_cpp)
-        histo_cpp = columns_cpp.Histo2D(("", "", 64, -4, 4, 64, -4, 4), "x", "y")
+        histo_cpp = columns_cpp.Histo2D(modelTH2D, "x", "y")
 
         # Compare the 2 histograms
         self.assertHistoOrProfile(histo_py, histo_cpp)
 
     def test_histo3d_merge(self):
-        """
-        Integration test to check the working of
-        Histo3D merge operation in the reducer.
-
-        """
+        """Check the working of Histo3D merge operation in the reducer."""
+        modelTH3D = ("", "", 64, -4, 4, 64, -4, 4, 64, -4, 4)
         # Operations with PyRDF
         rdf_py = PyRDF.RDataFrame(10)
         columns_py = self.define_three_columns(rdf_py)
-        histo_py = columns_py.Histo3D(("", "", 64, -4, 4, 64, -4, 4, 64, -4, 4), "x", "y", "z")
+        histo_py = columns_py.Histo3D(modelTH3D, "x", "y", "z")
 
         # Operations with PyROOT
         rdf_cpp = ROOT.ROOT.RDataFrame(10)
         columns_cpp = self.define_three_columns(rdf_cpp)
-        histo_cpp = columns_cpp.Histo3D(("", "", 64, -4, 4, 64, -4, 4, 64, -4, 4), "x", "y", "z")
+        histo_cpp = columns_cpp.Histo3D(modelTH3D, "x", "y", "z")
 
         # Compare the 2 histograms
         self.assertHistoOrProfile(histo_py, histo_cpp)
 
     def test_profile1d_merge(self):
-        """
-        Integration test to check the working of
-        Profile1D merge operation in the reducer.
-
-        """
+        """Check the working of Profile1D merge operation in the reducer."""
         # Operations with PyRDF
         rdf_py = PyRDF.RDataFrame(10)
         columns_py = self.define_two_columns(rdf_py)
@@ -132,31 +112,26 @@ class ReducerMergeTest(unittest.TestCase):
         self.assertHistoOrProfile(profile_py, profile_cpp)
 
     def test_profile2d_merge(self):
-        """
-        Integration test to check the working of
-        Profile2D merge operation in the reducer.
+        """Check the working of Profile2D merge operation in the reducer."""
+        model = ("", "", 64, -4, 4, 64, -4, 4)
 
-        """
         # Operations with PyRDF
         rdf_py = PyRDF.RDataFrame(10)
         columns_py = self.define_three_columns(rdf_py)
-        profile_py = columns_py.Profile2D(("", "", 64, -4, 4, 64, -4, 4), "x", "y", "z")
+        profile_py = columns_py.Profile2D(model, "x", "y", "z")
 
         # Operations with PyROOT
         rdf_cpp = ROOT.ROOT.RDataFrame(10)
         columns_cpp = self.define_three_columns(rdf_cpp)
-        profile_cpp = columns_cpp.Profile2D(("", "", 64, -4, 4, 64, -4, 4), "x", "y", "z")
+        profile_cpp = columns_cpp.Profile2D(model, "x", "y", "z")
 
         # Compare the 2 profiles
         self.assertHistoOrProfile(profile_py, profile_cpp)
 
-    @unittest.skipIf(ROOT.gROOT.GetVersion() < '6.16', "Graph featured included in ROOT-6.16 for the first time")
+    @unittest.skipIf(ROOT.gROOT.GetVersion() < '6.16',
+                     "Graph featured included in ROOT-6.16 for the first time")
     def test_tgraph_merge(self):
-        """
-        Integration test to check the working of
-        TGraph merge operation in the reducer.
-
-        """
+        """Check the working of TGraph merge operation in the reducer."""
         # Operations with PyRDF
         rdf_py = PyRDF.RDataFrame(10)
         columns_py = self.define_two_columns(rdf_py)

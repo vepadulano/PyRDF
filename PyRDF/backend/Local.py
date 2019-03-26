@@ -2,10 +2,11 @@ import ROOT
 from .Backend import Backend
 from .Utils import Utils
 
+
 class Local(Backend):
     """
-    Backend that relies on the C++ implementation
-    of RDataFrame to locally execute the current graph.
+    Backend that relies on the C++ implementation of RDataFrame to locally
+    execute the current graph.
 
     Attributes
     ----------
@@ -14,6 +15,7 @@ class Local(Backend):
         backend.
 
     """
+
     def __init__(self, config={}):
         """
         Creates a new instance of the
@@ -29,18 +31,19 @@ class Local(Backend):
         """
         super(Local, self).__init__(config)
         operations_not_supported = [
-        'Take',
-        'Snapshot',
-        'Foreach',
-        'Reduce',
-        'Aggregate'
+            'Take',
+            'Snapshot',
+            'Foreach',
+            'Reduce',
+            'Aggregate',
         ]
         if ROOT.ROOT.IsImplicitMTEnabled():
             # Add `Range` operation only if multi-threading
             # is disabled.
             operations_not_supported.append('Range')
 
-        self.supported_operations = [op for op in self.supported_operations if op not in operations_not_supported]
+        self.supported_operations = [op for op in self.supported_operations
+                                     if op not in operations_not_supported]
         self.pyroot_rdf = None
 
     def execute(self, generator):
@@ -56,9 +59,9 @@ class Local(Backend):
         """
         from .. import includes
 
-        mapper = generator.get_callable() # Get the callable
+        mapper = generator.get_callable()  # Get the callable
 
-        Utils.declare_headers(includes) # Declare headers if any
+        Utils.declare_headers(includes)  # Declare headers if any
 
         # Run initialization method to prepare the worker runtime environment
         Backend.initialization()
@@ -66,12 +69,12 @@ class Local(Backend):
         if not self.pyroot_rdf:
             self.pyroot_rdf = ROOT.ROOT.RDataFrame(*generator.head_node.args)
 
-        values = mapper(self.pyroot_rdf) # Execute the mapper function
+        values = mapper(self.pyroot_rdf)  # Execute the mapper function
 
         # Get the action nodes in the same order as values
         nodes = generator.get_action_nodes()
 
-        values[0].GetValue() # Trigger event-loop
+        values[0].GetValue()  # Trigger event-loop
 
         for i in range(len(values)):
             # Set the obtained values and

@@ -2,6 +2,7 @@ from __future__ import print_function
 from .Node import Node
 import ROOT
 
+
 class RDataFrame(Node):
     """
     The Python equivalent of ROOT C++'s
@@ -15,10 +16,14 @@ class RDataFrame(Node):
 
     Supported constructor arguments
     -------------------------------
-    PyRDF's RDataFrame constructor accepts the same arguments as the ROOT's RDataFrame
-    constructor (see https://root.cern/doc/master/classROOT_1_1RDataFrame.html). In addition,
-    PyRDF allows you to use Python lists in place of C++ vectors as arguments of the constructor,
-    e.g., `RDataFrame("myTree", ["file1.root", "file2.root"]`.
+    PyRDF's RDataFrame constructor accepts the same arguments as the ROOT's
+    RDataFrame constructor
+    (see https://root.cern/doc/master/classROOT_1_1RDataFrame.html).
+
+    In addition, PyRDF allows you to use Python lists in place of C++ vectors as
+    arguments of the constructor, example:
+
+    RDataFrame("myTree", ["file1.root", "file2.root"]
 
     Raises
     ------
@@ -30,8 +35,7 @@ class RDataFrame(Node):
 
     def __init__(self, *args):
         """
-        Creates a new RDataFrame instance for
-        the given arguments.
+        Creates a new RDataFrame instance for the given arguments.
 
         Parameters
         ----------
@@ -40,10 +44,9 @@ class RDataFrame(Node):
             the RDataFrame object.
 
         """
-
         super(RDataFrame, self).__init__(None, None)
 
-        args = list(args) # Make args mutable
+        args = list(args)  # Make args mutable
         num_params = len(args)
 
         for i in range(num_params):
@@ -52,9 +55,10 @@ class RDataFrame(Node):
                 args[i] = self._get_vector_from_list(args[i])
 
         try:
-            ROOT.ROOT.RDataFrame(*args) # Check if the args are correct
+            ROOT.ROOT.RDataFrame(*args)  # Check if the args are correct
         except TypeError as e:
-            rdf_exception = RDataFrameException(e, "Error creating the RDataFrame !")
+            msg = "Error creating the RDataFrame !"
+            rdf_exception = RDataFrameException(e, msg)
             rdf_exception.__cause__ = None
             # The above line is to supress the traceback of error 'e'
             raise rdf_exception
@@ -62,23 +66,22 @@ class RDataFrame(Node):
         self.args = args
 
     def get_branches(self):
-        # RDataFrame(TTree& tree, const vector<string>& defaultBranches = {})
+        """Gets list of default branches if passed by the user."""
+        # ROOT Constructor:
+        # RDataFrame(TTree& tree, defaultBranches = {})
         if len(self.args) == 2 and isinstance(self.args[0], ROOT.TTree):
             return self.args[1]
-        # RDataFrame(treeName, filenameglob, const vector<string>& defaultBranches = {})
-        # RDataFrame(treename, filenames, const vector<string>& defaultBranches = {})
-        # RDataFrame(treeName, dirPtr, const vector<string>& defaultBranches = {})
+        # ROOT Constructors:
+        # RDataFrame(treeName, filenameglob, defaultBranches = {})
+        # RDataFrame(treename, filenames, defaultBranches = {})
+        # RDataFrame(treeName, dirPtr, defaultBranches = {})
         if len(self.args) == 3:
             return self.args[2]
 
         return None
 
     def _get_vector_from_list(self, arg):
-        """
-        Converts a python list of strings
-        to a vector.
-
-        """
+        """Converts a python list of strings to a vector."""
         reqd_vec = ROOT.std.vector('string')()
 
         for elem in arg:
@@ -88,14 +91,12 @@ class RDataFrame(Node):
 
     def get_num_entries(self):
         """
-        Gets the number of entries in
-        the given dataset.
+        Gets the number of entries in the given dataset.
 
         Returns
         -------
         int
-            This is the computed number of entries
-            in the input dataset.
+            This is the computed number of entries in the input dataset.
 
         """
         first_arg = self.args[0]
@@ -125,7 +126,7 @@ class RDataFrame(Node):
 
     def get_treename(self):
         """
-        Get name of the TTree
+        Get name of the TTree.
 
         Returns
         -------
@@ -133,7 +134,7 @@ class RDataFrame(Node):
             Name of the TTree, or None if there is no tree.
 
         """
-        first_arg =  self.args[0]
+        first_arg = self.args[0]
         if isinstance(first_arg, ROOT.TChain):
             # Get name from a given TChain
             return first_arg.GetName()
@@ -148,7 +149,7 @@ class RDataFrame(Node):
 
     def get_inputfiles(self):
         """
-        Get list of input files
+        Get list of input files.
 
         This list can be extracted from a given TChain or from the list of
         arguments.
@@ -164,22 +165,26 @@ class RDataFrame(Node):
         if isinstance(first_arg, ROOT.TChain):
             # Extract file names from a given TChain
             chain = first_arg
-            return [chainElem.GetTitle() for chainElem in chain.GetListOfFiles()]
+            return [chainElem.GetTitle()
+                    for chainElem in chain.GetListOfFiles()]
         if len(self.args) > 1:
             second_arg = self.args[1]
-            if isinstance(second_arg, str) or isinstance(second_arg, ROOT.std.vector('string')):
-                # Get file(s) from second argument (may contain globbing characters)
+            if (isinstance(second_arg, str) or
+               isinstance(second_arg, ROOT.std.vector('string'))):
+                # Get file(s) from second argument
+                # (may contain globbing characters)
                 return second_arg
         # RDataFrame may have been created with no input files
         return None
 
+
 class RDataFrameException(Exception):
     """
-    A special type of Exception
-    that shows up for incorrect
-    arguments to RDataFrame.
+    A special type of Exception that shows up for incorrect arguments to
+    RDataFrame.
 
     """
+
     def __init__(self, exception, msg):
         """
         Creates a new `RDataFrameException`.

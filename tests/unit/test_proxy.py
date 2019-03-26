@@ -2,50 +2,35 @@ from PyRDF.Proxy import Proxy
 from PyRDF.Node import Node
 from PyRDF.backend.Backend import Backend
 from PyRDF import RDataFrame
-import unittest, PyRDF
+import unittest
+import PyRDF
+
 
 class AttrReadTest(unittest.TestCase):
-    """
-    Test cases to check working of
-    methods in Proxy class.
-
-    """
+    """Test Proxy class methods."""
 
     class Temp(object):
-        """
-        A mock action node result class.
+        """A mock action node result class."""
 
-        """
         def val(self, arg):
-            """
-            A test method to check function
-            call on the Temp class.
-
-            """
-            return arg+123 # A simple operation to check
+            """A test method to check function call on the Temp class."""
+            return arg + 123  # A simple operation to check
 
     def test_attr_simple(self):
-        """
-        Test case to check that a Proxy
-        object reads the right input
-        attribute.
-
-        """
-
+        """Proxy object reads the right input attribute."""
         node = Node(None, None)
         proxy = Proxy(node)
         func = proxy.attr
 
         self.assertEqual(proxy._cur_attr, "attr")
+        self.assertTrue(callable(func))
 
     def test_return_value(self):
         """
-        Test case to check that a Proxy
-        object computes and returns the
-        right output based on the function call.
+        Proxy object computes and returns the right output based on the
+        function call.
 
         """
-
         t = AttrReadTest.Temp()
         node = Node(None, None)
         node.value = t
@@ -53,18 +38,17 @@ class AttrReadTest(unittest.TestCase):
 
         self.assertEqual(proxy.val(21), 144)
 
-class GetValueTests(unittest.TestCase):
-    """
-    Test cases to check the working of
-    'GetValue' instance method in Proxy.
 
-    """
+class GetValueTests(unittest.TestCase):
+    """Check 'GetValue' instance method in Proxy."""
+
     class TestBackend(Backend):
         """
-        Test backend to verify the working of
-        'GetValue' instance method in Proxy.
+        Test backend to verify the working of 'GetValue' instance method
+        in Proxy.
 
         """
+
         def execute(self, generator):
             """
             Test implementation of the execute method

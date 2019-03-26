@@ -1,6 +1,7 @@
 from __future__ import print_function
 from .CallableGenerator import CallableGenerator
 
+
 class Proxy(object):
     """
     Instances of Proxy act as futures of the result produced
@@ -19,6 +20,7 @@ class Proxy(object):
         instance wraps.
 
     """
+
     def __init__(self, action_node):
         """
         Creates a new `Proxy` object for a
@@ -45,10 +47,9 @@ class Proxy(object):
             current action node.
 
         """
-
-        self._cur_attr = attr # Stores the name of operation call
+        self._cur_attr = attr  # Stores the name of operation call
         return self._call_handler
-    
+
     def GetValue(self):
         """
         Returns the result value of the current action
@@ -63,7 +64,7 @@ class Proxy(object):
             current action node in the computational graph.
 
         """
-        if not self.action_node.value: # If event-loop not triggered
+        if not self.action_node.value:  # If event-loop not triggered
             from . import current_backend
             generator = CallableGenerator(self.action_node.get_head())
             current_backend.execute(generator)
@@ -73,5 +74,4 @@ class Proxy(object):
     def _call_handler(self, *args, **kwargs):
         # Handles an operation call to the current action node
         # and returns result of the current action node.
-
         return getattr(self.GetValue(), self._cur_attr)(*args, **kwargs)

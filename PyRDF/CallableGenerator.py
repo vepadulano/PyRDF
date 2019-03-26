@@ -1,7 +1,6 @@
 class CallableGenerator(object):
     """
-    Class that generates a callable
-    to parse a PyRDF graph.
+    Class that generates a callable to parse a PyRDF graph.
 
     Attributes
     ----------
@@ -9,6 +8,7 @@ class CallableGenerator(object):
         Head node of a PyRDF graph.
 
     """
+
     def __init__(self, head_node):
         """
         Creates a new `CallableGenerator`.
@@ -23,8 +23,7 @@ class CallableGenerator(object):
 
     def get_action_nodes(self, node_py=None):
         """
-        Recurses through PyRDF graph and collects
-        the PyRDF node objects.
+        Recurses through PyRDF graph and collects the PyRDF node objects.
 
         Parameters
         ----------
@@ -61,8 +60,7 @@ class CallableGenerator(object):
 
     def get_callable(self):
         """
-        Converts a given graph into
-        a callable and returns the same.
+        Converts a given graph into a callable and returns the same.
 
         Returns
         -------
@@ -73,15 +71,13 @@ class CallableGenerator(object):
             recursively.
 
         """
-
         # Prune the graph to check user references
         self.head_node.graph_prune()
 
         def mapper(node_cpp, node_py=None):
             """
-            The callable that recurses through
-            the PyRDF nodes and executes operations
-            from a starting (PyROOT) RDF node.
+            The callable that recurses through the PyRDF nodes and executes
+            operations from a starting (PyROOT) RDF node.
 
             Parameters
             ----------
@@ -100,7 +96,6 @@ class CallableGenerator(object):
                 of their corresponding actions in the graph.
 
             """
-
             return_vals = []
 
             parent_node = node_cpp
@@ -109,9 +104,11 @@ class CallableGenerator(object):
                 # current PyRDF node as the head node
                 node_py = self.head_node
             else:
-                # Execute the current operation using the output of the parent node (node_cpp)
+                # Execute the current operation using the output of the parent
+                # node (node_cpp)
                 RDFOperation = getattr(node_cpp, node_py.operation.name)
-                pyroot_node = RDFOperation(*node_py.operation.args, **node_py.operation.kwargs)
+                operation = node_py.operation
+                pyroot_node = RDFOperation(*operation.args, **operation.kwargs)
                 # The result is a pyroot object which is stored together with
                 # the pyrdf node. This binds the pyroot object lifetime to the
                 # pyrdf node, so both nodes will be kept alive as long as there

@@ -1,15 +1,13 @@
-import unittest, PyRDF, ROOT
+import unittest
+import PyRDF
+
 
 class IncludesLocalTest(unittest.TestCase):
-    """
-    An integration test to check that the required
-    header files are properly included.
+    """Check that the required header files are properly included."""
 
-    """
     def test_includes_function_with_filter_op(self):
         """
-        An integration test to check that the filter
-        operation is able to use C++ functions that
+        Check that the filter operation is able to use C++ functions that
         were include using header files.
 
         """

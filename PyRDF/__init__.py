@@ -1,12 +1,14 @@
-from .RDataFrame import RDataFrame, RDataFrameException
-from .CallableGenerator import CallableGenerator
+from .RDataFrame import RDataFrame  # noqa
+from .RDataFrame import RDataFrameException  # noqa
+from .CallableGenerator import CallableGenerator  # noqa
 from backend.Local import Local
 from backend.Backend import Backend
 
 current_backend = Local()
 includes = []
 
-def use(backend_name, conf = {}):
+
+def use(backend_name, conf={}):
     """
     Allows the user to choose the execution backend.
 
@@ -22,25 +24,27 @@ def use(backend_name, conf = {}):
 
     """
     future_backends = [
-    "dask"
+        "dask"
     ]
 
     global current_backend
 
     if backend_name in future_backends:
-        raise NotImplementedError(" This backend environment will be considered in the future !")
+        msg = " This backend environment will be considered in the future !"
+        raise NotImplementedError(msg)
     elif backend_name == "local":
         current_backend = Local(conf)
     elif backend_name == "spark":
         from backend.Spark import Spark
         current_backend = Spark(conf)
     else:
-        raise Exception(" Incorrect backend environment \"{}\"".format(backend))
+        msg = " Incorrect backend environment \"{}\"".format(backend_name)
+        raise Exception(msg)
+
 
 def include(includes_list):
     """
-    Includes a list of C++ headers to be
-    declared before execution.
+    Includes a list of C++ headers to be declared before execution.
 
     parameters
     ----------
@@ -57,13 +61,14 @@ def include(includes_list):
 
     includes.extend(includes_list)
 
+
 def initialize(fun, *args, **kwargs):
     """
     Set a function that will be executed as a first step on every backend before
     any other operation.
 
-    This allows users to inject and execute custom code on the worker environment
-    without being part of the RDataFrame computational graph.
+    This allows users to inject and execute custom code on the worker
+    environment without being part of the RDataFrame computational graph.
 
     Parameters
     ----------
