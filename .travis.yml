@@ -7,10 +7,17 @@ matrix:
     # Here you can add or remove specific builds, and Python versions. You
     # should currently be able to use Python 2.6, 2.7, or 3.3 or later.
 
-    - python: 2.7.15
+    - stage: 'style checks'
+      python: '2.7.15'
+      language: python
+      env: TEST_SUITE=flake8
+    - stage: 'unit tests'
+      python: 2.7.15
+      env: TEST_SUITE=unit
 
-    #- python: 2.7
-    #  env: NUMPY=1.8 SCIPY=0.14
+stages:
+  - 'style checks'
+  - 'unit tests'
 
 before_install:
 
@@ -31,6 +38,4 @@ install:
   - source activate test
 
 script:
-
-  - python setup.py install --user # install PyRDF
-  - bash .travis-script.sh  # will run all tests in the package
+  - bash .travis-$TEST_SUITE-script.sh

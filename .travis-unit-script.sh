@@ -16,6 +16,9 @@ check_error()
     fi
 }
 
+# Install PyRDF
+python setup.py install --user 
+
 # Run tests
 # -x exit instantly on first error or failed test
 # -v increase verbosity
