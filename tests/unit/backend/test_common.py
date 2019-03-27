@@ -98,6 +98,15 @@ class DeclareHeadersTest(unittest.TestCase):
         self.assertEqual(ROOT.f1(2), 2)
         self.assertEqual(ROOT.f2("myString"), "myString")
 
+    def test_header_declaration_on_current_session(self):
+        """Header has to be declared on the current session"""
+        # Before the header declaration the function f is not present on the
+        # ROOT interpreter
+        with self.assertRaises(AttributeError):
+            self.assertRaises(ROOT.f(1))
+        PyRDF.include("tests/unit/backend/test_headers/header1.hxx")
+        self.assertEqual(ROOT.f(1), True)
+
 
 class InitializationTest(unittest.TestCase):
     """Check the initialize method"""

@@ -3,6 +3,7 @@ from .RDataFrame import RDataFrameException  # noqa
 from .CallableGenerator import CallableGenerator  # noqa
 from backend.Local import Local
 from backend.Backend import Backend
+from backend.Utils import Utils
 
 current_backend = Local()
 includes = []
@@ -44,13 +45,13 @@ def use(backend_name, conf={}):
 
 def include(includes_list):
     """
-    Includes a list of C++ headers to be declared before execution.
+    Includes a list of C++ headers to be declared before execution. Each
+    header is also declared on the current running session.
 
     parameters
     ----------
     includes_list : list or str
-        This list should consist of all necessary C++
-        headers as strings.
+        This list should consist of all necessary C++ headers as strings.
 
     """
     global current_backend, includes
@@ -60,6 +61,7 @@ def include(includes_list):
         includes_list = [includes_list]
 
     includes.extend(includes_list)
+    Utils.declare_headers(includes_list)
 
 
 def initialize(fun, *args, **kwargs):
