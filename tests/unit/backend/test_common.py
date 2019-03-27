@@ -114,3 +114,17 @@ class InitializationTest(unittest.TestCase):
         PyRDF.initialize(returnNumber, 123)
         f = PyRDF.current_backend.initialization
         self.assertEqual(f(), 123)
+
+    def test_initialization_runs_in_current_environment(self):
+        """
+        User initialization method should be executed on the current user
+        session, so actions applied by the user initialization function are
+        also visible in the current scenario.
+        """
+        def defineIntVariable(name, value):
+            import ROOT
+            ROOT.gInterpreter.ProcessLine("int %s = %s;" % (name, value))
+
+        varvalue = 2
+        PyRDF.initialize(defineIntVariable, "myInt", varvalue)
+        self.assertEqual(ROOT.myInt, varvalue)

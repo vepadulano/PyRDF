@@ -81,6 +81,7 @@ class Backend(ABC):
 
         """
         cls.initialization = functools.partial(fun, *args, **kwargs)
+        fun(*args, **kwargs)
 
     def check_supported(self, operation_name):
         """
