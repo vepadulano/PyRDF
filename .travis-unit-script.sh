@@ -23,6 +23,7 @@ python setup.py install --user
 # -x exit instantly on first error or failed test
 # -v increase verbosity
 pytest -x -v
+check_error $? "pytest"
 
 # Run tutorials
 echo " ======== Running single-threaded tutorials ======== "
