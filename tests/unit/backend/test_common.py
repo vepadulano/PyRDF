@@ -94,10 +94,10 @@ class DeclareHeadersTest(unittest.TestCase):
 
     def test_multiple_headers_declare(self):
         """'declare_headers' with multiple headers to be included."""
-        Utils.declare_headers(["tests/unit/backend/test_headers/header1.hxx",
-                               "tests/unit/backend/test_headers/header2.hxx"])
+        Utils.declare_headers(["tests/unit/backend/test_headers/header2.hxx",
+                               "tests/unit/backend/test_headers/header3.hxx"])
 
-        self.assertEqual(ROOT.f(1), True)
+        self.assertEqual(ROOT.a(1), True)
         self.assertEqual(ROOT.f1(2), 2)
         self.assertEqual(ROOT.f2("myString"), "myString")
 
@@ -106,9 +106,9 @@ class DeclareHeadersTest(unittest.TestCase):
         # Before the header declaration the function f is not present on the
         # ROOT interpreter
         with self.assertRaises(AttributeError):
-            self.assertRaises(ROOT.f(1))
-        PyRDF.include("tests/unit/backend/test_headers/header1.hxx")
-        self.assertEqual(ROOT.f(1), True)
+            self.assertRaises(ROOT.b(1))
+        PyRDF.include("tests/unit/backend/test_headers/header4.hxx")
+        self.assertEqual(ROOT.b(1), True)
 
 
 class InitializationTest(unittest.TestCase):
