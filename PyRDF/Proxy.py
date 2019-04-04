@@ -1,5 +1,5 @@
 from __future__ import print_function
-from .CallableGenerator import CallableGenerator
+from PyRDF.CallableGenerator import CallableGenerator
 
 
 class Proxy(object):

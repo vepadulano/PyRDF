@@ -1,5 +1,5 @@
 from __future__ import print_function
-from .Node import Node
+from PyRDF.Node import Node
 import ROOT
 
 

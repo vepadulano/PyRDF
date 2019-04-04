@@ -1,7 +1,7 @@
 from __future__ import print_function
-from .Dist import Dist
+from PyRDF.backend.Dist import Dist
 from pyspark import SparkConf, SparkContext
-from .Utils import Utils
+from PyRDF.backend.Utils import Utils
 
 
 class Spark(Dist):

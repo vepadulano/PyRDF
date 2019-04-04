@@ -1,9 +1,9 @@
-from .RDataFrame import RDataFrame  # noqa
-from .RDataFrame import RDataFrameException  # noqa
-from .CallableGenerator import CallableGenerator  # noqa
-from backend.Local import Local
-from backend.Backend import Backend
-from backend.Utils import Utils
+from PyRDF.RDataFrame import RDataFrame  # noqa
+from PyRDF.RDataFrame import RDataFrameException  # noqa
+from PyRDF.CallableGenerator import CallableGenerator  # noqa
+from PyRDF.backend.Local import Local
+from PyRDF.backend.Backend import Backend
+from PyRDF.backend.Utils import Utils
 
 current_backend = Local()
 includes = []
@@ -36,7 +36,7 @@ def use(backend_name, conf={}):
     elif backend_name == "local":
         current_backend = Local(conf)
     elif backend_name == "spark":
-        from backend.Spark import Spark
+        from PyRDF.backend.Spark import Spark
         current_backend = Spark(conf)
     else:
         msg = " Incorrect backend environment \"{}\"".format(backend_name)

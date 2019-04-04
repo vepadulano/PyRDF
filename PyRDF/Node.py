@@ -1,6 +1,6 @@
 from __future__ import print_function
-from .Operation import Operation
-from .Proxy import Proxy
+from PyRDF.Operation import Operation
+from PyRDF.Proxy import Proxy
 import gc
 
 

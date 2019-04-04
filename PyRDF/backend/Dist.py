@@ -1,7 +1,7 @@
 from __future__ import print_function
-from .Backend import Backend
-from .Local import Local
-from .Utils import Utils
+from PyRDF.backend.Backend import Backend
+from PyRDF.backend.Local import Local
+from PyRDF.backend.Utils import Utils
 from abc import abstractmethod
 import glob
 import warnings

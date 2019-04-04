@@ -1,5 +1,5 @@
 import ROOT
-from .Backend import Backend
+from PyRDF.backend.Backend import Backend
 
 
 class Local(Backend):
