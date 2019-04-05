@@ -142,7 +142,7 @@ class DistBuildRangesTest(unittest.TestCase):
                                             filelist)
         ranges = rangesToTuples(crs)
 
-        ranges_reqd = [(0L, 10L)]
+        ranges_reqd = [(0, 10)]
 
         self.assertListEqual(ranges, ranges_reqd)
 
@@ -160,7 +160,7 @@ class DistBuildRangesTest(unittest.TestCase):
         nentries = 10
         npartitions = 2
 
-        ranges_reqd = [(0L, 10L)]
+        ranges_reqd = [(0, 10)]
 
         with warnings.catch_warnings(record=True) as w:
             # Trigger warning
@@ -192,8 +192,8 @@ class DistBuildRangesTest(unittest.TestCase):
         ranges = rangesToTuples(crs)
 
         ranges_reqd = [
-            (0L, 777L),
-            (777L, 1000L)
+            (0, 777),
+            (777, 1000)
         ]
 
         self.assertListEqual(ranges, ranges_reqd)
@@ -215,10 +215,10 @@ class DistBuildRangesTest(unittest.TestCase):
         ranges = rangesToTuples(crs)
 
         ranges_reqd = [
-            (0L, 250L),
-            (250L, 500L),
-            (500L, 750L),
-            (750L, 1000L)
+            (0, 250),
+            (250, 500),
+            (500, 750),
+            (750, 1000)
         ]
 
         self.assertListEqual(ranges, ranges_reqd)
@@ -240,10 +240,10 @@ class DistBuildRangesTest(unittest.TestCase):
         ranges = rangesToTuples(crs)
 
         ranges_reqd = [
-            (0L, 250L),
-            (250L, 500L),
-            (500L, 750L),
-            (750L, 1000L)
+            (0, 250),
+            (250, 500),
+            (500, 750),
+            (750, 1000)
         ]
 
         self.assertListEqual(ranges, ranges_reqd)
@@ -389,7 +389,7 @@ class DistRDataFrameInterface(unittest.TestCase):
         rdf = PyRDF.RDataFrame(treename, filename)
 
         ranges = self.get_ranges_from_rdataframe(rdf)
-        ranges_reqd = [(0L, 777L), (777L, 1000L)]
+        ranges_reqd = [(0, 777), (777, 1000)]
 
         self.assertListEqual(ranges, ranges_reqd)
 
@@ -404,7 +404,7 @@ class DistRDataFrameInterface(unittest.TestCase):
         rdf = PyRDF.RDataFrame(treename, filename)
 
         ranges = self.get_ranges_from_rdataframe(rdf)
-        ranges_reqd = [(0L, 777L), (777L, 1000L)]
+        ranges_reqd = [(0, 777), (777, 1000)]
 
         self.assertListEqual(ranges, ranges_reqd)
 
@@ -419,7 +419,7 @@ class DistRDataFrameInterface(unittest.TestCase):
         rdf = PyRDF.RDataFrame(treename, filelist)
 
         ranges = self.get_ranges_from_rdataframe(rdf)
-        ranges_reqd = [(0L, 777L), (777L, 1000L)]
+        ranges_reqd = [(0, 777), (777, 1000)]
 
         self.assertListEqual(ranges, ranges_reqd)
 
@@ -455,6 +455,6 @@ class DistRDataFrameInterface(unittest.TestCase):
         rdf = PyRDF.RDataFrame(treename, filelist)
 
         ranges = self.get_ranges_from_rdataframe(rdf)
-        ranges_reqd = [(0L, 1250L), (250L, 1000L)]
+        ranges_reqd = [(0, 1250), (250, 1000)]
 
         self.assertListEqual(ranges, ranges_reqd)
