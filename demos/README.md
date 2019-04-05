@@ -11,33 +11,39 @@ The following demos are available in SWAN:
 
 **Disclaimer**: This process will be much simpler once we integrate PyRDF as part of the LCG Releases. Our goal is to add the next [0.1.0 release version](https://github.com/JavierCVilla/PyRDF/projects/2).
 
-#### 1. Open a terminal in SWAN:
+#### 1. Enter to [SWAN](swan.cern.ch)
+
+#### 2. Select the *Cloud Containers* Spark cluster in your configuration and the *Bleeding Edge* Software stack.
+
+<p align="center"><img src ="images/swan-tutorial-0.png" /></p>
+
+#### 3. Open a terminal in SWAN:
 
   ![](images/swan-tutorial-1.png)
 
-#### 2. Go to your project folder:
+#### 4. Go to your project folder:
 
   ```
   cd SWAN_projects/<Project_PATH>
   ```
 
-#### 3. Clone the PyRDF repository from Github:
+#### 5. Clone the PyRDF repository from Github:
 
   ```
   git clone https://github.com/JavierCVilla/PyRDF
   ```
 
-#### 4. Since PyRDF is not distributed yet through CVMFS, we need to send it to our remote workers. The next command creates a zip file with the content of the module:
+#### 6. Since PyRDF is not distributed yet through CVMFS, we need to send it to our remote workers. The next command creates a zip file with the content of the module:
 
   ```
   python PyRDF/demos/swan-setup.py
   ```
 
-#### 5. Go back to your notebook and open the menu to connect to a Spark cluster:
+#### 7. Go back to your notebook and open the menu to connect to a Spark cluster:
 
  ![](images/swan-tutorial-2.png)
 
-#### 6. Before starting the connection, let's add some configuration to the SparkContext:
+#### 8. Before starting the connection, let's add some configuration to the SparkContext:
 
   ```
   {
@@ -53,26 +59,26 @@ The following demos are available in SWAN:
   This can be added using the SWAN interface as follows:
 
   - Enter the name of the parameter on the _Add new option_ field:
-  
+
       <p align="center"><img src ="images/swan-tutorial-3.png" /></p>
 
   - And add the value:
-  
+
       <p align="center"><img src ="images/swan-tutorial-4.png" /></p>
 
   - Follow the same steps for the second parameter:
-      
+
       <p align="center"><img src ="images/swan-tutorial-5.png" /></p>
 
       <p align="center"><img src ="images/swan-tutorial-6.png" /></p>
 
   - Once both parameters have been configured, the menu should look like this:
-      
+
       <p align="center"><img src ="images/swan-tutorial-7.png" /></p>
 
-#### 7. Now we are ready to connect to the cluster.
+#### 9. Now we are ready to connect to the cluster.
 
-#### 8. Select the Spark backend in PyRDF, by default PyRDF will use the `Local` backend which is equivalent to RDataFrame running in a local machine.
+#### 10. Select the Spark backend in PyRDF, by default PyRDF will use the `Local` backend which is equivalent to RDataFrame running in a local machine.
 
   ```
   PyRDF.use("spark", {'npartitions': '32'})
@@ -80,4 +86,4 @@ The following demos are available in SWAN:
 
   The second parameter of `PyRDF.use` allows us to add some configuration to the Spark context such as the number of partitions, modify this number to suit your needs.
 
-####  9. Have a look at the demos to see examples of use.
+#### 11. Have a look at the [demos](#pyrdf-demos) to see examples of use.
