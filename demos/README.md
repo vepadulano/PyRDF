@@ -4,8 +4,8 @@ The following demos are available in SWAN:
 
 | Title  | Content  | Link to SWAN |
 |--------|----------|--------------|
-| [ROOT df102 Tutorial](df102_NanoAODDimuonAnalysis.ipynb) |  NanoAOD Dimuon Analysis |  <a href="https://cern.ch/swanserver/cgi-bin/go?projurl=https://github.com/JavierCVilla/PyRDF/blob/master/demos/df102_NanoAODDimuonAnalysis.ipynb" target="_blank"><img src="http://swanserver.web.cern.ch/swanserver/images/badge_swan_white_150.png" alt="Open in SWAN" style="height:1.3em"></a> |
-| [RDF Demo](RDF_demo.ipynb) | Dimuon invariant mass spectrum plot | <a href="https://cern.ch/swanserver/cgi-bin/go?projurl=https://github.com/JavierCVilla/PyRDF/blob/master/demos/RDF_demo.ipynb" target="_blank"><img src="http://swanserver.web.cern.ch/swanserver/images/badge_swan_white_150.png" alt="Open in SWAN" style="height:1.3em"></a> |
+| [ROOT df102 Tutorial](df102_NanoAODDimuonAnalysis.ipynb) |  NanoAOD Dimuon Analysis |  <a href="https://cern.ch/swanserver/cgi-bin/go?projurl=https://raw.githubusercontent.com/JavierCVilla/PyRDF/new-demo/demos/df102_NanoAODDimuonAnalysis.ipynb" target="_blank"><img src="http://swanserver.web.cern.ch/swanserver/images/badge_swan_white_150.png" alt="Open in SWAN" style="height:1.3em"></a> |
+| [RDF Demo](RDF_demo.ipynb) | Dimuon invariant mass spectrum plot | <a href="https://cern.ch/swanserver/cgi-bin/go?projurl=https://raw.githubusercontent.com/JavierCVilla/PyRDF/new-demo/demos/RDF_demo.ipynb" target="_blank"><img src="http://swanserver.web.cern.ch/swanserver/images/badge_swan_white_150.png" alt="Open in SWAN" style="height:1.3em"></a> |
 
 ## How to use PyRDF with Spark in SWAN
 
