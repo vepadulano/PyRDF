@@ -206,7 +206,7 @@ class Dist(Backend):
             warnings.warn(msg, UserWarning, stacklevel=2)
             npartitions = numclusters
 
-        partSize = numclusters / npartitions
+        partSize = numclusters // npartitions
         remainder = numclusters % npartitions
 
         i = 0  # Iterator
