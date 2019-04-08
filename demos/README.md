@@ -46,14 +46,15 @@ The following demos are available in SWAN:
 #### 8. Before starting the connection, let's add some configuration to the SparkContext:
 
   ```
-  {
-    "name": "spark.executor.extraLibraryPath",
-    "value": "{LD_LIBRARY_PATH},PyRDF"
-  },
-  {
-    "name": "spark.yarn.dist.archives",
-    "value": "PyRDF.zip#PyRDF"
-  }
+  "sparkconnect": {
+      "bundled_options": [],
+      "list_of_options": [
+        {
+          "name": "spark.files",
+          "value": "PyRDF.zip"
+        }
+      ]
+    }
   ```
 
   This can be added using the SWAN interface as follows:
@@ -66,24 +67,23 @@ The following demos are available in SWAN:
 
       <p align="center"><img src ="images/swan-tutorial-4.png" /></p>
 
-  - Follow the same steps for the second parameter:
+  - Once the parameter has been configured, the menu should look like this:
 
       <p align="center"><img src ="images/swan-tutorial-5.png" /></p>
-
-      <p align="center"><img src ="images/swan-tutorial-6.png" /></p>
-
-  - Once both parameters have been configured, the menu should look like this:
-
-      <p align="center"><img src ="images/swan-tutorial-7.png" /></p>
 
 #### 9. Now we are ready to connect to the cluster.
 
 #### 10. Select the Spark backend in PyRDF, by default PyRDF will use the `Local` backend which is equivalent to RDataFrame running in a local machine.
 
-  ```
+  ```python
+  # Configure PyRDF to run on Spark splitting the dataset into 32 partitions
   PyRDF.use("spark", {'npartitions': '32'})
+
+  # Add python module (temporal)
+  sc.addPyFile("./PyRDF.zip")
   ```
 
   The second parameter of `PyRDF.use` allows us to add some configuration to the Spark context such as the number of partitions, modify this number to suit your needs.
+
 
 #### 11. Have a look at the [demos](#pyrdf-demos) to see examples of use.
