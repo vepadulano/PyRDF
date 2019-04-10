@@ -5,7 +5,7 @@ from PyRDF.backend.Dist import Dist
 
 def rangesToTuples(ranges):
     """Convert range objects to tuples with the shape (start, end)"""
-    return map(lambda r: (r.start, r.end), ranges)
+    return list(map(lambda r: (r.start, r.end), ranges))
 
 
 class DistBackendInitTest(unittest.TestCase):

@@ -1,5 +1,5 @@
 from PyRDF.Node import Node
-from PyRDF.Proxy import Proxy
+from PyRDF.Proxy import ActionProxy, TransformationProxy
 import unittest
 
 
@@ -39,13 +39,13 @@ class NodeReturnTest(unittest.TestCase):
         """Proxy objects are returned for action nodes."""
         node = Node(None, None)
         newNode = node.Count()
-        self.assertIsInstance(newNode, Proxy)
+        self.assertIsInstance(newNode, ActionProxy)
 
     def test_transformation_return(self):
         """Node objects are returned for transformation nodes."""
         node = Node(None, None)
         newNode = node.Define(1)
-        self.assertIsInstance(newNode, Node)
+        self.assertIsInstance(newNode, TransformationProxy)
 
 
 class DfsTest(unittest.TestCase):
@@ -223,7 +223,7 @@ class DfsTest(unittest.TestCase):
 
         # This is to make sure action nodes with
         # already computed values are pruned.
-        n6.action_node.value = 1
+        n6.proxied_node.value = 1
         # This is to make sure that transformation
         # leaf nodes with value (possibly set intentionally)
         # don't get pruned.
@@ -278,7 +278,7 @@ class DunderMethodsTest(unittest.TestCase):
         n1 = node.Define("a", b="c")  # First child node
 
         # Required dictionaries
-        node_dict = {"children": [n1]}
+        node_dict = {"children": [n1.proxied_node]}
         n1_dict = {
             'operation_name': "Define",
             'operation_args': ("a",),
@@ -287,7 +287,7 @@ class DunderMethodsTest(unittest.TestCase):
         }
 
         self.assertDictEqual(node.__getstate__(), node_dict)
-        self.assertDictEqual(n1.__getstate__(), n1_dict)
+        self.assertDictEqual(n1.proxied_node.__getstate__(), n1_dict)
 
     def test_set_state(self):
         """
@@ -390,13 +390,13 @@ class PickleTest(unittest.TestCase):
 
         # Pickled representation of nodes
         pickled_node = pickle.dumps(node)
-        pickled_n3 = pickle.dumps(n3)
+        pickled_n3_node = pickle.dumps(n3.proxied_node)
 
         # Un-pickled node objects
         unpickled_node = pickle.loads(pickled_node)
-        unpickled_n3 = pickle.loads(pickled_n3)
+        unpickled_n3_node = pickle.loads(pickled_n3_node)
 
         self.assertIsInstance(unpickled_node, type(node))
-        self.assertIsInstance(unpickled_n3, type(n3))
+        self.assertIsInstance(unpickled_n3_node, type(n3.proxied_node))
         self.assertGraphs(node, unpickled_node)
-        self.assertGraphs(n3, unpickled_n3)
+        self.assertGraphs(n3.proxied_node, unpickled_n3_node)

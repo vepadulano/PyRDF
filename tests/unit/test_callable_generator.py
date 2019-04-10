@@ -58,7 +58,7 @@ class CallableGeneratorTest(unittest.TestCase):
         reqd_order = [1, 3, 2, 2, 3, 2]
 
         self.assertEqual(t.ord_list, reqd_order)
-        self.assertListEqual(nodes, [n5.action_node, n4.action_node])
+        self.assertListEqual(nodes, [n5.proxied_node, n4.proxied_node])
         self.assertListEqual(values, [t, t])
 
     def test_mapper_with_pruning(self):
@@ -92,5 +92,5 @@ class CallableGeneratorTest(unittest.TestCase):
         reqd_order = [1, 2, 2, 2, 3, 2]
 
         self.assertEqual(t.ord_list, reqd_order)
-        self.assertListEqual(nodes, [n4.action_node])
+        self.assertListEqual(nodes, [n4.proxied_node])
         self.assertListEqual(values, [t])

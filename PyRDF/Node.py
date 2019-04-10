@@ -1,8 +1,6 @@
 from __future__ import print_function
 from PyRDF.Operation import Operation
-from PyRDF.Proxy import Proxy
-import gc
-import sys
+from PyRDF.Proxy import ActionProxy, TransformationProxy
 
 
 class Node(object):
@@ -40,24 +38,12 @@ class Node(object):
         Reference to the PyROOT object that implements the
         functionality of this node on the cpp side.
 
-    REFERRERS_THRESHOLD : class attribute
-        Minimum number of back references (objects pointing to current node)
-        for a node to be considered for pruning, used as a condition in
-        graph_prune() method. Python 2 keeps at least 3 references to a node:
-        one is due to the interpreter, another is the function call and the
-        last one is an internal reference which every object has. Python 3
-        only keeps the reference due to the interpreter. For this reason this
-        class attribute is different according to the Python version in use:
-        - Python 2 : REFERRERS_THRESHOLD = 3
-        - Python 3 : REFERRERS_THRESHOLD = 1
+    has_user_references
+        A flag to check whether the node has direct user references, that is
+        if it is assigned to a variable. Default value is `True`, turns to
+        `False` if the proxy that wraps the node gets garbage collected by
+        Python.
     """
-
-    if sys.version_info[0] >= 3:
-        # Python 3 specific definition
-        REFERRERS_THRESHOLD = 1
-    else:
-        # Python 2 specific definition
-        REFERRERS_THRESHOLD = 3
 
     def __init__(self, get_head, operation):
         """
@@ -85,6 +71,7 @@ class Node(object):
         self._cur_attr = ""  # Name of the new incoming operation
         self.value = None
         self.pyroot_node = None
+        self.has_user_references = True  # Flag for pruning
 
     def __getstate__(self):
         """
@@ -173,12 +160,40 @@ class Node(object):
         # Add the new node as a child of the current node
         self.children.append(newNode)
 
-        # Return a Proxy object if the new node
-        # is an action node
+        # Return the appropriate proxy object for the node
         if op.is_action():
-            return Proxy(newNode)
+            return ActionProxy(newNode)
+        else:
+            return TransformationProxy(newNode)
 
-        return newNode
+    def is_prunable(self):
+        """
+        Checks whether the current node can be pruned from the computational
+        graph.
+
+        Returns
+        -------
+        bool
+            True if the node has no children and no user references or its
+            value has already been computed, False otherwise.
+        """
+
+        if not self.children:
+            # Every pruning condition is written on a separate line
+            if not self.has_user_references or \
+               (self.operation and self.operation.is_action() and self.value):
+
+                # ***** Condition 1 *****
+                # If the node is wrapped by a proxy which is not directly
+                # assigned to a variable, then it will be flagged for pruning
+
+                # ***** Condition 2 *****
+                # If the current node's value was already
+                # computed, it should get pruned only if it's
+                # an Action node.
+                return True
+
+        return False
 
     def graph_prune(self):
         """
@@ -189,53 +204,17 @@ class Node(object):
 
         Returns
         -------
-        True
-            if the current node has to be pruned, False otherwise.
+        bool
+            True if the current node has to be pruned, False otherwise.
 
         """
         children = []
 
         for n in self.children:
             # Select children based on pruning condition
+
             if not n.graph_prune():
                 children.append(n)
 
         self.children = children
-
-        if not self.children:
-            # Every pruning condition is written on
-            # a separate line
-            if len(gc.get_referrers(self)) <= Node.REFERRERS_THRESHOLD or \
-               (self.operation and self.operation.is_action() and self.value):
-
-                # ***** Condition 1 *****
-                #
-                # Python 2:
-                #
-                # If the number of referrers to the current node is
-                # less than 4, then the node has to be pruned.
-                #
-                # The 3 referrers to the current node would be :
-                # - The current function (graph_prune())
-                # - An internal reference (which every Python object has)
-                # - The current node's parent node
-                #
-                # [If the user had a variable reference to the current node,
-                # the value would be at least 4. Hence nodes with less than
-                # 4 references will have to be removed ]
-                #
-                # Python 3:
-                #
-                # Here the minimum number of references a node can have is 1,
-                # due to the interpreter.
-                #
-                # NOTE :- sys.getrefcount(node) gives a way higher value and
-                # hence doesn't work in this case
-                #
-                # ***** Condition 2 *****
-                # If the current node's value was already
-                # computed, it should get pruned only if it's
-                # an action node.
-                return True
-
-        return False
+        return self.is_prunable()
