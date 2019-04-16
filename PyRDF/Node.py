@@ -139,6 +139,9 @@ class Node(object):
             # Raise an AttributeError for all dunder method calls
             raise AttributeError("Such an attribute is not set ! ")
 
+        from . import current_backend
+        if self._cur_attr not in current_backend.supported_operations:
+            raise AttributeError("Attribute does not exist")
         return self._call_handler
 
     def _call_handler(self, *args, **kwargs):

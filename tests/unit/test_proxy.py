@@ -4,7 +4,7 @@ from PyRDF.backend.Backend import Backend
 from PyRDF import RDataFrame
 import unittest
 import PyRDF
-from PyRDF import current_backend
+import pickle
 
 
 class ProxyInitTest(unittest.TestCase):
@@ -18,18 +18,6 @@ class ProxyInitTest(unittest.TestCase):
         """
         with self.assertRaises(TypeError):
             Proxy()
-
-    def test_subclass_without_method_error(self):
-        """
-        Creation of a subclass without implementing `delete`
-        method throws a `TypeError`.
-
-        """
-        class TestProxy(Proxy):
-            pass
-
-        with self.assertRaises(TypeError):
-            TestProxy()
 
 
 class TypeReturnTest(unittest.TestCase):
@@ -75,24 +63,65 @@ class AttrReadTest(unittest.TestCase):
         self.assertEqual(proxy._cur_attr, "attr")
         self.assertTrue(callable(func))
 
-    def test_attr_simple_transformation(self):
+    def test_supported_transformation(self):
         """
         TransformationProxy object reads the right input attributes,
-        returning the methods and the attributes of the proxied node.
+        returning the methods of the proxied node.
+        """
+
+        node = Node(None, None)
+        proxy = TransformationProxy(node)
+        transformations = {
+            "Define": ("x", "tdfentry_"),
+            "Filter": ("tdfentry_ > 0",),
+            "Range": ("tdfentry_",)
+        }
+        for transformation, args in transformations.items():
+            newProxy = getattr(proxy, transformation)(*args)
+            self.assertEqual(proxy.proxied_node._cur_attr, transformation)
+            self.assertIsInstance(newProxy, TransformationProxy)
+            self.assertEqual(newProxy.proxied_node.operation.name,
+                             transformation)
+            self.assertEqual(newProxy.proxied_node.operation.args, args)
+
+    def test_node_attr_transformation(self):
+        """
+        When a node attribute is called on a TransformationProxy object, it
+        correctly returns the attribute of the proxied node.
         """
         node = Node(None, None)
         proxy = TransformationProxy(node)
+        node_attributes = [
+            "get_head",
+            "operation",
+            "children",
+            "_cur_attr",
+            "value",
+            "pyroot_node",
+            "has_user_references"
+        ]
+        for attr in node_attributes:
+            self.assertEqual(getattr(proxy, attr),
+                             getattr(proxy.proxied_node, attr))
 
-        for attr in current_backend.supported_operations:
-            getattr(proxy, attr)
-            self.assertEqual(proxy.proxied_node._cur_attr, attr)
-            self.assertTrue(callable(proxy.proxied_node._call_handler))
+    def test_undefined_attr_transformation(self):
+        """
+        When a non-defined Node class attribute is called on a
+        TransformationProxy object, it raises an AttributeError.
+        """
 
-        proxy.attribute
-        self.assertEqual(proxy.proxied_node._cur_attr, "attribute")
+        node = Node(None, None)
+        proxy = TransformationProxy(node)
+        with self.assertRaises(AttributeError):
+            proxy.attribute
 
     def test_proxied_node_has_user_references(self):
-        """check that the user reference holds until the proxy lives."""
+        """
+        Check that the user reference holds until the proxy lives. When the
+        Python garbage collector attempts to remove the proxy object, its
+        `__del__` method switches the node attribute `has_user_references` from
+        `True` to `False`.
+        """
         node = Node(None, None)
         proxy = TransformationProxy(node)
         self.assertTrue(node.has_user_references)
@@ -170,12 +199,9 @@ class PickleTest(unittest.TestCase):
     def test_proxy_pickle(self):
         """
         Test case to check that TransformationProxy objects cannot
-        be unpickled.
+        be pickled.
         """
-
-        import pickle
-
         node = Node(None, None)
         proxy = TransformationProxy(node)
-        pickle.dumps(proxy)
-        self.assertTrue(proxy.__getstate__.has_been_called)
+        with self.assertRaises(pickle.PickleError):
+            pickle.dumps(proxy)

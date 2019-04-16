@@ -1,6 +1,9 @@
 from abc import ABCMeta, abstractmethod
 import functools
 
+# Abstract class declaration
+# This ensures compatibility between Python 2 and 3 versions, since in
+# Python 2 there is no ABC class
 ABC = ABCMeta('ABC', (object,), {})
 
 

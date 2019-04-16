@@ -31,21 +31,22 @@ class OperationReadTest(unittest.TestCase):
 class NodeReturnTest(unittest.TestCase):
     """
     A series of test cases to check that right objects are returned for a node
-    (Proxy or Node).
-
+    (ActionProxy, TransformationProxy or Node).
     """
 
-    def test_proxy_return(self):
+    def test_action_proxy_return(self):
         """Proxy objects are returned for action nodes."""
         node = Node(None, None)
         newNode = node.Count()
         self.assertIsInstance(newNode, ActionProxy)
+        self.assertIsInstance(newNode.proxied_node, Node)
 
-    def test_transformation_return(self):
+    def test_transformation_proxy_return(self):
         """Node objects are returned for transformation nodes."""
         node = Node(None, None)
         newNode = node.Define(1)
         self.assertIsInstance(newNode, TransformationProxy)
+        self.assertIsInstance(newNode.proxied_node, Node)
 
 
 class DfsTest(unittest.TestCase):
@@ -285,8 +286,10 @@ class DunderMethodsTest(unittest.TestCase):
             'operation_kwargs': {"b": "c"},
             'children': []
         }
-
+        # node is of class Node, its state dictionary can be directly accessed.
         self.assertDictEqual(node.__getstate__(), node_dict)
+        # n1 is of class TransformationProxy, so the proxied node must be
+        # accessed in order to extract its dictionary.
         self.assertDictEqual(n1.proxied_node.__getstate__(), n1_dict)
 
     def test_set_state(self):
@@ -390,6 +393,8 @@ class PickleTest(unittest.TestCase):
 
         # Pickled representation of nodes
         pickled_node = pickle.dumps(node)
+        # n3 is of class TransformationProxy, so the proxied node must be
+        # accessed before pickling.
         pickled_n3_node = pickle.dumps(n3.proxied_node)
 
         # Un-pickled node objects

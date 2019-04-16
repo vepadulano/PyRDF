@@ -1,21 +1,11 @@
 from __future__ import print_function
 from PyRDF.CallableGenerator import CallableGenerator
-from abc import ABCMeta, abstractmethod
-import functools
+from abc import ABCMeta
+import pickle
 
-
-def trackcalls(func):
-    """
-    function decorator that tracks if a function has been called.
-    """
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        wrapper.has_been_called = True
-        return func(*args, **kwargs)
-    wrapper.has_been_called = False
-    return wrapper
-
-
+# Abstract class declaration
+# This ensures compatibility between Python 2 and 3 versions, since in
+# Python 2 there is no ABC class
 ABC = ABCMeta('ABC', (object,), {})
 
 
@@ -23,54 +13,50 @@ class Proxy(ABC):
     """
     Abstract class for proxies objects. These objects help to keep track of
     nodes' variable assignment. That is, when a node is no longer assigned
-    to a variable by the user, the role of the proxy is to flag that node as
-    `prunable`. There are two main classes for proxies, depending on the
-    operation type of the node they are wrapping:
-        - ActionProxy: a proxy wrapping a node that holds an action operation.
-        - TransformationProxy: a proxy wrapping a node that holds a
-        transformation operation.
+    to a variable by the user, the role of the proxy is to show that. This is
+    done via changing the value of the `has_user_references` of the proxied
+    node from `True` to `False`.
+
+    IMPORTANT NOTE :- Proxy instances cannot be pickled. If needed, this
+    functionality can be added in a later patch.
     """
 
     def __init__(self, node):
         """
-        Creates a new `Proxy` object for a
-        given node.
+        Creates a new `Proxy` object for a given node.
 
         Parameters
         ----------
         proxied_node : PyRDF.Node
-            The node that the current Proxy
-            should wrap.
+            The node that the current Proxy should wrap.
         """
         self.proxied_node = node
-        # self.getstate_called = False
 
-    @abstractmethod
     def __del__(self):
         """
-        Proxy has to flag a node as prunable when the user changes
-        the variable assigned to it.
+        This function is called right before the current Proxy gets deleted by
+        Python. Its purpose is to show that the wrapped node has no more
+        user references, which is one of the conditions for the node to be
+        pruned from the computational graph.
         """
-        pass
+        self.proxied_node.has_user_references = False
 
 
 class ActionProxy(Proxy):
     """
-    Instances of Proxy act as futures of the result produced
-    by some action. They implement a lazy synchronization
+    Instances of ActionProxy act as futures of the result produced
+    by some action node. They implement a lazy synchronization
     mechanism, i.e., when they are accessed for the first time,
     they trigger the execution of the whole RDataFrame graph.
 
     Attributes
     ----------
     backend
-        A class member to store a backend object
-        based on the configuration set by the user.
+        A class member to store a backend object based on the configuration
+        set by the user.
 
-    node
-        The action node that the current Proxy
-        instance wraps.
-
+    proxied_node
+        The action node that the current ActionProxy instance wraps.
     """
 
     def __getattr__(self, attr):
@@ -81,16 +67,10 @@ class ActionProxy(Proxy):
         Returns
         -------
         function
-            A method to handle an operation call to the
-            current action node.
-
+            A method to handle an operation call to the current action node.
         """
         self._cur_attr = attr  # Stores the name of operation call
         return self._call_handler
-
-    def __del__(self):
-        """Deletes current Proxy and flags the wrapped Node for pruning"""
-        self.proxied_node.has_user_references = False
 
     def GetValue(self):
         """
@@ -104,7 +84,6 @@ class ActionProxy(Proxy):
         Value of the current action node
             This is the value obtained after executing the
             current action node in the computational graph.
-
         """
         if not self.proxied_node.value:  # If event-loop not triggered
             from . import current_backend
@@ -128,25 +107,18 @@ class TransformationProxy(Proxy):
     user references anymore.
     """
 
-    def __del__(self):
-        """Deletes current Proxy and flags the wrapped Node for pruning"""
-        self.proxied_node.has_user_references = False
-
     def __getattr__(self, attr):
         """
         Intercepts calls on operation or attributes belonging to the proxied
         node.
 
-        Returns either:
+        Returns
         -------
-        function
+        function or node attribute
             If the attribute passed by the user is a supported operation, the
             proxy will return a method to handle an operation call to the
-            current transformation node.
-
-        node attribute
-            If the attribute passed by the user is not an operation, the proxy
-            will try to return the corresponding attribute of the proxied node.
+            current transformation node. Otherwise, the proxy will try to
+            return the corresponding attribute of the proxied node.
         """
 
         # Check if the parameter `attr` is an operation supported by
@@ -159,9 +131,9 @@ class TransformationProxy(Proxy):
         else:
             return getattr(self.proxied_node, attr)
 
-    @trackcalls
     def __getstate__(self):
         """
-        Function that gets called when a call to pickle.dumps is issued.
+        Function that gets called when a call to pickle.dumps is issued. Raises
+        a pickle error to prevent the user from pickling proxies.
         """
-        return self.__dict__
+        raise pickle.PickleError()
