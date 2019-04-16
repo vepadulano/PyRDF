@@ -1,8 +1,8 @@
 from __future__ import print_function
 from PyRDF.CallableGenerator import CallableGenerator
 from abc import ABCMeta
-import pickle
-
+from PyRDF.Operation import Operation
+from PyRDF.Node import Node
 # Abstract class declaration
 # This ensures compatibility between Python 2 and 3 versions, since in
 # Python 2 there is no ABC class
@@ -16,9 +16,6 @@ class Proxy(ABC):
     to a variable by the user, the role of the proxy is to show that. This is
     done via changing the value of the `has_user_references` of the proxied
     node from `True` to `False`.
-
-    IMPORTANT NOTE :- Proxy instances cannot be pickled. If needed, this
-    functionality can be added in a later patch.
     """
 
     def __init__(self, node):
@@ -31,6 +28,72 @@ class Proxy(ABC):
             The node that the current Proxy should wrap.
         """
         self.proxied_node = node
+
+
+    def __getattr__(self, attr):
+        """
+        Intercepts any non-dunder call to the current node
+        and dispatches it by means of a call handler.
+
+        Parameters
+        ----------
+        attr : str
+            The name of the operation in the new
+            child node.
+
+        Returns
+        -------
+        function
+            A method to handle an operation call to the
+            current node.
+
+        """
+        # print("Attribute input:", attr, type(attr))
+        # print("Cur Attr:", self.proxied_node._cur_attr)
+        # print("\n\n")
+
+        # print("Attribute input:", attr, type(attr))
+        # print("Cur Attr:", self.proxied_node._cur_attr)
+        # print("\n\n")
+
+        # Check if the current call is a dunder method call
+        import re
+        if re.search("^__[a-z]+__$", attr):
+            # Raise an AttributeError for all dunder method calls
+            raise AttributeError("Such an attribute is not set ! ")
+
+        from . import current_backend
+
+        if attr in current_backend.supported_operations:
+            self.proxied_node._cur_attr = attr  # Stores new operation name
+            return self._call_handler
+        else:
+            try:
+                return getattr(self.proxied_node, attr)
+            except:
+                raise AttributeError("Attribute does not exist")
+
+    def _call_handler(self, *args, **kwargs):
+        """
+        Handles an operation call to the current node and eturns the new node
+        built using the operation call.
+        """
+        # Create a new `Operation` object for the
+        # incoming operation call
+        op = Operation(self.proxied_node._cur_attr, *args, **kwargs)
+
+        # Create a new `Node` object to house the operation
+        newNode = Node(operation=op, get_head=self.proxied_node.get_head)
+
+        # Add the new node as a child of the current node
+        self.proxied_node.children.append(newNode)
+
+        # Return the appropriate proxy object for the node
+        if op.is_action():
+            return ActionProxy(newNode)
+        else:
+            return TransformationProxy(newNode)
+
 
     def __del__(self):
         """
@@ -67,7 +130,9 @@ class ActionProxy(Proxy):
         Returns
         -------
         function
-            A method to handle an operation call to the current action node.
+            A method to handle an operation call to the
+            current action node.
+
         """
         self._cur_attr = attr  # Stores the name of operation call
         return self._call_handler
@@ -85,8 +150,8 @@ class ActionProxy(Proxy):
             This is the value obtained after executing the
             current action node in the computational graph.
         """
+        from . import current_backend
         if not self.proxied_node.value:  # If event-loop not triggered
-            from . import current_backend
             generator = CallableGenerator(self.proxied_node.get_head())
             current_backend.execute(generator)
 
@@ -106,34 +171,3 @@ class TransformationProxy(Proxy):
     object will get destroyed by Python, thus flagging the node to be without
     user references anymore.
     """
-
-    def __getattr__(self, attr):
-        """
-        Intercepts calls on operation or attributes belonging to the proxied
-        node.
-
-        Returns
-        -------
-        function or node attribute
-            If the attribute passed by the user is a supported operation, the
-            proxy will return a method to handle an operation call to the
-            current transformation node. Otherwise, the proxy will try to
-            return the corresponding attribute of the proxied node.
-        """
-
-        # Check if the parameter `attr` is an operation supported by
-        # the backend
-        from . import current_backend
-        if attr in current_backend.supported_operations:
-            # Stores the name of operation call in the node attributes
-            self.proxied_node._cur_attr = attr
-            return self.proxied_node._call_handler
-        else:
-            return getattr(self.proxied_node, attr)
-
-    def __getstate__(self):
-        """
-        Function that gets called when a call to pickle.dumps is issued. Raises
-        a pickle error to prevent the user from pickling proxies.
-        """
-        raise pickle.PickleError()

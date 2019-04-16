@@ -1,6 +1,7 @@
 from PyRDF import CallableGenerator
 from PyRDF.Node import Node
 import unittest
+from PyRDF.Proxy import TransformationProxy
 
 
 class CallableGeneratorTest(unittest.TestCase):
@@ -40,8 +41,7 @@ class CallableGeneratorTest(unittest.TestCase):
         t = CallableGeneratorTest.Temp()
 
         # Head node
-        node = Node(None, None)
-
+        node = TransformationProxy(Node(None, None))
         # Set of operations to build the graph
         n1 = node.Define()
         n2 = node.Filter().Filter()
@@ -71,7 +71,7 @@ class CallableGeneratorTest(unittest.TestCase):
         t = CallableGeneratorTest.Temp()
 
         # Head node
-        node = Node(None, None)
+        node = TransformationProxy(Node(None, None))
 
         # Set of operations to build the graph
         n1 = node.Define()

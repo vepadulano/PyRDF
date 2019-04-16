@@ -1,9 +1,18 @@
 from __future__ import print_function
 from PyRDF.Node import Node
 import ROOT
+from PyRDF.Proxy import TransformationProxy
+
+class RDataFrame(object):
 
 
-class RDataFrame(Node):
+    def __new__(cls,*args):
+        head_node = HeadNode(*args)
+        proxy_head = TransformationProxy(head_node)
+        return proxy_head
+
+
+class HeadNode(Node):
     """
     The Python equivalent of ROOT C++'s
     RDataFrame class.
@@ -32,7 +41,6 @@ class RDataFrame(Node):
         the RDataFrame constructor are incorrect.
 
     """
-
     def __init__(self, *args):
         """
         Creates a new RDataFrame instance for the given arguments.
@@ -42,9 +50,11 @@ class RDataFrame(Node):
         *args
             Variable length argument list to construct
             the RDataFrame object.
-
         """
-        super(RDataFrame, self).__init__(None, None)
+
+        print("\n\nArguments dataframe:", args, len(args),"\n\n")
+        super(HeadNode, self).__init__(None, None, *args)
+
 
         args = list(args)  # Make args mutable
         num_params = len(args)
@@ -55,7 +65,7 @@ class RDataFrame(Node):
                 args[i] = self._get_vector_from_list(args[i])
 
         try:
-            ROOT.ROOT.RDataFrame(*args)  # Check if the args are correct
+            ROOT.ROOT.RDataFrame(*args)
         except TypeError as e:
             msg = "Error creating the RDataFrame !"
             rdf_exception = RDataFrameException(e, msg)
@@ -64,6 +74,7 @@ class RDataFrame(Node):
             raise rdf_exception
 
         self.args = args
+
 
     def get_branches(self):
         """Gets list of default branches if passed by the user."""

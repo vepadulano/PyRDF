@@ -1,6 +1,5 @@
 from __future__ import print_function
 from PyRDF.Operation import Operation
-from PyRDF.Proxy import ActionProxy, TransformationProxy
 
 
 class Node(object):
@@ -45,7 +44,7 @@ class Node(object):
         Python.
     """
 
-    def __init__(self, get_head, operation):
+    def __init__(self, get_head, operation, *args):
         """
         Creates a new `Node` based on the 'operation'.
 
@@ -60,6 +59,8 @@ class Node(object):
             The operation that this Node represents. This
             could be `None`.
         """
+        if (get_head is None) and (operation is None):
+            print("ARGS NODE:",args)
         if get_head is None:
             # Function to get 'head' Node
             self.get_head = lambda: self
@@ -113,62 +114,6 @@ class Node(object):
         else:
             self.operation = None
 
-    def __getattr__(self, attr):
-        """
-        Intercepts any non-dunder call to the current node
-        and dispatches it by means of a call handler.
-
-        Parameters
-        ----------
-        attr : str
-            The name of the operation in the new
-            child node.
-
-        Returns
-        -------
-        function
-            A method to handle an operation call to the
-            current node.
-
-        """
-        self._cur_attr = attr  # Stores new operation name
-
-        # Check if the current call is a dunder method call
-        import re
-        if re.search("^__[a-z]+__$", attr):
-            # Raise an AttributeError for all dunder method calls
-            raise AttributeError("Such an attribute is not set ! ")
-
-        from . import current_backend
-        if self._cur_attr not in current_backend.supported_operations:
-            raise AttributeError("Attribute does not exist")
-        return self._call_handler
-
-    def _call_handler(self, *args, **kwargs):
-        # Handles an operation call to the current node and
-        # returns the new node built using the operation call.
-
-        from . import current_backend
-        # Check if the current operation is supported by
-        # the backend
-        current_backend.check_supported(self._cur_attr)
-
-        # Create a new `Operation` object for the
-        # incoming operation call
-        op = Operation(self._cur_attr, *args, **kwargs)
-
-        # Create a new `Node` object to house the operation
-        newNode = Node(operation=op, get_head=self.get_head)
-
-        # Add the new node as a child of the current node
-        self.children.append(newNode)
-
-        # Return the appropriate proxy object for the node
-        if op.is_action():
-            return ActionProxy(newNode)
-        else:
-            return TransformationProxy(newNode)
-
     def is_prunable(self):
         """
         Checks whether the current node can be pruned from the computational
@@ -195,7 +140,6 @@ class Node(object):
                 # computed, it should get pruned only if it's
                 # an Action node.
                 return True
-
         return False
 
     def graph_prune(self):

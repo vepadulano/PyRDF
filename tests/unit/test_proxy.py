@@ -4,20 +4,19 @@ from PyRDF.backend.Backend import Backend
 from PyRDF import RDataFrame
 import unittest
 import PyRDF
-import pickle
 
 
-class ProxyInitTest(unittest.TestCase):
-    """Proxy abstract class cannot be instantiated."""
+# class ProxyInitTest(unittest.TestCase):
+#     """Proxy abstract class cannot be instantiated."""
 
-    def test_proxy_init_error(self):
-        """
-        Any attempt to instantiate the `Proxy` abstract class results in
-        a `TypeError`.
+#     def test_proxy_init_error(self):
+#         """
+#         Any attempt to instantiate the `Proxy` abstract class results in
+#         a `TypeError`.
 
-        """
-        with self.assertRaises(TypeError):
-            Proxy()
+#         """
+#         with self.assertRaises(TypeError):
+#             Proxy()
 
 
 class TypeReturnTest(unittest.TestCase):
@@ -184,24 +183,10 @@ class GetValueTests(unittest.TestCase):
         """
         PyRDF.current_backend = GetValueTests.TestBackend()
 
-        rdf = RDataFrame(10)
+        rdf = RDataFrame(10) # now this is a proxy too
         count = rdf.Count()
 
         count.GetValue()
 
         # Ensure that TestBackend's execute method was called
-        self.assertIs(PyRDF.current_backend.obtained_head_node, rdf)
-
-
-class PickleTest(unittest.TestCase):
-    """Tests to check the pickling an un-pickling of Node instances."""
-
-    def test_proxy_pickle(self):
-        """
-        Test case to check that TransformationProxy objects cannot
-        be pickled.
-        """
-        node = Node(None, None)
-        proxy = TransformationProxy(node)
-        with self.assertRaises(pickle.PickleError):
-            pickle.dumps(proxy)
+        self.assertIs(PyRDF.current_backend.obtained_head_node, rdf.proxied_node)
