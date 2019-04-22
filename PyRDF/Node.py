@@ -26,6 +26,10 @@ class Node(object):
         A list of `Node` objects which represent the
         children nodes connected to the current node.
 
+    _cur_attr
+        The name of the operation of the last child node among
+        the current node's children.
+
     value
         The computed value after executing the operation in
         the current node for a particular PyRDF graph. This
@@ -43,7 +47,6 @@ class Node(object):
         `False` if the proxy that wraps the node gets garbage collected by
         Python.
     """
-
     def __init__(self, get_head, operation, *args):
         """
         Creates a new `Node` based on the 'operation'.
@@ -59,8 +62,6 @@ class Node(object):
             The operation that this Node represents. This
             could be `None`.
         """
-        if (get_head is None) and (operation is None):
-            print("ARGS NODE:",args)
         if get_head is None:
             # Function to get 'head' Node
             self.get_head = lambda: self
@@ -125,7 +126,6 @@ class Node(object):
             True if the node has no children and no user references or its
             value has already been computed, False otherwise.
         """
-
         if not self.children:
             # Every pruning condition is written on a separate line
             if not self.has_user_references or \

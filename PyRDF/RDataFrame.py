@@ -3,10 +3,29 @@ from PyRDF.Node import Node
 import ROOT
 from PyRDF.Proxy import TransformationProxy
 
+
 class RDataFrame(object):
+    """
+    User interface to the object containing the Python equivalent of ROOT
+    C++'s RDataFrame class. The purpose of this class is to kickstart the
+    head node of the computational graph, together with a proxy wrapping it.
+    The user call to create an RDataFrame will issue a call to the `__new__`
+    method. In turn, it will create an `HeadNode` object with the arguments
+    used to create the RDataFrame. The head node will then be wrapped with a
+    `TransformationProxy` object (for now) and then the `__new__` method will
+    return the proxy.
+    """
+    def __new__(cls, *args):
+        """
+        Creates the head node of the graph with the arguments provided by the
+        user, then returns a proxy to that node.
 
-
-    def __new__(cls,*args):
+        Arguments
+        ---------
+        args
+            A list of arguments that were provided by the user to construct
+            the RDataFrame object.
+        """
         head_node = HeadNode(*args)
         proxy_head = TransformationProxy(head_node)
         return proxy_head
@@ -51,10 +70,7 @@ class HeadNode(Node):
             Variable length argument list to construct
             the RDataFrame object.
         """
-
-        print("\n\nArguments dataframe:", args, len(args),"\n\n")
         super(HeadNode, self).__init__(None, None, *args)
-
 
         args = list(args)  # Make args mutable
         num_params = len(args)
@@ -74,7 +90,6 @@ class HeadNode(Node):
             raise rdf_exception
 
         self.args = args
-
 
     def get_branches(self):
         """Gets list of default branches if passed by the user."""
@@ -193,9 +208,7 @@ class RDataFrameException(Exception):
     """
     A special type of Exception that shows up for incorrect arguments to
     RDataFrame.
-
     """
-
     def __init__(self, exception, msg):
         """
         Creates a new `RDataFrameException`.

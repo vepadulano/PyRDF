@@ -1,11 +1,13 @@
-from PyRDF.Proxy import Proxy, ActionProxy, TransformationProxy
+from PyRDF.Proxy import ActionProxy, TransformationProxy
 from PyRDF.Node import Node
 from PyRDF.backend.Backend import Backend
 from PyRDF import RDataFrame
 import unittest
 import PyRDF
 
-
+# As of Python 3, abstract classes that do not implement
+# abstract methods can in fact be instantiated. Waiting
+# on a later update to decide what to do
 # class ProxyInitTest(unittest.TestCase):
 #     """Proxy abstract class cannot be instantiated."""
 
@@ -21,7 +23,6 @@ import PyRDF
 
 class TypeReturnTest(unittest.TestCase):
     """Tests that right types are returned"""
-
     def test_type_return_transformation(self):
         """
         TransformationProxy object is of type `PyRDF.TransformationProxy` and
@@ -45,13 +46,14 @@ class TypeReturnTest(unittest.TestCase):
 
 class AttrReadTest(unittest.TestCase):
     """Test Proxy class methods."""
-
     class Temp(object):
         """A mock action node result class."""
-
         def val(self, arg):
             """A test method to check function call on the Temp class."""
             return arg + 123  # A simple operation to check
+
+    # here the attribute "attr" is input to an action proxy.
+    # is this behaviour intentional?
 
     def test_attr_simple_action(self):
         """ActionProxy object reads the right input attribute."""
@@ -67,14 +69,15 @@ class AttrReadTest(unittest.TestCase):
         TransformationProxy object reads the right input attributes,
         returning the methods of the proxied node.
         """
-
         node = Node(None, None)
         proxy = TransformationProxy(node)
+
         transformations = {
             "Define": ("x", "tdfentry_"),
             "Filter": ("tdfentry_ > 0",),
             "Range": ("tdfentry_",)
         }
+
         for transformation, args in transformations.items():
             newProxy = getattr(proxy, transformation)(*args)
             self.assertEqual(proxy.proxied_node._cur_attr, transformation)
@@ -90,6 +93,7 @@ class AttrReadTest(unittest.TestCase):
         """
         node = Node(None, None)
         proxy = TransformationProxy(node)
+
         node_attributes = [
             "get_head",
             "operation",
@@ -99,6 +103,7 @@ class AttrReadTest(unittest.TestCase):
             "pyroot_node",
             "has_user_references"
         ]
+
         for attr in node_attributes:
             self.assertEqual(getattr(proxy, attr),
                              getattr(proxy.proxied_node, attr))
@@ -108,7 +113,6 @@ class AttrReadTest(unittest.TestCase):
         When a non-defined Node class attribute is called on a
         TransformationProxy object, it raises an AttributeError.
         """
-
         node = Node(None, None)
         proxy = TransformationProxy(node)
         with self.assertRaises(AttributeError):
@@ -131,7 +135,6 @@ class AttrReadTest(unittest.TestCase):
         """
         Proxy object computes and returns the right output based on the
         function call.
-
         """
         t = AttrReadTest.Temp()
         node = Node(None, None)
@@ -143,21 +146,17 @@ class AttrReadTest(unittest.TestCase):
 
 class GetValueTests(unittest.TestCase):
     """Check 'GetValue' instance method in Proxy."""
-
     class TestBackend(Backend):
         """
         Test backend to verify the working of 'GetValue' instance method
         in Proxy.
-
         """
-
         def execute(self, generator):
             """
             Test implementation of the execute method
             for 'TestBackend'. This records the head
             node of the input PyRDF graph from the
             generator object.
-
             """
             self.obtained_head_node = generator.head_node
 
@@ -166,7 +165,6 @@ class GetValueTests(unittest.TestCase):
         Test case to check the working of 'GetValue'
         method in Proxy when the current action node
         already houses a value.
-
         """
         node = Node(None, None)
         proxy = ActionProxy(node)
@@ -183,10 +181,11 @@ class GetValueTests(unittest.TestCase):
         """
         PyRDF.current_backend = GetValueTests.TestBackend()
 
-        rdf = RDataFrame(10) # now this is a proxy too
+        rdf = RDataFrame(10)  # now this is a proxy too
         count = rdf.Count()
 
         count.GetValue()
 
         # Ensure that TestBackend's execute method was called
-        self.assertIs(PyRDF.current_backend.obtained_head_node, rdf.proxied_node)
+        self.assertIs(PyRDF.current_backend.obtained_head_node,
+                      rdf.proxied_node)

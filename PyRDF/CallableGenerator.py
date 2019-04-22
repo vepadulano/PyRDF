@@ -6,9 +6,7 @@ class CallableGenerator(object):
     ----------
     head_node
         Head node of a PyRDF graph.
-
     """
-
     def __init__(self, head_node):
         """
         Creates a new `CallableGenerator`.
@@ -17,7 +15,6 @@ class CallableGenerator(object):
         ----------
         head_node
             Head node of a PyRDF graph.
-
         """
         self.head_node = head_node
 
@@ -36,7 +33,6 @@ class CallableGenerator(object):
         list
             A list of the action nodes of the graph in DFS order, which
             coincides with the order of execution in the callable function.
-
         """
         return_nodes = []
 
@@ -69,7 +65,6 @@ class CallableGenerator(object):
             RDataFrame object and executes all
             operations from the PyRDF graph on it
             recursively.
-
         """
         # Prune the graph to check user references
         self.head_node.graph_prune()
@@ -94,7 +89,6 @@ class CallableGenerator(object):
             list
                 A list of RResultPtr objects in DFS order
                 of their corresponding actions in the graph.
-
             """
             return_vals = []
 

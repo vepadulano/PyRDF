@@ -17,7 +17,6 @@ class Proxy(ABC):
     done via changing the value of the `has_user_references` of the proxied
     node from `True` to `False`.
     """
-
     def __init__(self, node):
         """
         Creates a new `Proxy` object for a given node.
@@ -29,49 +28,36 @@ class Proxy(ABC):
         """
         self.proxied_node = node
 
-
     def __getattr__(self, attr):
         """
-        Intercepts any non-dunder call to the current node
-        and dispatches it by means of a call handler.
+        Intercepts calls to attributes and methods of the proxied node and
+        returns the appropriate object(s).
 
         Parameters
         ----------
         attr : str
-            The name of the operation in the new
-            child node.
-
-        Returns
-        -------
-        function
-            A method to handle an operation call to the
-            current node.
-
+            The name of the attribute or method of the proxied node the user
+            wants to access.
         """
-        # print("Attribute input:", attr, type(attr))
-        # print("Cur Attr:", self.proxied_node._cur_attr)
-        # print("\n\n")
-
-        # print("Attribute input:", attr, type(attr))
-        # print("Cur Attr:", self.proxied_node._cur_attr)
-        # print("\n\n")
-
+        # Old: some tests call dunder methods on nodes so
+        # proxies have to return dunder methods too.
         # Check if the current call is a dunder method call
-        import re
-        if re.search("^__[a-z]+__$", attr):
-            # Raise an AttributeError for all dunder method calls
-            raise AttributeError("Such an attribute is not set ! ")
+        # import re
+        # if re.search("^__[a-z]+__$", attr):
+        #     # Raise an AttributeError for all dunder method calls
+        #     raise AttributeError("Such an attribute is not set ! ")
 
         from . import current_backend
-
+        # if attr is a supported operation, start
+        # operation and node creation
         if attr in current_backend.supported_operations:
             self.proxied_node._cur_attr = attr  # Stores new operation name
             return self._call_handler
         else:
             try:
                 return getattr(self.proxied_node, attr)
-            except:
-                raise AttributeError("Attribute does not exist")
+            except AttributeError as e:
+                raise e
 
     def _call_handler(self, *args, **kwargs):
         """
@@ -93,7 +79,6 @@ class Proxy(ABC):
             return ActionProxy(newNode)
         else:
             return TransformationProxy(newNode)
-
 
     def __del__(self):
         """
@@ -121,7 +106,6 @@ class ActionProxy(Proxy):
     proxied_node
         The action node that the current ActionProxy instance wraps.
     """
-
     def __getattr__(self, attr):
         """
         Intercepts calls on the result of
