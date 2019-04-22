@@ -26,9 +26,9 @@ class Node(object):
         A list of `Node` objects which represent the
         children nodes connected to the current node.
 
-    _cur_attr
-        The name of the operation of the last child node among
-        the current node's children.
+    _new_op_name
+        The name of the new incoming operation of the next child, which is the
+        last child node among the current node's children.
 
     value
         The computed value after executing the operation in
@@ -70,10 +70,10 @@ class Node(object):
 
         self.operation = operation
         self.children = []
-        self._cur_attr = ""  # Name of the new incoming operation
+        self._new_op_name = ""
         self.value = None
         self.pyroot_node = None
-        self.has_user_references = True  # Flag for pruning
+        self.has_user_references = True
 
     def __getstate__(self):
         """

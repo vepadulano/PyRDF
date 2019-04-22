@@ -50,7 +50,7 @@ class CallableGeneratorTest(unittest.TestCase):
         n6 = node.Filter()  # noqa: avoid PEP8 F841
 
         # Generate and execute the mapper
-        generator = CallableGenerator(node)
+        generator = CallableGenerator(node.proxied_node)
         mapper_func = generator.get_callable()
         values = mapper_func(t)
         nodes = generator.get_action_nodes()
@@ -84,7 +84,7 @@ class CallableGeneratorTest(unittest.TestCase):
         n5 = n1.Filter()  # noqa: avoid PEP8 F841
 
         # Generate and execute the mapper
-        generator = CallableGenerator(node)
+        generator = CallableGenerator(node.proxied_node)
         mapper_func = generator.get_callable()
         values = mapper_func(t)
         nodes = generator.get_action_nodes()

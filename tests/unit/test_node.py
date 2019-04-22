@@ -13,7 +13,7 @@ class OperationReadTest(unittest.TestCase):
         """Function names are read accurately."""
         node = TransformationProxy(Node(None, None))
         func = node.Define  # noqa: avoid PEP8 F841
-        self.assertEqual(node._cur_attr, "Define")
+        self.assertEqual(node._new_op_name, "Define")
 
     def test_args_read(self):
         """Arguments (unnamed) are read accurately."""
@@ -286,10 +286,9 @@ class DunderMethodsTest(unittest.TestCase):
             'operation_kwargs': {"b": "c"},
             'children': []
         }
-        # node is of class Node, its state dictionary can be directly accessed.
-        self.assertDictEqual(node.__getstate__(), node_dict)
-        # n1 is of class TransformationProxy, so the proxied node must be
-        # accessed in order to extract its dictionary.
+        # nodes are of class TransformationProxy, so the proxied nodes must be
+        # accessed in order to extract their dictionaries.
+        self.assertDictEqual(node.proxied_node.__getstate__(), node_dict)
         self.assertDictEqual(n1.proxied_node.__getstate__(), n1_dict)
 
     def test_set_state(self):
@@ -311,8 +310,8 @@ class DunderMethodsTest(unittest.TestCase):
         }
 
         # Set node objects with state dicts
-        node.__setstate__(node_dict)
-        n1.__setstate__(n1_dict)
+        node.proxied_node.__setstate__(node_dict)
+        n1.proxied_node.__setstate__(n1_dict)
 
         self.assertListEqual([node.operation, node.children],
                              [None, node_dict["children"]])
@@ -380,7 +379,6 @@ class PickleTest(unittest.TestCase):
         """
         Test cases to check that nodes can be accurately
         pickled and un-pickled.
-
         """
         import pickle
 

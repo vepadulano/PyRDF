@@ -1,24 +1,21 @@
-from PyRDF.Proxy import ActionProxy, TransformationProxy
+from PyRDF.Proxy import Proxy, ActionProxy, TransformationProxy
 from PyRDF.Node import Node
 from PyRDF.backend.Backend import Backend
 from PyRDF import RDataFrame
 import unittest
 import PyRDF
 
-# As of Python 3, abstract classes that do not implement
-# abstract methods can in fact be instantiated. Waiting
-# on a later update to decide what to do
-# class ProxyInitTest(unittest.TestCase):
-#     """Proxy abstract class cannot be instantiated."""
 
-#     def test_proxy_init_error(self):
-#         """
-#         Any attempt to instantiate the `Proxy` abstract class results in
-#         a `TypeError`.
+class ProxyInitTest(unittest.TestCase):
+    """Proxy abstract class cannot be instantiated."""
 
-#         """
-#         with self.assertRaises(TypeError):
-#             Proxy()
+    def test_proxy_init_error(self):
+        """
+        Any attempt to instantiate the `Proxy` abstract class results in
+        a `TypeError`.
+        """
+        with self.assertRaises(TypeError):
+            Proxy()
 
 
 class TypeReturnTest(unittest.TestCase):
@@ -52,9 +49,6 @@ class AttrReadTest(unittest.TestCase):
             """A test method to check function call on the Temp class."""
             return arg + 123  # A simple operation to check
 
-    # here the attribute "attr" is input to an action proxy.
-    # is this behaviour intentional?
-
     def test_attr_simple_action(self):
         """ActionProxy object reads the right input attribute."""
         node = Node(None, None)
@@ -80,7 +74,7 @@ class AttrReadTest(unittest.TestCase):
 
         for transformation, args in transformations.items():
             newProxy = getattr(proxy, transformation)(*args)
-            self.assertEqual(proxy.proxied_node._cur_attr, transformation)
+            self.assertEqual(proxy.proxied_node._new_op_name, transformation)
             self.assertIsInstance(newProxy, TransformationProxy)
             self.assertEqual(newProxy.proxied_node.operation.name,
                              transformation)
@@ -98,7 +92,7 @@ class AttrReadTest(unittest.TestCase):
             "get_head",
             "operation",
             "children",
-            "_cur_attr",
+            "_new_op_name",
             "value",
             "pyroot_node",
             "has_user_references"

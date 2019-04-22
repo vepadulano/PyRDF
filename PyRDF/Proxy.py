@@ -1,6 +1,6 @@
 from __future__ import print_function
 from PyRDF.CallableGenerator import CallableGenerator
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 from PyRDF.Operation import Operation
 from PyRDF.Node import Node
 # Abstract class declaration
@@ -28,57 +28,13 @@ class Proxy(ABC):
         """
         self.proxied_node = node
 
+    @abstractmethod
     def __getattr__(self, attr):
         """
-        Intercepts calls to attributes and methods of the proxied node and
-        returns the appropriate object(s).
-
-        Parameters
-        ----------
-        attr : str
-            The name of the attribute or method of the proxied node the user
-            wants to access.
+        Proxies have to declare the way they intercept calls to attributes
+        and methods of the proxied node.
         """
-        # Old: some tests call dunder methods on nodes so
-        # proxies have to return dunder methods too.
-        # Check if the current call is a dunder method call
-        # import re
-        # if re.search("^__[a-z]+__$", attr):
-        #     # Raise an AttributeError for all dunder method calls
-        #     raise AttributeError("Such an attribute is not set ! ")
-
-        from . import current_backend
-        # if attr is a supported operation, start
-        # operation and node creation
-        if attr in current_backend.supported_operations:
-            self.proxied_node._cur_attr = attr  # Stores new operation name
-            return self._call_handler
-        else:
-            try:
-                return getattr(self.proxied_node, attr)
-            except AttributeError as e:
-                raise e
-
-    def _call_handler(self, *args, **kwargs):
-        """
-        Handles an operation call to the current node and eturns the new node
-        built using the operation call.
-        """
-        # Create a new `Operation` object for the
-        # incoming operation call
-        op = Operation(self.proxied_node._cur_attr, *args, **kwargs)
-
-        # Create a new `Node` object to house the operation
-        newNode = Node(operation=op, get_head=self.proxied_node.get_head)
-
-        # Add the new node as a child of the current node
-        self.proxied_node.children.append(newNode)
-
-        # Return the appropriate proxy object for the node
-        if op.is_action():
-            return ActionProxy(newNode)
-        else:
-            return TransformationProxy(newNode)
+        pass
 
     def __del__(self):
         """
@@ -96,15 +52,6 @@ class ActionProxy(Proxy):
     by some action node. They implement a lazy synchronization
     mechanism, i.e., when they are accessed for the first time,
     they trigger the execution of the whole RDataFrame graph.
-
-    Attributes
-    ----------
-    backend
-        A class member to store a backend object based on the configuration
-        set by the user.
-
-    proxied_node
-        The action node that the current ActionProxy instance wraps.
     """
     def __getattr__(self, attr):
         """
@@ -119,7 +66,7 @@ class ActionProxy(Proxy):
 
         """
         self._cur_attr = attr  # Stores the name of operation call
-        return self._call_handler
+        return self._call_action_result
 
     def GetValue(self):
         """
@@ -141,17 +88,62 @@ class ActionProxy(Proxy):
 
         return self.proxied_node.value
 
-    def _call_handler(self, *args, **kwargs):
-        # Handles an operation call to the current action node
-        # and returns result of the current action node.
+    def _call_action_result(self, *args, **kwargs):
+        """
+        Handles an operation call to the current action node and returns
+        result of the current action node.
+        """
         return getattr(self.GetValue(), self._cur_attr)(*args, **kwargs)
 
 
 class TransformationProxy(Proxy):
     """
-    A proxy object to an instantiated node. Used as a controller of the user
-    references to the node itself. When the user deletes reference to a
-    node (e.g. assigning the same variable to another operation), the proxy
-    object will get destroyed by Python, thus flagging the node to be without
-    user references anymore.
+    A proxy object to an non-action node. It implements acces to attributes
+    and methods of the proxied node. It is also in charge of the creation of
+    a new operation node in the graph.
     """
+
+    def __getattr__(self, attr):
+        """
+        Intercepts calls to attributes and methods of the proxied node and
+        returns the appropriate object(s).
+
+        Parameters
+        ----------
+        attr : str
+            The name of the attribute or method of the proxied node the user
+            wants to access.
+        """
+
+        from . import current_backend
+        # if attr is a supported operation, start
+        # operation and node creation
+        if attr in current_backend.supported_operations:
+            self.proxied_node._new_op_name = attr  # Stores new operation name
+            return self._create_new_op
+        else:
+            try:
+                return getattr(self.proxied_node, attr)
+            except AttributeError as e:
+                raise e
+
+    def _create_new_op(self, *args, **kwargs):
+        """
+        Handles an operation call to the current node and returns the new node
+        built using the operation call.
+        """
+        # Create a new `Operation` object for the
+        # incoming operation call
+        op = Operation(self.proxied_node._new_op_name, *args, **kwargs)
+
+        # Create a new `Node` object to house the operation
+        newNode = Node(operation=op, get_head=self.proxied_node.get_head)
+
+        # Add the new node as a child of the current node
+        self.proxied_node.children.append(newNode)
+
+        # Return the appropriate proxy object for the node
+        if op.is_action():
+            return ActionProxy(newNode)
+        else:
+            return TransformationProxy(newNode)

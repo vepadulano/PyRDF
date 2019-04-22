@@ -9,11 +9,6 @@ class RDataFrame(object):
     User interface to the object containing the Python equivalent of ROOT
     C++'s RDataFrame class. The purpose of this class is to kickstart the
     head node of the computational graph, together with a proxy wrapping it.
-    The user call to create an RDataFrame will issue a call to the `__new__`
-    method. In turn, it will create an `HeadNode` object with the arguments
-    used to create the RDataFrame. The head node will then be wrapped with a
-    `TransformationProxy` object (for now) and then the `__new__` method will
-    return the proxy.
     """
     def __new__(cls, *args):
         """
@@ -81,7 +76,7 @@ class HeadNode(Node):
                 args[i] = self._get_vector_from_list(args[i])
 
         try:
-            ROOT.ROOT.RDataFrame(*args)
+            ROOT.ROOT.RDataFrame(*args)  # Check if the args are correct
         except TypeError as e:
             msg = "Error creating the RDataFrame !"
             rdf_exception = RDataFrameException(e, msg)
