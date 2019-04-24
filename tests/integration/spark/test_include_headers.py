@@ -7,13 +7,11 @@ class IncludesSparkTest(unittest.TestCase):
     """
     Check that the required header files are properly included in Spark
     environment.
-
     """
     def test_includes_function_with_filter_and_histo(self):
         """
         Check that the filter operation is able to use C++ functions that
         were included using header files.
-
         """
         PyRDF.use("spark")
         PyRDF.include("tests/integration/local/test_headers/header1.hxx")

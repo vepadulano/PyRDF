@@ -4,6 +4,8 @@ from PyRDF.CallableGenerator import CallableGenerator  # noqa
 from PyRDF.backend.Local import Local
 from PyRDF.backend.Backend import Backend
 from PyRDF.backend.Utils import Utils
+import os
+from os import path
 
 current_backend = Local()
 includes = []
@@ -51,14 +53,27 @@ def include(includes_list):
     parameters
     ----------
     includes_list : list or str
-        This list should consist of all necessary C++ headers as strings.
+        If it is a list, it should consist of all necessary C++ headers as
+        strings. Otherwise the user can input the path to a directory (or a
+        single file) with all the headers needed for the analysis (as a
+        string).
 
     """
     global current_backend, includes
 
     if isinstance(includes_list, str):
-        # Convert to list if this is a string
-        includes_list = [includes_list]
+        if path.isdir(includes_list):
+            # create a list with all the headers in the directory
+            includes_list = [
+                path.join(rootpath, filename)
+                for rootpath, dirs, filenames
+                in os.walk(includes_list)
+                for filename
+                in filenames
+            ]
+        elif path.isfile(includes_list):
+            # Convert to list if this is a string
+            includes_list = [includes_list]
 
     includes.extend(includes_list)
 
