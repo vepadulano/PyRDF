@@ -15,7 +15,6 @@ class IncludesLocalTest(unittest.TestCase):
             "tests/integration/local/test_headers/header1.hxx"
         ]
         )
-
         # creates and RDataFrame with 10 integers [0...9]
         rdf = PyRDF.RDataFrame(10)
 

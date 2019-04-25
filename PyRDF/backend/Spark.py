@@ -79,7 +79,8 @@ class Spark(Dist):
             This list represents the values of action nodes
             returned after computation (Map-Reduce).
         """
-        from .. import includes
+        from .. import includes_headers
+        from .. import includes_shared_libraries
 
         def mapSpark(current_range):
             """
@@ -98,11 +99,19 @@ class Spark(Dist):
                 The map function to be executed on each executor, complete
                 with all headers needed for the analysis.
             """
-            files_on_executor = [
+            # Get and declare headers on each worker
+            headers_on_executor = [
                 SparkFiles.get(ntpath.basename(filepath))
-                for filepath in includes
+                for filepath in includes_headers
             ]
-            Utils.declare_headers(files_on_executor)
+            Utils.declare_headers(headers_on_executor)
+
+            # Get and declare shared libraries on each worker
+            shared_libs_on_ex = [
+                SparkFiles.get(ntpath.basename(filepath))
+                for filepath in includes_shared_libraries
+            ]
+            Utils.declare_shared_libraries(shared_libs_on_ex)
 
             return mapper(current_range)
 

@@ -7,7 +7,8 @@ from PyRDF.backend.Utils import Utils
 import os
 
 current_backend = Local()
-includes = []
+includes_headers = []  # all headers included in the analysis
+includes_shared_libraries = []  # all shared libraries included in the analysis
 
 
 def use(backend_name, conf={}):
@@ -44,6 +45,23 @@ def use(backend_name, conf={}):
         raise Exception(msg)
 
 
+def _get_paths_list_from_string(path_string):
+    """Retrieves paths to files (directory or single file) from a string."""
+    if os.path.isdir(path_string):
+        # Create a list with all the headers in the directory
+        paths_list = [
+            os.path.join(rootpath, filename)
+            for rootpath, dirs, filenames
+            in os.walk(path_string)
+            for filename
+            in filenames
+        ]
+        return paths_list
+    elif os.path.isfile(path_string):
+        # Convert to list if this is a string
+        return [path_string]
+
+
 def include_headers(headers_paths):
     """
     Includes a list of C++ headers to be declared before execution. Each
@@ -56,31 +74,15 @@ def include_headers(headers_paths):
         necessary C++ headers as strings. This function accepts both paths to
         the headers themselves and paths to directories containing the headers.
     """
-    global current_backend, includes
+    global current_backend, includes_headers
     headers_to_include = []
 
-    def get_paths_list(path_string):
-        if os.path.isdir(path_string):
-            # Create a list with all the headers in the directory
-            paths_list = [
-                os.path.join(rootpath, filename)
-                for rootpath, dirs, filenames
-                in os.walk(path_string)
-                for filename
-                in filenames
-            ]
-            return paths_list
-        elif os.path.isfile(path_string):
-            # Convert to list if this is a string
-            return [path_string]
-
     if isinstance(headers_paths, str):
-        headers_to_include = get_paths_list(headers_paths)
+        headers_to_include = _get_paths_list_from_string(headers_paths)
     else:
         for path_string in headers_paths:
-            headers_to_include.extend(get_paths_list(path_string))
+            headers_to_include.extend(_get_paths_list_from_string(path_string))
 
-    includes.extend(headers_to_include)
     # Converting to set to remove duplicate headers if any.
     # Then converting back to list to pass it to declare_headers()
     headers_to_include = list(set(headers_to_include))
@@ -90,6 +92,77 @@ def include_headers(headers_paths):
         current_backend.distribute_files(headers_to_include)
 
     Utils.declare_headers(headers_to_include)
+
+    # Finally, add everything to the includes list
+    includes_headers.extend(headers_to_include)
+
+
+def include_shared_libraries(shared_libraries_paths):
+    """
+    Includes a list of C++ shared libraries to be declared before execution.
+    Each library is also declared on the current running session. If any pcm
+    file is present in the same folder as the shared libraries, the function
+    will try to retrieve them (and distribute them if working on a distributed
+    backend). Otherwise the user can input the paths to their own pcm files
+    with the `send_pcm_files()` function.
+
+    Parameters
+    ----------
+    shared_libraries_paths : str or iterable
+        A string or an iterable (such as a list) containing the paths to all
+        necessary C++ shared libraries as strings. This function accepts both
+        paths to the libraries themselves and paths to directories containing
+        the libraries.
+    """
+    global current_backend, includes_shared_libraries
+    libraries_to_include = []
+    pcm_to_include = []
+
+    def _check_pcm_in_library_path(shared_library_path):
+        all_paths = _get_paths_list_from_string(
+            shared_library_path
+        )
+
+        pcm_paths = [
+            filepath
+            for filepath in all_paths
+            if filepath.split(".")[-1] == "pcm"
+        ]
+
+        libraries_path = [
+            filepath
+            for filepath in all_paths
+            if filepath not in pcm_paths
+        ]
+
+        return pcm_paths, libraries_path
+
+    if isinstance(shared_libraries_paths, str):
+        pcm_to_include, libraries_to_include = _check_pcm_in_library_path(
+            shared_libraries_paths
+        )
+    else:
+        for path_string in shared_libraries_paths:
+            pcm, libraries = _check_pcm_in_library_path(
+                path_string
+            )
+            libraries_to_include.extend(libraries)
+            pcm_to_include.extend(pcm)
+
+    # Converting to set to remove duplicate headers if any.
+    # Then converting back to list to pass it to declare_shared_libraries()
+    libraries_to_include = list(set(libraries_to_include))
+    pcm_to_include = list(set(pcm_to_include))
+
+    # If not on the local backend, distribute files to executors
+    if not isinstance(current_backend, Local):
+        current_backend.distribute_files(libraries_to_include)
+        current_backend.distribute_files(pcm_to_include)
+
+    Utils.declare_shared_libraries(libraries_to_include)
+
+    # Finally, add everything to the includes list
+    includes_shared_libraries.extend(includes_shared_libraries)
 
 
 def initialize(fun, *args, **kwargs):
