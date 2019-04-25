@@ -58,7 +58,10 @@ class Local(Backend):
         """
         mapper = generator.get_callable()  # Get the callable
 
-        if not self.pyroot_rdf:
+        # if the RDataFrame has not been created yet or if a new one
+        # is created by the user in the same session
+        if (not self.pyroot_rdf) or \
+           (self.pyroot_rdf is not generator.head_node):
             self.pyroot_rdf = ROOT.ROOT.RDataFrame(*generator.head_node.args)
 
         values = mapper(self.pyroot_rdf)  # Execute the mapper function
