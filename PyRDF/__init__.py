@@ -61,6 +61,9 @@ def include(includes_list):
         includes_list = [includes_list]
 
     includes.extend(includes_list)
+
+    if not isinstance(current_backend, Local):
+        current_backend.distribute_files(includes_list)
     Utils.declare_headers(includes_list)
 
 

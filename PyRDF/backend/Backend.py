@@ -116,3 +116,11 @@ class Backend(ABC):
         environment.
         """
         pass
+
+    @abstractmethod
+    def distribute_files(self):
+        """
+        Subclasses must define how to send all files needed for the analysis
+        (like headers and libraries) to the workers.
+        """
+        pass

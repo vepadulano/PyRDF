@@ -1,6 +1,6 @@
 from __future__ import print_function
 from PyRDF.backend.Dist import Dist
-from pyspark import SparkConf, SparkContext
+from pyspark import SparkConf, SparkContext, SparkFiles
 from PyRDF.backend.Utils import Utils
 
 
@@ -78,9 +78,12 @@ class Spark(Dist):
             returned after computation (Map-Reduce).
 
         """
-        from .. import includes
 
-        Utils.declare_headers(includes)  # Declare headers if any
+        # self.spark_includes = [
+        #     SparkFiles.get(file)
+        #     for file in self.spark_includes
+        # ]
+        # Utils.declare_headers(self.spark_includes)  # Declare headers if any
 
         ranges = self.build_ranges(self.npartitions)  # Get range pairs
 
@@ -90,3 +93,12 @@ class Spark(Dist):
 
         # Map-Reduce using Spark
         return parallel_collection.map(mapper).treeReduce(reducer)
+
+    def distribute_files(self, includes_list):
+        """
+        Docstring missing.
+        """
+        for file in includes_list:
+            self.sparkContext.addFile(file)
+
+        self.spark_includes = includes_list

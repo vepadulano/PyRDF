@@ -3,6 +3,7 @@ from PyRDF.backend.Backend import Backend
 from PyRDF.backend.Local import Local
 from PyRDF.backend.Utils import Utils
 from abc import abstractmethod
+from pyspark import SparkFiles
 import glob
 import warnings
 
@@ -327,8 +328,8 @@ class Dist(Backend):
 
             """
             import ROOT
-
-            Utils.declare_headers(includes)  # Declare headers if any
+            mapper_includes = [SparkFiles.get(file) for file in includes]
+            Utils.declare_headers(mapper_includes)  # Declare headers if any
 
             # Run initialization method to prepare the worker runtime
             # environment
@@ -450,4 +451,8 @@ class Dist(Backend):
         Subclasses must define how to run map-reduce functions on a given
         backend.
         """
+        pass
+
+    def distribute_files(self):
+        """The distribution of files to workers is specific to the backend"""
         pass
