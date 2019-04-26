@@ -1,6 +1,5 @@
 import ROOT
 
-
 class Utils(object):
     """Class that houses general utility functions."""
 

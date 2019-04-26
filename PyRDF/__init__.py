@@ -3,6 +3,7 @@ from PyRDF.RDataFrame import RDataFrameException  # noqa
 from PyRDF.CallableGenerator import CallableGenerator  # noqa
 from PyRDF.backend.Local import Local
 from PyRDF.backend.Backend import Backend
+from PyRDF.backend.Spark import Spark
 from PyRDF.backend.Utils import Utils
 
 current_backend = Local()
@@ -63,7 +64,9 @@ def include(includes_list):
     includes.extend(includes_list)
 
     if not isinstance(current_backend, Local):
+        print("current backend: ", current_backend)
         current_backend.distribute_files(includes_list)
+
     Utils.declare_headers(includes_list)
 
 

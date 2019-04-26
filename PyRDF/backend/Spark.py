@@ -1,7 +1,7 @@
 from __future__ import print_function
 from PyRDF.backend.Dist import Dist
-from pyspark import SparkConf, SparkContext, SparkFiles
-from PyRDF.backend.Utils import Utils
+from pyspark import SparkConf, SparkContext
+from pyspark import SparkFiles
 
 
 class Spark(Dist):
@@ -76,15 +76,7 @@ class Spark(Dist):
         list
             This list represents the values of action nodes
             returned after computation (Map-Reduce).
-
         """
-
-        # self.spark_includes = [
-        #     SparkFiles.get(file)
-        #     for file in self.spark_includes
-        # ]
-        # Utils.declare_headers(self.spark_includes)  # Declare headers if any
-
         ranges = self.build_ranges(self.npartitions)  # Get range pairs
 
         # Build parallel collection
@@ -99,6 +91,14 @@ class Spark(Dist):
         Docstring missing.
         """
         for file in includes_list:
+            print("\n\n")
+            print("Adding file: ", file)
             self.sparkContext.addFile(file)
+            print("Added file ", file," at ", SparkFiles.get(file))
+            print("\n\n")
 
-        self.spark_includes = includes_list
+    def get_distributed_files(self, filenames):
+        """
+        Docstring missing.
+        """
+        return [SparkFiles.get(file) for file in filenames]

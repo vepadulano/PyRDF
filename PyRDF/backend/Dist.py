@@ -328,8 +328,10 @@ class Dist(Backend):
 
             """
             import ROOT
-            mapper_includes = [SparkFiles.get(file) for file in includes]
-            Utils.declare_headers(mapper_includes)  # Declare headers if any
+
+            dist_includes = [SparkFiles.get(file) for file in includes]
+            print(dist_includes)
+            Utils.declare_headers(dist_includes)  # Declare headers if any
 
             # Run initialization method to prepare the worker runtime
             # environment
@@ -455,4 +457,10 @@ class Dist(Backend):
 
     def distribute_files(self):
         """The distribution of files to workers is specific to the backend"""
+        pass
+
+    def get_distributed_files(self, filenames):
+        """
+        Docstring missing.
+        """
         pass

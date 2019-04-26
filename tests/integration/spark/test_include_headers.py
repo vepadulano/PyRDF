@@ -16,8 +16,9 @@ class IncludesSparkTest(unittest.TestCase):
         were included using header files.
 
         """
-        PyRDF.include("tests/integration/local/test_headers/header1.hxx")
         PyRDF.use("spark")
+        PyRDF.include("tests/integration/local/test_headers/header1.hxx")
+
 
         rdf = PyRDF.RDataFrame(10)
 
@@ -41,3 +42,6 @@ class IncludesSparkTest(unittest.TestCase):
 
         # Compare the standard deviations of equivalent set of numbers
         self.assertEqual(histo.GetStdDev(), required_stdDev)
+
+if __name__ == "__main__":
+    unittest.main()
