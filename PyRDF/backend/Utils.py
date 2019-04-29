@@ -14,6 +14,9 @@ class Utils(object):
             This list should consist of all necessary C++ headers as strings.
 
         """
+        print("\n\n")
+        print("Includes list to Utils.declare_headers:", includes)
+        print("\n\n")
         for header in includes:
             include_code = "#include \"{}\"\n".format(header)
             if not ROOT.gInterpreter.Declare(include_code):

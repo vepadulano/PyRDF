@@ -330,7 +330,9 @@ class Dist(Backend):
             import ROOT
 
             dist_includes = [SparkFiles.get(file) for file in includes]
-            print(dist_includes)
+            print("\n\n")
+            print("Dist includes", dist_includes)
+            print("\n\n")
             Utils.declare_headers(dist_includes)  # Declare headers if any
 
             # Run initialization method to prepare the worker runtime
