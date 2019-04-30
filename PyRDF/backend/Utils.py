@@ -19,6 +19,9 @@ class Utils(object):
         print("\n\n")
         for header in includes:
             include_code = "#include \"{}\"\n".format(header)
-            if not ROOT.gInterpreter.Declare(include_code):
+            try:
+                ROOT.gInterpreter.ProcessLine(include_code)
+            except Exception as e:
                 msg = "There was an error in including \"{}\" !".format(header)
-                raise Exception(msg)
+                raise e(msg)
+            print("Succesfully included ", header)
