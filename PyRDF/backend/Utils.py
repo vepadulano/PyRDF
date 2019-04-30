@@ -20,7 +20,7 @@ class Utils(object):
         for header in includes:
             include_code = "#include \"{}\"\n".format(header)
             try:
-                ROOT.gInterpreter.ProcessLine(include_code)
+                ROOT.gInterpreter.Declare(include_code)
             except Exception as e:
                 msg = "There was an error in including \"{}\" !".format(header)
                 raise e(msg)

@@ -6,6 +6,19 @@ import PyRDF
 import math
 
 
+# PyRDF.include("tests/integration/local/test_headers/header1.hxx")
+
+# rdf = PyRDF.RDataFrame(10)
+
+# # This filters out all numbers less than 5
+# rdf_filtered = rdf.Filter("check_number_less_than_5(tdfentry_)")
+# count = rdf_filtered.Count()
+
+# # The final answer should be the number of integers
+# # less than 5, which is 5.
+# print(count.GetValue())
+
+
 # path = "test.txt"
 # with open(path, "w") as testFile:
 # 	_ = testFile.write("100")
@@ -27,6 +40,7 @@ PyRDF.include(header)
 print("inside script", SparkFiles.get(header))
 
 rdf = PyRDF.RDataFrame(100)
+#histo = rdf.Histo1D("tdfentry_")
 # This filters out all numbers less than 5
 rdf_filtered = rdf.Filter("check_number_less_than_5(tdfentry_)")
 histo = rdf_filtered.Histo1D("tdfentry_")
@@ -38,4 +52,4 @@ required_size = len(required_numbers)
 required_mean = sum(required_numbers) / float(required_size)
 required_stdDev = math.sqrt(sum((x - required_mean)**2
                             for x in required_numbers) / required_size)
-histo.GetEntries()
+print(histo.GetStdDev())

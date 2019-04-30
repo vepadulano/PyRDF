@@ -6,7 +6,7 @@ from abc import abstractmethod
 from pyspark import SparkFiles
 import glob
 import warnings
-
+import os
 
 class Range(object):
     """
@@ -328,8 +328,10 @@ class Dist(Backend):
 
             """
             import ROOT
-
-            dist_includes = [SparkFiles.get(file) for file in includes]
+            print("\n\n")
+            print("Includes inside Dist MAPPER: ", includes)
+            print("\n\n")
+            dist_includes = [SparkFiles.get(os.path.basename(filepath)) for filepath in includes]
             print("\n\n")
             print("Dist includes", dist_includes)
             print("\n\n")
