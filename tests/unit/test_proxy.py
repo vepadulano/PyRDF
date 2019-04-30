@@ -154,6 +154,10 @@ class GetValueTests(unittest.TestCase):
             """
             self.obtained_head_node = generator.head_node
 
+        def distribute_files(self):
+            """do nothing"""
+            pass
+
     def test_get_value_with_existing_value(self):
         """
         Test case to check the working of 'GetValue'

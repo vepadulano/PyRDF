@@ -2,6 +2,7 @@ from __future__ import print_function
 from PyRDF.backend.Dist import Dist
 from pyspark import SparkConf, SparkContext
 from pyspark import SparkFiles
+import ntpath
 
 
 class Spark(Dist):
@@ -88,17 +89,37 @@ class Spark(Dist):
 
     def distribute_files(self, includes_list):
         """
-        Docstring missing.
+        Spark supports sending files to the executors via the
+        `SparkContext.addFile` method. This method receives in input the path
+        to the file (relative to the path of the current python session). The
+        file is initially added to the Spark driver and then sent to the
+        workers when they are initialized.
+
+        Parameters
+        ----------
+        includes_list : list
+            A list consisting of all necessary C++ headers as strings, created
+            via the `PyRDF.include()` method.
         """
         for file in includes_list:
-            print("\n\n")
-            print("Adding file: ", file)
             self.sparkContext.addFile(file)
-            print("Added file ", file," at ", SparkFiles.get(file))
-            print("\n\n")
 
-    def get_distributed_files(self, filenames):
+    def get_distributed_files(distributed_file_paths):
         """
-        Docstring missing.
+        To get the specific path of the file(s) that have been sent to each
+        worker, one can use the `SparkFiles.get()` method. It takes the file
+        name (not the path) as input and then returns the path of the file on
+        the current executor.
+
+        Parameters
+        ----------
+        distributed_file_paths : list
+            A list with the paths to all necessary C++ headers as strings,
+            precedently added to the workers via the `distribute_files()`
+            method.
         """
-        return [SparkFiles.get(file) for file in filenames]
+        files_on_executor = [
+            SparkFiles.get(ntpath.basename(filepath))
+            for filepath in distributed_file_paths
+        ]
+        return files_on_executor

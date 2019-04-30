@@ -6,15 +6,16 @@ from abc import abstractmethod
 from pyspark import SparkFiles
 import glob
 import warnings
-import os
+import ntpath
+
 
 class Range(object):
     """
     Base class to represent ranges.
 
     A range represents a logical partition of the entries of a chain and is
-    the basis for parallelization. First entry of the range (start) is inclusive
-    while the second one is not (end).
+    the basis for parallelization. First entry of the range (start) is
+    inclusive while the second one is not (end).
     """
 
     def __init__(self, start, end, filelist=None):
@@ -128,9 +129,9 @@ class Dist(Backend):
 
     def _get_balanced_ranges(self, nentries, npartitions):
         """
-        Builds range pairs from the given values of the number of entries in the
-        dataset and number of partitions required. Each range contains the same
-        amount of entries, except for those cases where the number of
+        Builds range pairs from the given values of the number of entries in
+        the dataset and number of partitions required. Each range contains the
+        same amount of entries, except for those cases where the number of
         entries is not a multiple of the partitions.
 
         Parameters
@@ -328,14 +329,14 @@ class Dist(Backend):
 
             """
             import ROOT
-            print("\n\n")
-            print("Includes inside Dist MAPPER: ", includes)
-            print("\n\n")
-            dist_includes = [SparkFiles.get(os.path.basename(filepath)) for filepath in includes]
-            print("\n\n")
-            print("Dist includes", dist_includes)
-            print("\n\n")
-            Utils.declare_headers(dist_includes)  # Declare headers if any
+            # get the paths to the headers on each worker if any
+            # worker_includes = self.get_distributed_files(includes)
+
+            worker_includes = [
+                SparkFiles.get(ntpath.basename(filepath))
+                for filepath in includes
+            ]
+            Utils.declare_headers(worker_includes)  # Declare headers if any
 
             # Run initialization method to prepare the worker runtime
             # environment
@@ -460,11 +461,15 @@ class Dist(Backend):
         pass
 
     def distribute_files(self):
-        """The distribution of files to workers is specific to the backend"""
+        """
+        Subclasses must define how to send all files needed for the analysis
+        (like headers and libraries) to the workers.
+        """
         pass
 
     def get_distributed_files(self, filenames):
         """
-        Docstring missing.
+        Subclasses must define how to retrieve all files needed for the
+        analysis (like headers and libraries) from the workers.
         """
         pass
