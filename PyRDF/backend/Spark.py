@@ -104,7 +104,7 @@ class Spark(Dist):
         for file in includes_list:
             self.sparkContext.addFile(file)
 
-    def get_distributed_files(distributed_file_paths):
+    def get_distributed_files(self, distributed_file_paths):
         """
         To get the specific path of the file(s) that have been sent to each
         worker, one can use the `SparkFiles.get()` method. It takes the file
@@ -123,3 +123,12 @@ class Spark(Dist):
             for filepath in distributed_file_paths
         ]
         return files_on_executor
+
+    def __getstate__(self):
+        """Docstring missing."""
+        state = self.__dict__.copy()
+        del state["sparkContext"]
+        print("Getstate called")
+        print("Dictionary of Spark instance")
+        print(state)
+        return None

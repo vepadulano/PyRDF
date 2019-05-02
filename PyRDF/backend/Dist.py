@@ -330,12 +330,12 @@ class Dist(Backend):
             """
             import ROOT
             # get the paths to the headers on each worker if any
-            # worker_includes = self.get_distributed_files(includes)
+            worker_includes = self.get_distributed_files(includes)
 
-            worker_includes = [
-                SparkFiles.get(ntpath.basename(filepath))
-                for filepath in includes
-            ]
+            # worker_includes = [
+            #     SparkFiles.get(ntpath.basename(filepath))
+            #     for filepath in includes
+            # ]
             Utils.declare_headers(worker_includes)  # Declare headers if any
 
             # Run initialization method to prepare the worker runtime
