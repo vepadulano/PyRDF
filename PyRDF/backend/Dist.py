@@ -1,12 +1,9 @@
 from __future__ import print_function
 from PyRDF.backend.Backend import Backend
 from PyRDF.backend.Local import Local
-from PyRDF.backend.Utils import Utils
 from abc import abstractmethod
-from pyspark import SparkFiles
 import glob
 import warnings
-import ntpath
 
 
 class Range(object):
@@ -307,8 +304,6 @@ class Dist(Backend):
         # Avoid having references to the instance inside the mapper
         initialization = Backend.initialization
 
-        from .. import includes
-
         def mapper(current_range):
             """
             Triggers the event-loop and executes all
@@ -459,12 +454,5 @@ class Dist(Backend):
         """
         Subclasses must define how to send all files needed for the analysis
         (like headers and libraries) to the workers.
-        """
-        pass
-
-    def get_distributed_files(self, filenames):
-        """
-        Subclasses must define how to retrieve all files needed for the
-        analysis (like headers and libraries) from the workers.
         """
         pass

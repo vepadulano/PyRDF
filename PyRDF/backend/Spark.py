@@ -80,12 +80,30 @@ class Spark(Dist):
             returned after computation (Map-Reduce).
         """
         from .. import includes
+
         def mapSpark(current_range):
+            """
+            Gets the paths to the file(s) in the current executor, then
+            declares the headers found.
+
+            Parameters
+            ----------
+            current_range : tuple
+                A pair that contains the starting and ending
+                values of the current range.
+
+            Returns
+            -------
+            function
+                The map function to be executed on each executor, complete
+                with all headers needed for the analysis.
+            """
             files_on_executor = [
                 SparkFiles.get(ntpath.basename(filepath))
                 for filepath in includes
             ]
             Utils.declare_headers(files_on_executor)
+
             return mapper(current_range)
 
         ranges = self.build_ranges(self.npartitions)  # Get range pairs
@@ -113,32 +131,3 @@ class Spark(Dist):
         """
         for file in includes_list:
             self.sparkContext.addFile(file)
-
-    def get_distributed_files(self, distributed_file_paths):
-        """
-        To get the specific path of the file(s) that have been sent to each
-        worker, one can use the `SparkFiles.get()` method. It takes the file
-        name (not the path) as input and then returns the path of the file on
-        the current executor.
-
-        Parameters
-        ----------
-        distributed_file_paths : list
-            A list with the paths to all necessary C++ headers as strings,
-            precedently added to the workers via the `distribute_files()`
-            method.
-        """
-        files_on_executor = [
-            SparkFiles.get(ntpath.basename(filepath))
-            for filepath in distributed_file_paths
-        ]
-        return files_on_executor
-
-    def __getstate__(self):
-        """Docstring missing."""
-        state = self.__dict__.copy()
-        del state["sparkContext"]
-        print("Getstate called")
-        print("Dictionary of Spark instance")
-        print(state)
-        return None
