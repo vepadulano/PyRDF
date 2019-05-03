@@ -1,5 +1,6 @@
 from __future__ import print_function
 from PyRDF.backend.Dist import Dist
+from PyRDF.backend.Utils import Utils
 from pyspark import SparkConf, SparkContext
 from pyspark import SparkFiles
 import ntpath
@@ -78,6 +79,15 @@ class Spark(Dist):
             This list represents the values of action nodes
             returned after computation (Map-Reduce).
         """
+        from .. import includes
+        def mapSpark(current_range):
+            files_on_executor = [
+                SparkFiles.get(ntpath.basename(filepath))
+                for filepath in includes
+            ]
+            Utils.declare_headers(files_on_executor)
+            return mapper(current_range)
+
         ranges = self.build_ranges(self.npartitions)  # Get range pairs
 
         # Build parallel collection
@@ -85,7 +95,7 @@ class Spark(Dist):
         parallel_collection = sc.parallelize(ranges, self.npartitions)
 
         # Map-Reduce using Spark
-        return parallel_collection.map(mapper).treeReduce(reducer)
+        return parallel_collection.map(mapSpark).treeReduce(reducer)
 
     def distribute_files(self, includes_list):
         """
