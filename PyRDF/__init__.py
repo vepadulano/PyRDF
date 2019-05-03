@@ -5,7 +5,6 @@ from PyRDF.backend.Local import Local
 from PyRDF.backend.Backend import Backend
 from PyRDF.backend.Utils import Utils
 import os
-from os import path
 
 current_backend = Local()
 includes = []
@@ -45,43 +44,52 @@ def use(backend_name, conf={}):
         raise Exception(msg)
 
 
-def include(includes_list):
+def include_headers(headers_paths):
     """
     Includes a list of C++ headers to be declared before execution. Each
     header is also declared on the current running session.
 
-    parameters
+    Parameters
     ----------
-    includes_list : list or str
-        If it is a list, it should consist of all necessary C++ headers as
-        strings. Otherwise the user can input the path to a directory (or a
-        single file) with all the headers needed for the analysis (as a
-        string).
-
+    headers_paths : str or iterable
+        A string or an iterable (such as a list) containing the paths to all
+        necessary C++ headers as strings. This function accepts both paths to
+        the headers themselves and paths to directories containing the headers.
     """
     global current_backend, includes
+    headers_to_include = []
 
-    if isinstance(includes_list, str):
-        if path.isdir(includes_list):
-            # create a list with all the headers in the directory
-            includes_list = [
-                path.join(rootpath, filename)
+    def get_paths_list(path_string):
+        if os.path.isdir(path_string):
+            # Create a list with all the headers in the directory
+            paths_list = [
+                os.path.join(rootpath, filename)
                 for rootpath, dirs, filenames
-                in os.walk(includes_list)
+                in os.walk(path_string)
                 for filename
                 in filenames
             ]
-        elif path.isfile(includes_list):
+            return paths_list
+        elif os.path.isfile(path_string):
             # Convert to list if this is a string
-            includes_list = [includes_list]
+            return [path_string]
 
-    includes.extend(includes_list)
+    if isinstance(headers_paths, str):
+        headers_to_include = get_paths_list(headers_paths)
+    else:
+        for path_string in headers_paths:
+            headers_to_include.extend(get_paths_list(path_string))
 
-    # if not on the local backend, distribute files to executors
+    includes.extend(headers_to_include)
+    # Converting to set to remove duplicate headers if any.
+    # Then converting back to list to pass it to declare_headers()
+    headers_to_include = list(set(headers_to_include))
+
+    # If not on the local backend, distribute files to executors
     if not isinstance(current_backend, Local):
-        current_backend.distribute_files(includes_list)
+        current_backend.distribute_files(headers_to_include)
 
-    Utils.declare_headers(includes_list)
+    Utils.declare_headers(headers_to_include)
 
 
 def initialize(fun, *args, **kwargs):

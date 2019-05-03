@@ -129,5 +129,5 @@ class Spark(Dist):
             A list consisting of all necessary C++ headers as strings, created
             via the `PyRDF.include()` method.
         """
-        for file in includes_list:
-            self.sparkContext.addFile(file)
+        for filepath in includes_list:
+            self.sparkContext.addFile(filepath)

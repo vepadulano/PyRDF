@@ -14,7 +14,9 @@ class IncludesSparkTest(unittest.TestCase):
         were included using header files.
         """
         PyRDF.use("spark")
-        PyRDF.include("tests/integration/local/test_headers/header1.hxx")
+        PyRDF.include_headers(
+            "tests/integration/local/test_headers/header1.hxx"
+        )
 
         rdf = PyRDF.RDataFrame(10)
 

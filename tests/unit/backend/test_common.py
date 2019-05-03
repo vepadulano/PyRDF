@@ -52,18 +52,18 @@ class IncludeHeadersTest(unittest.TestCase):
 
         """
         with self.assertRaises(TypeError):
-            PyRDF.include()
+            PyRDF.include_headers()
 
     def test_string_include(self):
         """'PyRDF.include' with a single string."""
-        PyRDF.include("tests/unit/backend/test_headers/header1.hxx")
+        PyRDF.include_headers("tests/unit/backend/test_headers/header1.hxx")
 
         required_header = ["tests/unit/backend/test_headers/header1.hxx"]
         self.assertListEqual(PyRDF.includes, required_header)
 
     def test_list_include(self):
         """'PyRDF.include' with a list of strings."""
-        PyRDF.include(["tests/unit/backend/test_headers/header1.hxx"])
+        PyRDF.include_headers(["tests/unit/backend/test_headers/header1.hxx"])
 
         required_header = ["tests/unit/backend/test_headers/header1.hxx"]
         self.assertListEqual(PyRDF.includes, required_header)
@@ -75,8 +75,8 @@ class IncludeHeadersTest(unittest.TestCase):
         to it multiple times.
 
         """
-        PyRDF.include(["tests/unit/backend/test_headers/header1.hxx"])
-        PyRDF.include(["tests/unit/backend/test_headers/header2.hxx"])
+        PyRDF.include_headers(["tests/unit/backend/test_headers/header1.hxx"])
+        PyRDF.include_headers(["tests/unit/backend/test_headers/header2.hxx"])
 
         required_list = ["tests/unit/backend/test_headers/header1.hxx",
                          "tests/unit/backend/test_headers/header2.hxx"]
@@ -107,7 +107,7 @@ class DeclareHeadersTest(unittest.TestCase):
         # ROOT interpreter
         with self.assertRaises(AttributeError):
             self.assertRaises(ROOT.b(1))
-        PyRDF.include("tests/unit/backend/test_headers/header4.hxx")
+        PyRDF.include_headers("tests/unit/backend/test_headers/header4.hxx")
         self.assertEqual(ROOT.b(1), True)
 
 

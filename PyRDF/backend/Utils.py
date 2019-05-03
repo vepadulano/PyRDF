@@ -9,11 +9,10 @@ class Utils(object):
         """
         Declares all required headers using the ROOT's C++ Interpreter.
 
-        parameters
+        Parameters
         ----------
         includes : list
             This list should consist of all necessary C++ headers as strings.
-
         """
         for header in includes:
             include_code = "#include \"{}\"\n".format(header)
