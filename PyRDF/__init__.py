@@ -7,8 +7,9 @@ from PyRDF.backend.Utils import Utils
 import os
 
 current_backend = Local()
-includes_headers = []  # all headers included in the analysis
-includes_shared_libraries = []  # all shared libraries included in the analysis
+includes_headers = []  # All headers included in the analysis
+includes_shared_libraries = []  # All shared libraries included in the analysis
+includes_files = []  # All other generic files included
 
 
 def use(backend_name, conf={}):
@@ -163,6 +164,33 @@ def include_shared_libraries(shared_libraries_paths):
 
     # Finally, add everything to the includes list
     includes_shared_libraries.extend(includes_shared_libraries)
+
+
+def send_generic_files(files_paths):
+    """
+    Sends to the workers the generic files needed by the user.
+
+    Parameters
+    ----------
+    files_paths : str or iterable
+        Paths to the files to be sent to the distributed workers.
+    """
+    global current_backend, includes_files
+    files_to_include = []
+
+    if isinstance(files_paths, str):
+        files_to_include = _get_paths_list_from_string(files_paths)
+    else:
+        for path_string in files_paths:
+            files_to_include.extend(_get_paths_list_from_string(path_string))
+
+    # Converting to set to remove duplicate headers if any.
+    # Then converting back to list to pass it to declare_headers()
+    files_to_include = list(set(files_to_include))
+
+    # If not on the local backend, distribute files to executors
+    if not isinstance(current_backend, Local):
+        current_backend.distribute_files(files_to_include)
 
 
 def initialize(fun, *args, **kwargs):
