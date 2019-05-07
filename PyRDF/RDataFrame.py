@@ -15,11 +15,9 @@ class RDataFrame(object):
         Creates the head node of the graph with the arguments provided by the
         user, then returns a proxy to that node.
 
-        Arguments
-        ---------
-        args
-            A list of arguments that were provided by the user to construct
-            the RDataFrame object.
+        Args:
+            *args (list): A list of arguments that were provided by the user
+                to construct the RDataFrame object.
         """
         head_node = HeadNode(*args)
         proxy_head = TransformationProxy(head_node)
@@ -31,39 +29,32 @@ class HeadNode(Node):
     The Python equivalent of ROOT C++'s
     RDataFrame class.
 
-    Attributes
-    ----------
-    args
-        A list of arguments that were provided to
-        construct the RDataFrame object.
+    Attributes:
+        args (list): A list of arguments that were provided to construct
+            the RDataFrame object.
 
-    Supported constructor arguments
-    -------------------------------
+
     PyRDF's RDataFrame constructor accepts the same arguments as the ROOT's
-    RDataFrame constructor
-    (see https://root.cern/doc/master/classROOT_1_1RDataFrame.html).
+    RDataFrame constructor (see
+    `RDataFrame <https://root.cern/doc/master/classROOT_1_1RDataFrame.html>`_)
 
-    In addition, PyRDF allows you to use Python lists in place of C++ vectors as
-    arguments of the constructor, example:
+    In addition, PyRDF allows you to use Python lists in place of C++ vectors
+    as arguments of the constructor, example::
 
-    RDataFrame("myTree", ["file1.root", "file2.root"]
+        PyRDF.RDataFrame("myTree", ["file1.root", "file2.root"])
 
-    Raises
-    ------
-    RDataFrameException
-        An exception raised when input arguments to
-        the RDataFrame constructor are incorrect.
+    Raises:
+        RDataFrameException: An exception raised when input arguments to
+            the RDataFrame constructor are incorrect.
 
     """
     def __init__(self, *args):
         """
         Creates a new RDataFrame instance for the given arguments.
 
-        Parameters
-        ----------
-        *args
-            Variable length argument list to construct
-            the RDataFrame object.
+        Args:
+            *args (list): Variable length argument list to construct the
+                RDataFrame object.
         """
         super(HeadNode, self).__init__(None, None, *args)
 
@@ -114,10 +105,8 @@ class HeadNode(Node):
         """
         Gets the number of entries in the given dataset.
 
-        Returns
-        -------
-        int
-            This is the computed number of entries in the input dataset.
+        Returns:
+            int: This is the computed number of entries in the input dataset.
 
         """
         first_arg = self.args[0]
@@ -149,10 +138,8 @@ class HeadNode(Node):
         """
         Get name of the TTree.
 
-        Returns
-        -------
-        str or None
-            Name of the TTree, or None if there is no tree.
+        Returns:
+            (str, None): Name of the TTree, or :obj:`None` if there is no tree.
 
         """
         first_arg = self.args[0]
@@ -175,11 +162,9 @@ class HeadNode(Node):
         This list can be extracted from a given TChain or from the list of
         arguments.
 
-        Returns
-        -------
-        str, list or None
-            Name of a single file, list of files (both may contain globbing
-            characters), or None if there are no input files.
+        Returns:
+            (str, list, None): Name of a single file, list of files (both may
+            contain globbing characters), or None if there are no input files.
 
         """
         first_arg = self.args[0]
@@ -208,15 +193,11 @@ class RDataFrameException(Exception):
         """
         Creates a new `RDataFrameException`.
 
-        Parameters
-        ----------
-        exception
-            An exception of type `Exception` or
-            any child class of `Exception`.
+        Args:
+            exception: An exception of type :obj:`Exception` or any child
+                class of :obj:`Exception`.
 
-        msg : str
-            Message to be printed while raising exception
-
+            msg (str): Message to be printed while raising exception.
         """
         super(RDataFrameException, self).__init__(exception)
         print(msg)

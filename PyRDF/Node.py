@@ -8,59 +8,49 @@ class Node(object):
     houses an operation and has references to children nodes.
     For details on the types of operations supported, try :
 
-    import PyRDF
-    PyRDF.use(...) # Choose your backend
-    print(PyRDF.current_backend.supported_operations)
+    Example::
 
-    Attributes
-    ----------
-    get_head : function
-        A lambda function that returns the head
-        node of the current graph.
+        import PyRDF
+        PyRDF.use(...) # Choose your backend
+        print(PyRDF.current_backend.supported_operations)
 
-    operation
-        The operation that this Node represents. This
-        could be `None`.
+    Attributes:
+        get_head (function): A lambda function that returns the head node of
+            the current graph.
 
-    children
-        A list of `Node` objects which represent the
-        children nodes connected to the current node.
+        operation: The operation that this Node represents.
+            This could be :obj:`None`.
 
-    _new_op_name
-        The name of the new incoming operation of the next child, which is the
-        last child node among the current node's children.
+        children (list): A list of :obj:`PyRDF.Node` objects which represent
+            the children nodes connected to the current node.
 
-    value
-        The computed value after executing the operation in
-        the current node for a particular PyRDF graph. This
-        is permanently `None` for transformation nodes and
-        the action nodes get a `RResultPtr` after event-loop
-        execution.
+        _new_op_name (str): The name of the new incoming operation of the next
+            child, which is the last child node among the current node's
+            children.
 
-    pyroot_node
-        Reference to the PyROOT object that implements the
-        functionality of this node on the cpp side.
+        value: The computed value after executing the operation in the current
+            node for a particular PyRDF graph. This is permanently :obj:`None`
+            for transformation nodes and the action nodes get a
+            :obj:`ROOT.RResultPtr` after event-loop execution.
 
-    has_user_references
-        A flag to check whether the node has direct user references, that is
-        if it is assigned to a variable. Default value is `True`, turns to
-        `False` if the proxy that wraps the node gets garbage collected by
-        Python.
+        pyroot_node: Reference to the PyROOT object that implements the
+            functionality of this node on the cpp side.
+
+        has_user_references (bool): A flag to check whether the node has
+            direct user references, that is if it is assigned to a variable.
+            Default value is :obj:`True`, turns to :obj:`False` if the proxy
+            that wraps the node gets garbage collected by Python.
     """
     def __init__(self, get_head, operation, *args):
         """
-        Creates a new `Node` based on the 'operation'.
+        Creates a new node based on the operation passed as argument.
 
-        Parameters
-        ----------
-        get_head : function
-            A lambda function that returns the head
-            node of the current graph. This value
-            could be `None`.
+        Args:
+            get_head (function): A lambda function that returns the head node
+                of the current graph. This value could be `None`.
 
-        operation : PyRDF.Operation.Operation
-            The operation that this Node represents. This
-            could be `None`.
+            operation (PyRDF.Operation.Operation): The operation that this Node
+                represents. This could be :obj:`None`.
         """
         if get_head is None:
             # Function to get 'head' Node
@@ -80,10 +70,8 @@ class Node(object):
         Converts the state of the current node
         to a Python dictionary.
 
-        Returns
-        -------
-        dictionary
-            A dictionary that stores all instance variables
+        Returns:
+            dictionary: A dictionary that stores all instance variables
             that represent the current PyRDF node.
 
         """
@@ -100,11 +88,9 @@ class Node(object):
         Retrieves the state dictionary of the current
         node and sets the instance variables.
 
-        Parameters
-        ----------
-        state : dictionary
-            This is the state dictionary that needs to
-            be converted to a `Node` object.
+        Args:
+            state (dict): This is the state dictionary that needs to be
+                converted to a `Node` object.
 
         """
         self.children = state['children']
@@ -120,11 +106,9 @@ class Node(object):
         Checks whether the current node can be pruned from the computational
         graph.
 
-        Returns
-        -------
-        bool
-            True if the node has no children and no user references or its
-            value has already been computed, False otherwise.
+        Returns:
+            bool: True if the node has no children and no user references or
+            its value has already been computed, False otherwise.
         """
         if not self.children:
             # Every pruning condition is written on a separate line
@@ -149,17 +133,13 @@ class Node(object):
         application does not hold any reference to it. The children of the
         current node will get recursively pruned.
 
-        Returns
-        -------
-        bool
-            True if the current node has to be pruned, False otherwise.
-
+        Returns:
+            bool: True if the current node has to be pruned, False otherwise.
         """
         children = []
 
         for n in self.children:
             # Select children based on pruning condition
-
             if not n.graph_prune():
                 children.append(n)
 

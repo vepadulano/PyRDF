@@ -7,12 +7,8 @@ class Local(Backend):
     Backend that relies on the C++ implementation of RDataFrame to locally
     execute the current graph.
 
-    Attributes
-    ----------
-    config
-        The config object for the Local
-        backend.
-
+    Attributes:
+        config (dict): The config object for the Local backend.
     """
 
     def __init__(self, config={}):
@@ -20,13 +16,10 @@ class Local(Backend):
         Creates a new instance of the
         Local implementation of `Backend`.
 
-        Parameters
-        ----------
-        config (optional)
-            The config object for the required
-            backend. The default value is an
-            empty Python dictionary `{}`.
-
+        Args:
+            config (dict, optional): The config object for the required
+                backend. The default value is an empty Python dictionary:
+                :obj:`{}`.
         """
         super(Local, self).__init__(config)
         operations_not_supported = [
@@ -49,11 +42,10 @@ class Local(Backend):
         """
         Executes locally the current RDataFrame graph.
 
-        Parameters
-        ----------
-        generator : PyRDF.CallableGenerator
-            An instance of type `CallableGenerator` that is
-            responsible for generating the callable function.
+        Args:
+            generator (PyRDF.CallableGenerator): An instance of
+                :obj:`CallableGenerator` that is responsible for generating
+                the callable function.
 
         """
         mapper = generator.get_callable()  # Get the callable

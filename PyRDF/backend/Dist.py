@@ -19,17 +19,13 @@ class Range(object):
         """
         Create an instance of a Range
 
-        Parameters
-        ----------
-        start : int
-            First entry of the range.
+        Args:
+            start (int): First entry of the range.
 
-        end : int
-            Last entry of the range, which is exclusive.
+            end (int): Last entry of the range, which is exclusive.
 
-        filelist : list (optional)
-            Files where the range of entries belongs to.
-
+            filelist (list, optional): Files where the range of entries
+                belongs to.
         """
         self.start = start
         self.end = end
@@ -51,11 +47,10 @@ class Dist(Backend):
         """
         Creates an instance of Dist.
 
-        Parameters
-        ----------
-        config : dict (optional)
-            The config options for the current distributed backend. Default
-            value is an empty python dictionary `{}`.
+        Args:
+            config (dict, optional): The config options for the current
+                distributed backend. Default value is an empty python
+                dictionary: :obj:`{}`.
 
         """
         super(Dist, self).__init__(config)
@@ -82,23 +77,16 @@ class Dist(Backend):
         """
         Extract a list of cluster boundaries for the given tree and files
 
-        Parameters
-        ----------
-        treename: str
-            Name of the TTree split into one or more files
+        Args:
+            treename (str): Name of the TTree split into one or more files.
 
-        filelist: list
-            List of one or more ROOT files
+            filelist (list): List of one or more ROOT files.
 
-        Returns
-        -------
-        list
-            List of tuples defining the cluster boundaries
-
-            Each tuple contains four elements: first entry of a cluster, last
-            entry of cluster, offset of the cluster and file where the cluster
+        Returns:
+            list: List of tuples defining the cluster boundaries. Each tuple
+            contains four elements: first entry of a cluster, last entry of
+            cluster, offset of the cluster and file where the cluster
             belongs to.
-
         """
         import ROOT
 
@@ -131,19 +119,13 @@ class Dist(Backend):
         same amount of entries, except for those cases where the number of
         entries is not a multiple of the partitions.
 
-        Parameters
-        ----------
-        nentries : int
-            The number of entries in a dataset.
+        Args:
+            nentries (int): The number of entries in a dataset.
 
-        npartitions : int
-            The number of parallel computations.
+            npartitions (int): The number of parallel computations.
 
-        Returns
-        -------
-        list
-            List of ranges
-
+        Returns:
+            list: List of :obj:`Range`s objects.
         """
         partition_size = int(nentries / npartitions)
 
@@ -173,25 +155,17 @@ class Dist(Backend):
         """
         Builds range pairs taking into account the clusters of the dataset.
 
-        Parameters
-        ----------
-        nentries : int
-            The total number of entries in a dataset.
+        Args:
+            nentries (int): The number of entries in a dataset.
 
-        npartitions : int
-            The number of parallel computations.
+            npartitions (int): The number of parallel computations.
 
-        treename : str
-            Name of the tree
+            treename (str): Name of the tree.
 
-        filelist : list
-            List of ROOT files
+            filelist (list): List of ROOT files.
 
-        Returns
-        -------
-        list
-            List of ranges
-
+        Returns:
+            list: List of :obj:`Range`s objects.
         """
         clusters = self.get_clusters(treename, filelist)
         numclusters = len(clusters)
@@ -244,16 +218,13 @@ class Dist(Backend):
         """
         Convert single file into list of files and expand globbing
 
-        Parameters
-        ----------
-        files : str or list
-            String containing name of a single file or list with several file
-            names, both cases may contain globbing characters.
+        Args:
+            files (str, list): String containing name of a single file or list
+                with several file names, both cases may contain globbing
+                characters.
 
-        Returns
-        -------
-        list
-            List of file names
+        Returns:
+            list: list of file names.
         """
         if isinstance(files, str):
             # Expand globbing excluding remote files
@@ -288,12 +259,10 @@ class Dist(Backend):
         Executes the current RDataFrame graph
         in the given distributed environment.
 
-        Parameters
-        ----------
-        generator : PyRDF.CallableGenerator
-            An instance of type `CallableGenerator` that is
-            responsible for generating the callable function.
-
+        Args:
+            generator (PyRDF.CallableGenerator): An instance of
+                :obj:`CallableGenerator` that is responsible for generating
+                the callable function.
         """
         callable_function = generator.get_callable()
         # Arguments needed to create PyROOT RDF object
@@ -310,18 +279,13 @@ class Dist(Backend):
             nodes in the computational graph using the
             callable.
 
-            Parameters
-            ----------
-            current_range : tuple
-                A pair that contains the starting and ending
-                values of the current range.
+            Args:
+                current_range (tuple): A pair that contains the starting and
+                    ending values of the current range.
 
-            Returns
-            -------
-            list
-                This respresents the list of values of all
-                action nodes in the computational graph.
-
+            Returns:
+                list: This respresents the list of values of all action nodes
+                in the computational graph.
             """
             import ROOT
 
@@ -379,22 +343,16 @@ class Dist(Backend):
             returned by the mapper function for two different
             ranges.
 
-            Parameters
-            ----------
-            values_list1
-                A list of computed values for a given entry
-                range in a dataset.
+            Args:
+                values_list1 (list): A list of computed values for a given
+                    entry range in a dataset.
 
-            values_list2
-                A list of computed values for a given entry
-                range in a dataset.
+                values_list2 (list): A list of computed values for a given
+                    entry range in a dataset.
 
-            Returns
-            -------
-            list
-                This is a list of values obtained after
-                merging two given lists.
-
+            Returns:
+                list: This is a list of values obtained after merging two
+                given lists.
             """
             import ROOT
             for i in range(len(values_list1)):

@@ -16,16 +16,11 @@ def use(backend_name, conf={}):
     """
     Allows the user to choose the execution backend.
 
-    Parameters
-    ----------
-    backend_name : str
-        This is the name of the chosen backend.
-
-    conf (optional) : str
-        This should be a dictionary with necessary
-        configuration parameters. Its default value
-        is an empty dictionary {}.
-
+    Args:
+        backend_name (str): This is the name of the chosen backend.
+        conf (str, optional): This should be a dictionary with
+            necessary configuration parameters. Its default value is an empty
+            dictionary {}.
     """
     future_backends = [
         "dask"
@@ -47,7 +42,17 @@ def use(backend_name, conf={}):
 
 
 def _get_paths_list_from_string(path_string):
-    """Retrieves paths to files (directory or single file) from a string."""
+    """
+    Retrieves paths to files (directory or single file) from a string.
+
+    Args:
+        path_string (str): The string to the path of the file or directory
+            to be recursively searched for files.
+
+    Returns:
+        list: The list with all paths returned from the directory, or a list
+            with only the path of the string.
+    """
     if os.path.isdir(path_string):
         # Create a list with all the headers in the directory
         paths_list = [
@@ -68,12 +73,11 @@ def include_headers(headers_paths):
     Includes a list of C++ headers to be declared before execution. Each
     header is also declared on the current running session.
 
-    Parameters
-    ----------
-    headers_paths : str or iterable
-        A string or an iterable (such as a list) containing the paths to all
-        necessary C++ headers as strings. This function accepts both paths to
-        the headers themselves and paths to directories containing the headers.
+    Args:
+        headers_paths (str, iter): A string or an iterable (such as a
+            list) containing the paths to all necessary C++ headers as strings.
+            This function accepts both paths to the headers themselves and
+            paths to directories containing the headers.
     """
     global current_backend, includes_headers
     headers_to_include = []
@@ -104,16 +108,13 @@ def include_shared_libraries(shared_libraries_paths):
     Each library is also declared on the current running session. If any pcm
     file is present in the same folder as the shared libraries, the function
     will try to retrieve them (and distribute them if working on a distributed
-    backend). Otherwise the user can input the paths to their own pcm files
-    with the `send_pcm_files()` function.
+    backend).
 
-    Parameters
-    ----------
-    shared_libraries_paths : str or iterable
-        A string or an iterable (such as a list) containing the paths to all
-        necessary C++ shared libraries as strings. This function accepts both
-        paths to the libraries themselves and paths to directories containing
-        the libraries.
+    Args:
+        shared_libraries_paths (str, iter): A string or an iterable (such as a
+            list) containing the paths to all necessary C++ shared libraries
+            as strings. This function accepts both paths to the libraries
+            themselves and paths to directories containing the libraries.
     """
     global current_backend, includes_shared_libraries
     libraries_to_include = []
@@ -170,10 +171,9 @@ def send_generic_files(files_paths):
     """
     Sends to the workers the generic files needed by the user.
 
-    Parameters
-    ----------
-    files_paths : str or iterable
-        Paths to the files to be sent to the distributed workers.
+    Args:
+        files_paths (str, iter): Paths to the files to be sent to the
+            distributed workers.
     """
     global current_backend, includes_files
     files_to_include = []
@@ -202,16 +202,12 @@ def initialize(fun, *args, **kwargs):
     This allows users to inject and execute custom code on the worker
     environment without being part of the RDataFrame computational graph.
 
-    Parameters
-    ----------
-    fun : function
-        Function to be executed.
+    Args:
+        fun (function): Function to be executed.
 
-    *args
-        Variable length argument list used to execute the function.
+        *args (list): Variable length argument list used to execute the
+            function.
 
-    **kwargs
-        Keyword arguments used to execute the function.
-
+        **kwargs (dict): Keyword arguments used to execute the function.
     """
     Backend.register_initialization(fun, *args, **kwargs)

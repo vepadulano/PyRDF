@@ -12,16 +12,12 @@ class Backend(ABC):
     Base class for RDataFrame backends. Subclasses of this class need to
     implement the 'execute' method.
 
-    Attributes
-    ----------
-    supported_operations
-        List of operations supported by the backend.
-
-    initialization
-        Store user's initialization method, if defined.
-
+    Attributes:
+        supported_operations (list): List of operations supported by the
+            backend.
+        initialization (function): Store user's initialization method, if
+            defined.
     """
-
     supported_operations = [
         'Define',
         'Filter',
@@ -51,15 +47,11 @@ class Backend(ABC):
 
     def __init__(self, config={}):
         """
-        Creates a new instance of the desired implementation of `Backend`.
+        Creates a new instance of the desired implementation of :obj:`Backend`.
 
-        Parameters
-        ----------
-        config
-            The config object for the required
-            backend. The default value is an
-            empty Python dictionary `{}`.
-
+        Args:
+            config (dict): The config object for the required backend. The
+                default value is an empty Python dictionary: :obj:`{}`.
         """
         self.config = config
 
@@ -71,17 +63,13 @@ class Backend(ABC):
         Therefore, changes on the runtime backend do not require users to set
         the initialization function again.
 
-        Parameters
-        ----------
-        fun : function
-            Function to be executed.
+        Args:
+            fun (function): Function to be executed.
 
-        *args
-            Variable length argument list used to execute the function.
+            *args (list): Variable length argument list used to execute the
+                function.
 
-        **kwargs
-            Keyword arguments used to execute the function.
-
+            **kwargs (dict): Keyword arguments used to execute the function.
         """
         cls.initialization = functools.partial(fun, *args, **kwargs)
         fun(*args, **kwargs)
@@ -91,17 +79,12 @@ class Backend(ABC):
         Checks if a given operation is supported
         by the given backend.
 
-        Parameters
-        ----------
-        operation_name
-            Name of the operation to be checked.
+        Args:
+            operation_name (str): Name of the operation to be checked.
 
-        Raises
-        ------
-        Exception
-            This happens when `operation_name` doesn't
-            exist in `supported_operations` instance member.
-
+        Raises:
+            Exception: This happens when `operation_name` doesn't exist
+            the `supported_operations` instance attribute.
         """
         if operation_name not in self.supported_operations:
             raise Exception(

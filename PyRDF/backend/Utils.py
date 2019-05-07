@@ -8,10 +8,9 @@ class Utils(object):
         """
         Declares all required headers using the ROOT's C++ Interpreter.
 
-        Parameters
-        ----------
-        headers_to_include : list
-            This list should consist of all necessary C++ headers as strings.
+        Args:
+            headers_to_include (list): This list should consist of all
+                necessary C++ headers as strings.
         """
         for header in headers_to_include:
             include_code = "#include \"{}\"\n".format(header)
@@ -27,11 +26,9 @@ class Utils(object):
         Declares all required shared libraries using the ROOT's C++
         Interpreter.
 
-        Parameters
-        ----------
-        libraries_to_include : list
-            This list should consist of all necessary C++ shared libraries as
-            strings.
+        Args:
+            libraries_to_include (list): This list should consist of all
+                necessary C++ shared libraries as strings.
         """
         for shared_library in libraries_to_include:
             try:

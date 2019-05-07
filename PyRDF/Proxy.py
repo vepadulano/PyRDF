@@ -14,17 +14,15 @@ class Proxy(ABC):
     Abstract class for proxies objects. These objects help to keep track of
     nodes' variable assignment. That is, when a node is no longer assigned
     to a variable by the user, the role of the proxy is to show that. This is
-    done via changing the value of the `has_user_references` of the proxied
-    node from `True` to `False`.
+    done via changing the value of the :obj:`has_user_references` of the
+    proxied node from :obj:`True` to :obj:`False`.
     """
     def __init__(self, node):
         """
         Creates a new `Proxy` object for a given node.
 
-        Parameters
-        ----------
-        proxied_node : PyRDF.Node
-            The node that the current Proxy should wrap.
+        Args:
+            proxied_node: The node that the current Proxy should wrap.
         """
         self.proxied_node = node
 
@@ -58,12 +56,9 @@ class ActionProxy(Proxy):
         Intercepts calls on the result of
         the action node.
 
-        Returns
-        -------
-        function
-            A method to handle an operation call to the
+        Returns:
+            function: A method to handle an operation call to the
             current action node.
-
         """
         self._cur_attr = attr  # Stores the name of operation call
         return self._call_action_result
@@ -75,10 +70,8 @@ class ActionProxy(Proxy):
         the execution of the entire PyRDF graph before
         returning the value.
 
-        Returns
-        -------
-        Value of the current action node
-            This is the value obtained after executing the
+        Returns:
+            The value of the current action node, obtained after executing the
             current action node in the computational graph.
         """
         from . import current_backend
@@ -108,11 +101,9 @@ class TransformationProxy(Proxy):
         Intercepts calls to attributes and methods of the proxied node and
         returns the appropriate object(s).
 
-        Parameters
-        ----------
-        attr : str
-            The name of the attribute or method of the proxied node the user
-            wants to access.
+        Args:
+            attr (str): The name of the attribute or method of the proxied
+                node the user wants to access.
         """
 
         from . import current_backend

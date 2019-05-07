@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script is meant to be called by the "install" step defined in
+# This script is meant to be called by the "script" step defined in
 # .travis.yml.
 
 check_error()

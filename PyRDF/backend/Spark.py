@@ -19,15 +19,14 @@ class Spark(Dist):
         """
         Creates an instance of the Spark backend class.
 
-        Parameters
-        ----------
-        config : dict (optional)
-            The config options for Spark backend. The default value is an empty
-            Python dictionary `{}`. `config` should be a dictionary of Spark
-            configuration options and their values with 'npartitions' as the
-            only allowed extra parameter.
+        Args:
+            config (dict, optional): The config options for Spark backend.
+                The default value is an empty Python dictionary :obj:`{}`.
+                :obj:`config` should be a dictionary of Spark configuration
+                options and their values with :obj:'npartitions' as the only
+                allowed extra parameter.
 
-            For example :-
+        Example::
 
             config = {
                 'npartitions':20,
@@ -36,9 +35,10 @@ class Spark(Dist):
                 'spark.app.name':'mySparkAppName'
             }
 
-            IMPORTANT NOTE :- If a SparkContext is already set in the current
-            environment, the Spark configuration parameters from 'config' will
-            be ignored and the already existing SparkContext would be used.
+        Note:
+            If a SparkContext is already set in the current environment, the
+            Spark configuration parameters from :obj:'config' will be ignored
+            and the already existing SparkContext would be used.
 
         """
         super(Spark, self).__init__(config)
@@ -63,21 +63,16 @@ class Spark(Dist):
         """
         Performs map-reduce using Spark framework.
 
-        Parameters
-        ----------
-        mapper : function
-            A function that runs the computational graph
-            and returns a list of values.
+        Args:
+            mapper (function): A function that runs the computational graph
+                and returns a list of values.
 
-        reducer : function
-            A function that merges two lists that were
-            returned by the mapper.
+            reducer (function): A function that merges two lists that were
+                returned by the mapper.
 
-        Returns
-        -------
-        list
-            This list represents the values of action nodes
-            returned after computation (Map-Reduce).
+        Returns:
+            list: A list representing the values of action nodes returned
+            after computation (Map-Reduce).
         """
         from .. import includes_headers
         from .. import includes_shared_libraries
@@ -87,17 +82,13 @@ class Spark(Dist):
             Gets the paths to the file(s) in the current executor, then
             declares the headers found.
 
-            Parameters
-            ----------
-            current_range : tuple
-                A pair that contains the starting and ending
-                values of the current range.
+            Args:
+                current_range (tuple): A pair that contains the starting and
+                    ending values of the current range.
 
-            Returns
-            -------
-            function
-                The map function to be executed on each executor, complete
-                with all headers needed for the analysis.
+            Returns:
+                function: The map function to be executed on each executor,
+                complete with all headers needed for the analysis.
             """
             # Get and declare headers on each worker
             headers_on_executor = [
@@ -132,11 +123,10 @@ class Spark(Dist):
         file is initially added to the Spark driver and then sent to the
         workers when they are initialized.
 
-        Parameters
-        ----------
-        includes_list : list
-            A list consisting of all necessary C++ headers as strings, created
-            via the `PyRDF.include()` method.
+        Args:
+            includes_list (list): A list consisting of all necessary C++
+            files as strings, created one of the `include` functions of the
+            PyRDF API.
         """
         for filepath in includes_list:
             self.sparkContext.addFile(filepath)

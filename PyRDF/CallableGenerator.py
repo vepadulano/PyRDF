@@ -2,19 +2,15 @@ class CallableGenerator(object):
     """
     Class that generates a callable to parse a PyRDF graph.
 
-    Attributes
-    ----------
-    head_node
-        Head node of a PyRDF graph.
+    Attributes:
+        head_node: Head node of a PyRDF graph.
     """
     def __init__(self, head_node):
         """
         Creates a new `CallableGenerator`.
 
-        Parameters
-        ----------
-        head_node
-            Head node of a PyRDF graph.
+        Args:
+            head_node: Head node of a PyRDF graph.
         """
         self.head_node = head_node
 
@@ -22,16 +18,12 @@ class CallableGenerator(object):
         """
         Recurses through PyRDF graph and collects the PyRDF node objects.
 
-        Parameters
-        ----------
-        node_py (optional)
-            The current state's PyRDF node. If `None`,
-            it takes the value of `self.head_node`.
+        Args:
+            node_py (optional): The current state's PyRDF node. If `None`, it
+                takes the value of `self.head_node`.
 
-        Returns
-        -------
-        list
-            A list of the action nodes of the graph in DFS order, which
+        Returns:
+            list: A list of the action nodes of the graph in DFS order, which
             coincides with the order of execution in the callable function.
         """
         return_nodes = []
@@ -58,13 +50,10 @@ class CallableGenerator(object):
         """
         Converts a given graph into a callable and returns the same.
 
-        Returns
-        -------
-        function
-            The callable that takes in a PyROOT
-            RDataFrame object and executes all
-            operations from the PyRDF graph on it
-            recursively.
+        Returns:
+            function: The callable that takes in a PyROOT RDataFrame object
+            and executes all operations from the PyRDF graph
+            on it, recursively.
         """
         # Prune the graph to check user references
         self.head_node.graph_prune()
@@ -74,21 +63,15 @@ class CallableGenerator(object):
             The callable that recurses through the PyRDF nodes and executes
             operations from a starting (PyROOT) RDF node.
 
-            Parameters
-            ----------
-            node_cpp
-                The current state's ROOT CPP node. Initially
-                this should be given in as a PyROOT RDataFrame object.
+            Args:
+                node_cpp: The current state's ROOT CPP node. Initially this
+                    should be given in as a PyROOT RDataFrame object.
+                node_py (optional): The current state's PyRDF node. If `None`,
+                    it takes the value of `self.head_node`.
 
-            node_py (optional)
-                The current state's PyRDF node. If `None`,
-                it takes the value of `self.head_node`.
-
-            Returns
-            -------
-            list
-                A list of RResultPtr objects in DFS order
-                of their corresponding actions in the graph.
+            Returns:
+                list: A list of :obj:`ROOT.RResultPtr` objects in DFS order of
+                their corresponding actions in the graph.
             """
             return_vals = []
 

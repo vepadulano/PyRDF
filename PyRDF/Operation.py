@@ -7,58 +7,45 @@ class Operation(object):
     A Generic representation of an operation. The operation could be a
     transformation or an action.
 
-    Attributes
-    ----------
-    Types
-        A class member that is an Enum of the types
-        of operations supported. This can be ACTION
-        or TRANSFORMATION or INSTANT_ACTION.
+    Attributes:
+        Types: A class member that is an :obj:`Enum` of the types of
+            operations supported. This can be either :obj:`ACTION`,
+            :obj:`TRANSFORMATION` or :obj:`INSTANT_ACTION`.
 
-    name
-        Name of the current operation.
+        name (str): Name of the current operation.
 
-    args
-        Variable length argument list for the current
-        operation.
+        args (list): Variable length argument list for the current operation.
 
-    kwargs
-        Arbitrary keyword arguments for the current
-        operation.
+        kwargs (dict): Arbitrary keyword arguments for the current operation.
 
-    op_type
-        The type or category of the current
-        operation (ACTION OR TRANSFORMATION OR INSTANT_ACTION).
+        op_type: The type or category of the current operation
+            (:obj:`ACTION`,  :obj:`TRANSFORMATION` or :obj:`INSTANT_ACTION`).
 
     For the list of operations that your current
     backend supports, try :
 
-    import PyRDF
-    PyRDF.use(...) # Choose a backend
+    Example::
 
-    print(PyRDF.current_backend.supported_operations)
+        import PyRDF
+        PyRDF.use(...) # Choose a backend
 
+        print(PyRDF.current_backend.supported_operations)
     """
 
     Types = Enum("Types", "ACTION TRANSFORMATION INSTANT_ACTION")
 
     def __init__(self, name, *args, **kwargs):
         """
-        Creates a new `Operation` for the given name
+        Creates a new :obj:`Operation` for the given name
         and arguments.
 
-        Parameters
-        ----------
-        name : str
-            Name of the current operation
+        Args:
+            name (str): Name of the current operation.
 
-        *args
-            Variable length argument list for the current
+        args (list): Variable length argument list for the current
             operation.
 
-        **kwargs
-            Keyword arguments for the current
-            operation.
-
+        kwargs (dict): Keyword arguments for the current operation.
         """
         self.name = name
         self.args = args
@@ -106,11 +93,8 @@ class Operation(object):
         """
         Checks if the current operation is an action.
 
-        Returns
-        -------
-        True
-            if the current operation is an action, False otherwise.
-
+        Returns:
+            bool: True if the current operation is an action, False otherwise.
         """
         return self.op_type == Operation.Types.ACTION
 
@@ -118,10 +102,8 @@ class Operation(object):
         """
         Checks if the current operation is a transformation.
 
-        Returns
-        -------
-        True
-            if the current operation is a transformation, False otherwise.
-
+        Returns:
+            bool: True if the current operation is a transformation,
+            False otherwise.
         """
         return self.op_type == Operation.Types.TRANSFORMATION
