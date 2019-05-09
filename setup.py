@@ -14,12 +14,20 @@ if sys.version_info >= (3,):
 setup(
     name='PyRDF',
     packages=find_packages(),
-    version='0.0.1',
+    version='0.1.0',
     description='Python Library for doing RDataFrame Analysis',
     author='Shravan Murali',
     author_email='shravanmurali@gmail.com',
-    maintainer='Javier Cervantes, Enric Tejedor',
-    maintainer_email='javier.cervantes@cern.ch, etejedor@cern.ch',
+    maintainer=(
+        "Javier Cervantes, "
+        "Enric Tejedor, "
+        "Vincenzo Eduardo Padulano"
+    ),
+    maintainer_email=(
+        "javier.cervantes@cern.ch, "
+        "etejedor@cern.ch, "
+        "vincenzo.eduardo.padulano@cern.ch"
+    ),
     install_requires=req_list,
     url='https://github.com/JavierCVilla/PyRDF',
     keywords=[],
