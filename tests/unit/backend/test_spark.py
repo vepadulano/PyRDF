@@ -191,3 +191,26 @@ class InitializationTest(unittest.TestCase):
         df = PyRDF.RDataFrame(1).Define("u", "userValue").Histo1D("u")
         h = df.GetValue()
         self.assertEqual(h.GetMean(), 123)
+
+
+class FallbackTest(unittest.TestCase):
+    """
+    Check cases when the distributed backend has to fallback to local execution
+    """
+
+    def test_histo_from_empty_root_file(self):
+        """
+        Check that when performing operations with the distributed backend on
+        an RDataFrame without entries, PyRDF falls back to using the local
+        backend and outputs the correct (empty) result.
+        """
+        PyRDF.use("spark")
+
+        # Creates and RDataFrame with 10 integers [0...9]
+        rdf = PyRDF.RDataFrame("NOMINAL", "tests/unit/backend/emptytree.root")
+        histo = rdf.Histo1D("mybranch")
+
+        # Get entries in the histogram, should be zero
+        entries = histo.GetEntries()
+
+        self.assertAlmostEqual(entries, 0)

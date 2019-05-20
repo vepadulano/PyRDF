@@ -389,7 +389,10 @@ class Dist(Backend):
         if not self.nentries:
             # Fall back to local execution
             # if 'nentries' is '0'
-            return Local.execute(generator)
+            print("No entries in the Tree, falling back to local execution!")
+            global current_backend
+            current_backend = Local()
+            return current_backend.execute(generator)
 
         # Values produced after Map-Reduce
         values = self.ProcessAndMerge(mapper, reducer)
