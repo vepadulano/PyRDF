@@ -3,7 +3,7 @@ import PyRDF
 import ROOT
 import subprocess
 import os
-import sys
+
 
 class SharedLibrariesIncludeLocalTest(unittest.TestCase):
     """
@@ -23,18 +23,18 @@ class SharedLibrariesIncludeLocalTest(unittest.TestCase):
         library_path = "tests/integration/local/test_shared_libraries/liba.so"
 
         library_code = (
-        	"`root-config --cxx` "
-        	"`root-config --cflags --libs` "
-        	"-fPIC -shared {cpp}"
-        	" -o {lib}"
-        ).format(cpp = cpp_path, lib = library_path)
+            "`root-config --cxx` "
+            "`root-config --cflags --libs` "
+            "-fPIC -shared {cpp}"
+            " -o {lib}"
+        ).format(cpp=cpp_path, lib=library_path)
         # This creates the shared library
-        subprocess.call(library_code, shell = True)
+        subprocess.call(library_code, shell=True)
 
         # Path to the shared library relative to the main PyRDF directory.
         so_path = (
-        	"tests/integration/local/"
-        	"test_shared_libraries/liba.so"
+            "tests/integration/local/"
+            "test_shared_libraries/liba.so"
         )
 
         PyRDF.include_shared_libraries(so_path)
@@ -42,8 +42,8 @@ class SharedLibrariesIncludeLocalTest(unittest.TestCase):
         # The user can include directly the header related to the library
         # or choose to declare functions or objects later
         header_path = (
-        	"tests/integration/local/"
-        	"test_shared_libraries/a.h"
+            "tests/integration/local/"
+            "test_shared_libraries/a.h"
         )
         PyRDF.include_headers(header_path)
 
@@ -55,7 +55,7 @@ class SharedLibrariesIncludeLocalTest(unittest.TestCase):
 
         # This defines a new variable x with all entries squared
         # then filters out all x values less than 3
-        filter2 = rdf.Define("x","f(tdfentry_)").Filter("x < 3")
+        filter2 = rdf.Define("x", "f(tdfentry_)").Filter("x < 3")
 
         count1 = filter1.Count().GetValue()
         count2 = filter2.Count().GetValue()
@@ -85,8 +85,8 @@ class SharedLibrariesIncludeLocalTest(unittest.TestCase):
         pcm_path = "myclass_rdict.pcm"
 
         # Create the pcm file from the header
-        pcm_code = "genreflex {h} -o {cpp}".format(h = h_path, cpp = cpp_path)
-        subprocess.call(pcm_code, shell = True)
+        pcm_code = "genreflex {h} -o {cpp}".format(h=h_path, cpp=cpp_path)
+        subprocess.call(pcm_code, shell=True)
 
         # Create the shared library in the same folder as the pcm
         library_code = (
@@ -94,8 +94,8 @@ class SharedLibrariesIncludeLocalTest(unittest.TestCase):
             "`root-config --cflags --libs` "
             "-fPIC -shared {cpp} "
             "-o {lib}"
-        ).format(cpp = cpp_path, lib = library_path)
-        subprocess.call(library_code, shell = True)
+        ).format(cpp=cpp_path, lib=library_path)
+        subprocess.call(library_code, shell=True)
 
         # Change back to initial working directory
         os.chdir(root_dir)
@@ -108,7 +108,7 @@ class SharedLibrariesIncludeLocalTest(unittest.TestCase):
         # Include the shared library. ROOT will know the class declared
         # inside, but not its data members (those are in the pcm file and
         # in the header).
-        PyRDF.include_shared_libraries(wd_path+library_path)
+        PyRDF.include_shared_libraries(wd_path + library_path)
 
         # Ask ROOT to return the representation of the class in ROOT's
         # typesystem.
@@ -128,13 +128,13 @@ class SharedLibrariesIncludeLocalTest(unittest.TestCase):
         rdf = PyRDF.RDataFrame(5)
         # Defines a new column with the integers doubled
         # Then filters integers less than 3
-        filtered_rdf = rdf.Define("x","n_times_two(tdfentry_)").Filter("x < 3")
+        filtered_rdf = rdf.Define("x", "n_times_two(tdfentry_)").Filter("x < 3")
         # Count integers less than 3
         count = filtered_rdf.Count().GetValue()
         # Answer should be 2
         self.assertEqual(count, 2)
 
         # Remove unnecessary files at the end
-        os.remove(wd_path+library_path)
-        os.remove(wd_path+cpp_path)
-        os.remove(wd_path+pcm_path)
+        os.remove(wd_path + library_path)
+        os.remove(wd_path + cpp_path)
+        os.remove(wd_path + pcm_path)
