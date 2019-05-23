@@ -291,6 +291,7 @@ class DistBuildRangesTest(unittest.TestCase):
         # Mock attributes accessed through self. inside build_ranges
         backend.treename = "myTree"
         backend.files = "tests/unit/backend/1000clusters.root"
+        backend.friend_filelist = None
         backend.nentries = 1000
         npartitions = 1000
 

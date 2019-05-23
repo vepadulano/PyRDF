@@ -15,7 +15,7 @@ class Range(object):
     inclusive while the second one is not (end).
     """
 
-    def __init__(self, start, end, filelist=None):
+    def __init__(self, start, end, filelist=None, friend_filelist=None):
         """
         Create an instance of a Range
 
@@ -30,6 +30,7 @@ class Range(object):
         self.start = start
         self.end = end
         self.filelist = filelist
+        self.friend_filelist = friend_filelist
 
     def __repr__(self):
         """Return a string representation of the range composition."""
@@ -151,7 +152,8 @@ class Dist(Backend):
 
         return ranges
 
-    def _get_clustered_ranges(self, nentries, npartitions, treename, filelist):
+    def _get_clustered_ranges(self, nentries, npartitions, treename, filelist,
+                              friend_filelist=None):
         """
         Builds range pairs taking into account the clusters of the dataset.
 
@@ -209,7 +211,8 @@ class Dist(Backend):
             offset_first_cluster = clusters[index_start][2]
             ranges.append(Range(start - offset_first_cluster,
                                 end - offset_first_cluster,
-                                range_files))
+                                range_files,
+                                friend_filelist))
             entries_to_process += (end - start)
 
         return ranges
@@ -249,8 +252,14 @@ class Dist(Backend):
 
         if self.treename and self.files:
             filelist = self._get_filelist(self.files)
-            return self._get_clustered_ranges(self.nentries, npartitions,
-                                              self.treename, filelist)
+            if self.friend_filelist:
+                friend_filelist = self._get_filelist(self.friend_filelist)
+                return self._get_clustered_ranges(self.nentries, npartitions,
+                                                  self.treename, filelist,
+                                                  friend_filelist)
+            else:
+                return self._get_clustered_ranges(self.nentries, npartitions,
+                                                  self.treename, filelist)
         else:
             return self._get_balanced_ranges(self.nentries, npartitions)
 
@@ -305,6 +314,10 @@ class Dist(Backend):
                 chain = ROOT.TChain(treename)
                 for f in current_range.filelist:
                     chain.Add(f)
+
+                if current_range.friend_filelist:
+                    for f in current_range.friend_filelist:
+                        chain.AddFriend(f[0], f[1])
 
                 # We assume 'end' is exclusive
                 chain.SetCacheEntryRange(start, end)
@@ -385,6 +398,8 @@ class Dist(Backend):
         self.nentries = generator.head_node.get_num_entries()
         self.treename = generator.head_node.get_treename()
         self.files = generator.head_node.get_inputfiles()
+        self.friend_filelist = generator.head_node.\
+            get_input_friend_treenames_and_filenames()
 
         if not self.nentries:
             # Fall back to local execution

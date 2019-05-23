@@ -183,6 +183,29 @@ class HeadNode(Node):
         # RDataFrame may have been created with no input files
         return None
 
+    def get_input_friend_treenames_and_filenames(self):
+        """
+        Get list of input friend tree names and filenames.
+
+        This list can be extracted if the argument passed to PyRDF.RDataFrame()
+        is a TChain.
+
+        Returns:
+            (list, None): list of tuples of (treename, filename) for each
+            friend, or None if there are no friend trees.
+
+        """
+        first_arg = self.args[0]
+        if isinstance(first_arg, ROOT.TChain) and first_arg.GetListOfFriends():
+            # Extract file names from a given TChain
+            chain = first_arg
+            return [
+                (friendElem.GetName(), friendElem.GetTitle())
+                for friendElem in chain.GetListOfFriends()
+            ]
+        # RDataFrame may have been created with no input files
+        return None
+
 
 class RDataFrameException(Exception):
     """
