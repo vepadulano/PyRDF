@@ -8,11 +8,20 @@ class IncludesSparkTest(unittest.TestCase):
     Check that the required header files are properly included in Spark
     environment.
     """
+    def tear_down(self):
+        """Clean up the `SparkContext` objects that were created."""
+        from pyspark import SparkContext
+        context = SparkContext.getOrCreate()
+        context.stop()
+
     def test_includes_function_with_filter_and_histo(self):
         """
         Check that the filter operation is able to use C++ functions that
         were included using header files.
         """
+        # Stop current SparkContext if present
+        self.tear_down()
+
         PyRDF.use("spark")
         PyRDF.include_headers(
             "tests/integration/local/test_headers/header1.hxx"

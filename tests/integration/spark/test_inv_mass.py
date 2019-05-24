@@ -5,9 +5,7 @@ from collections import namedtuple
 
 class SparkHistogramsTest(unittest.TestCase):
     """Integration tests to check the working of PyRDF."""
-
-    @classmethod
-    def tearDown(cls):
+    def tear_down(self):
         """Clean up the `SparkContext` objects that were created."""
         from pyspark import SparkContext
         context = SparkContext.getOrCreate()
@@ -47,6 +45,10 @@ class SparkHistogramsTest(unittest.TestCase):
     def test_spark_histograms(self):
         """Check that Spark backend works the same way as local."""
         physics_variables = ['pt1_h', 'pt2_h', 'invMass_h', 'phis_h']
+
+        # Stop current SparkContext if present
+        self.tear_down()
+
         # Spark execution
         PyRDF.use("spark", {'npartitions': 5})
 

@@ -4,6 +4,8 @@ from PyRDF.backend.Backend import Backend
 from abc import abstractmethod
 import glob
 import warnings
+import ROOT
+from collections import namedtuple
 
 
 class Range(object):
@@ -15,7 +17,7 @@ class Range(object):
     inclusive while the second one is not (end).
     """
 
-    def __init__(self, start, end, filelist=None, friend_filelist=None):
+    def __init__(self, start, end, filelist=None, friend_info=None):
         """
         Create an instance of a Range
 
@@ -30,7 +32,7 @@ class Range(object):
         self.start = start
         self.end = end
         self.filelist = filelist
-        self.friend_filelist = friend_filelist
+        self.friend_info = friend_info
 
     def __repr__(self):
         """Return a string representation of the range composition."""
@@ -153,7 +155,7 @@ class Dist(Backend):
         return ranges
 
     def _get_clustered_ranges(self, nentries, npartitions, treename, filelist,
-                              friend_filelist=None):
+                              friend_info=None):
         """
         Builds range pairs taking into account the clusters of the dataset.
 
@@ -212,7 +214,7 @@ class Dist(Backend):
             ranges.append(Range(start - offset_first_cluster,
                                 end - offset_first_cluster,
                                 range_files,
-                                friend_filelist))
+                                friend_info))
             entries_to_process += (end - start)
 
         return ranges
@@ -252,16 +254,66 @@ class Dist(Backend):
 
         if self.treename and self.files:
             filelist = self._get_filelist(self.files)
-            if self.friend_filelist:
-                friend_filelist = self._get_filelist(self.friend_filelist)
+            if self.friend_info:
                 return self._get_clustered_ranges(self.nentries, npartitions,
                                                   self.treename, filelist,
-                                                  friend_filelist)
+                                                  self.friend_info)
             else:
                 return self._get_clustered_ranges(self.nentries, npartitions,
                                                   self.treename, filelist)
         else:
             return self._get_balanced_ranges(self.nentries, npartitions)
+
+    def _get_friend_info(self, tree):
+        """
+        Retrieve friend tree names and filenames of a given `ROOT.TTree`
+        object.
+
+        Returns:
+            (namedtuple, None): A named tuple with two lists as variables. The
+                first list holds the names of the friend tree(s), the second
+                list holds the file names of each of the trees in the first
+                list, each tree name can correspond to multiple file names.
+        """
+        FriendInfo = namedtuple(
+            "FriendInfo",
+            ["friend_names", "friend_file_names"]
+        )
+
+        friend_names = []
+        friend_file_names = []
+
+        if isinstance(tree, ROOT.TTree):
+            # Get a list of ROOT.TFriendElement objects
+            friends = tree.GetListOfFriends()
+            if friends:
+                for friend in friends:
+                    friend_tree = friend.GetTree()  # ROOT.TTree
+                    real_name = friend_tree.GetName()  # Treename as string
+
+                    # TChain inherits from TTree
+                    if isinstance(friend_tree, ROOT.TChain):
+                        cur_friend_files = [
+                            # The title of a TFile is the file name
+                            chain_file.GetTitle()
+                            for chain_file
+                            # Get a list of ROOT.TFile objects
+                            in friend_tree.GetListOfFiles()
+                        ]
+
+                    else:
+                        cur_friend_files = [
+                            friend_tree.
+                            GetCurrentFile().  # ROOT.TFile
+                            GetName()  # Filename as string
+                        ]
+                    friend_file_names.append(cur_friend_files)
+                    friend_names.append(real_name)
+
+                friend_info = FriendInfo(friend_names, friend_file_names)
+                return friend_info
+        # RDataFrame may have been created with a TTree without friend trees.
+        return None
 
     def execute(self, generator):
         """
@@ -315,12 +367,32 @@ class Dist(Backend):
                 for f in current_range.filelist:
                     chain.Add(f)
 
-                if current_range.friend_filelist:
-                    for f in current_range.friend_filelist:
-                        chain.AddFriend(f[0], f[1])
-
                 # We assume 'end' is exclusive
                 chain.SetCacheEntryRange(start, end)
+
+                # Gather information about friend trees
+                friend_info = current_range.friend_info
+                if friend_info:
+
+                    # Zip together the treenames of the friend trees and the
+                    # respective file names. Each friend treename can have
+                    # multiple corresponding friend file names.
+                    tree_files_names = zip(
+                        friend_info.friend_names,
+                        friend_info.friend_file_names
+                    )
+                    for friend_treename, friend_filenames in tree_files_names:
+                        # Start a TChain with the current friend treename
+                        friend_chain = ROOT.TChain(friend_treename)
+                        # Add each corresponding file to the TChain
+                        for filename in friend_filenames:
+                            friend_chain.Add(filename)
+
+                        # Set cache on the same range as the parent TChain
+                        friend_chain.SetCacheEntryRange(start, end)
+                        # Finally add friend TChain to the parent
+                        chain.AddFriend(friend_chain)
+
                 if selected_branches:
                     rdf = ROOT.ROOT.RDataFrame(chain, selected_branches)
                 else:
@@ -398,8 +470,10 @@ class Dist(Backend):
         self.nentries = generator.head_node.get_num_entries()
         self.treename = generator.head_node.get_treename()
         self.files = generator.head_node.get_inputfiles()
-        self.friend_filelist = generator.head_node.\
-            get_input_friend_treenames_and_filenames()
+        # Retrieve info about the friend trees
+        # rdf_args[0] can be either a ROOT.TTree object or its name
+        # as a string.
+        self.friend_info = self._get_friend_info(rdf_args[0])
 
         if not self.nentries:
             # Fall back to local execution
