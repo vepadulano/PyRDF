@@ -68,6 +68,38 @@ def _get_paths_list_from_string(path_string):
         return [path_string]
 
 
+def _check_pcm_in_library_path(shared_library_path):
+    """
+    Retrieves paths to shared libraries and pcm file(s) in a directory.
+
+    Args:
+        shared_library_path (str): The string to the path of the file or
+            directory to be recursively searched for files.
+
+    Returns:
+        list, list: Two lists, the first with all paths to pcm files, the
+            second with all paths to shared libraries.
+    """
+    all_paths = _get_paths_list_from_string(
+        shared_library_path
+    )
+
+    pcm_paths = [
+        filepath
+        for filepath in all_paths
+        if filepath.endswith(".pcm")
+    ]
+
+    shared_library_formats = (".so", ".dll", ".dylib")
+    libraries_path = [
+        filepath
+        for filepath in all_paths
+        if filepath.endswith(shared_library_formats)
+    ]
+
+    return pcm_paths, libraries_path
+
+
 def include_headers(headers_paths):
     """
     Includes a list of C++ headers to be declared before execution. Each
@@ -119,25 +151,6 @@ def include_shared_libraries(shared_libraries_paths):
     global current_backend, includes_shared_libraries
     libraries_to_include = []
     pcm_to_include = []
-
-    def _check_pcm_in_library_path(shared_library_path):
-        all_paths = _get_paths_list_from_string(
-            shared_library_path
-        )
-
-        pcm_paths = [
-            filepath
-            for filepath in all_paths
-            if filepath.split(".")[-1] == "pcm"
-        ]
-
-        libraries_path = [
-            filepath
-            for filepath in all_paths
-            if filepath not in pcm_paths
-        ]
-
-        return pcm_paths, libraries_path
 
     if isinstance(shared_libraries_paths, str):
         pcm_to_include, libraries_to_include = _check_pcm_in_library_path(
