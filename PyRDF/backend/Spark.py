@@ -77,7 +77,7 @@ class Spark(Dist):
         from .. import includes_headers
         from .. import includes_shared_libraries
 
-        def mapSpark(current_range):
+        def spark_mapper(current_range):
             """
             Gets the paths to the file(s) in the current executor, then
             declares the headers found.
@@ -113,7 +113,7 @@ class Spark(Dist):
         parallel_collection = sc.parallelize(ranges, self.npartitions)
 
         # Map-Reduce using Spark
-        return parallel_collection.map(mapSpark).treeReduce(reducer)
+        return parallel_collection.map(spark_mapper).treeReduce(reducer)
 
     def distribute_files(self, includes_list):
         """
