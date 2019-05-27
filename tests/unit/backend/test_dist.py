@@ -43,6 +43,12 @@ class DistBuildRangesTest(unittest.TestCase):
             """Dummy implementation of ProcessAndMerge."""
             pass
 
+        def distribute_files(self, includes_list):
+            """
+            Dummy implementation of distribute_files. Does nothing.
+            """
+            pass
+
     def test_nentries_multipleOf_npartitions(self):
         """
         `BuildRanges` method when the number of entries is a multiple of the
@@ -345,6 +351,12 @@ class DistRDataFrameInterface(unittest.TestCase):
             """
             values = [1]
             return values
+
+        def distribute_files(self, includes_list):
+            """
+            Dummy implementation of distribute_files. Does nothing.
+            """
+            pass
 
     def get_ranges_from_rdataframe(self, rdf):
         """

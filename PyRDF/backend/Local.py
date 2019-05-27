@@ -71,7 +71,3 @@ class Local(Backend):
             # those should be in scope while doing
             # a 'GetValue' call on them
             nodes[i].ResultPtr = values[i]
-
-    def distribute_files(self, includes_list):
-        """Local backend does not need to distribute files to workers"""
-        pass

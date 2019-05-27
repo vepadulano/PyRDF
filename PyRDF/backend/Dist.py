@@ -412,6 +412,7 @@ class Dist(Backend):
         """
         pass
 
+    @abstractmethod
     def distribute_files(self, includes_list):
         """
         Subclasses must define how to send all files needed for the analysis
