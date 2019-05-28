@@ -1,6 +1,7 @@
 import unittest
 import PyRDF
 from PyRDF.backend.Spark import Spark
+from PyRDF.backend.Local import Local
 from pyspark import SparkContext
 
 
@@ -213,4 +214,5 @@ class FallbackTest(unittest.TestCase):
         # Get entries in the histogram, should be zero
         entries = histo.GetEntries()
 
-        self.assertAlmostEqual(entries, 0)
+        self.assertIsInstance(PyRDF.current_backend, Local)
+        self.assertEqual(entries, 0)

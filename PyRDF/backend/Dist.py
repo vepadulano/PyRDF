@@ -1,6 +1,6 @@
 from __future__ import print_function
+import PyRDF
 from PyRDF.backend.Backend import Backend
-from PyRDF.backend.Local import Local
 from abc import abstractmethod
 import glob
 import warnings
@@ -389,9 +389,10 @@ class Dist(Backend):
         if not self.nentries:
             # Fall back to local execution
             # if 'nentries' is '0'
-            print("No entries in the Tree, falling back to local execution!")
-            global current_backend
-            current_backend = Local()
+            msg = ("No entries in the Tree, falling back to local execution!")
+            warnings.warn(msg, UserWarning, stacklevel=2)
+            PyRDF.use("local")
+            from .. import current_backend
             return current_backend.execute(generator)
 
         # Values produced after Map-Reduce
