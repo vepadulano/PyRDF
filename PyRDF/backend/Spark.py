@@ -74,8 +74,8 @@ class Spark(Dist):
             list: A list representing the values of action nodes returned
             after computation (Map-Reduce).
         """
-        from .. import includes_headers
-        from .. import includes_shared_libraries
+        from PyRDF import includes_headers
+        from PyRDF import includes_shared_libraries
 
         def spark_mapper(current_range):
             """

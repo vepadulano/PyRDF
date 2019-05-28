@@ -74,7 +74,7 @@ class ActionProxy(Proxy):
             The value of the current action node, obtained after executing the
             current action node in the computational graph.
         """
-        from . import current_backend
+        from PyRDF import current_backend
         if not self.proxied_node.value:  # If event-loop not triggered
             generator = CallableGenerator(self.proxied_node.get_head())
             current_backend.execute(generator)
@@ -106,7 +106,7 @@ class TransformationProxy(Proxy):
                 node the user wants to access.
         """
 
-        from . import current_backend
+        from PyRDF import current_backend
         # if attr is a supported operation, start
         # operation and node creation
         if attr in current_backend.supported_operations:
