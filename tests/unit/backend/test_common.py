@@ -42,8 +42,8 @@ class IncludeHeadersTest(unittest.TestCase):
     """Tests to check the working of 'PyRDF.include' function."""
 
     def tearDown(self):
-        """Resets the module-level variable 'includes' to an empty list."""
-        PyRDF.includes_headers = []  # reset includes
+        """Resets the module-level variable 'includes' to an empty set."""
+        PyRDF.includes_headers = set()  # reset includes
 
     def test_default_empty_list_include(self):
         """
@@ -59,14 +59,22 @@ class IncludeHeadersTest(unittest.TestCase):
         PyRDF.include_headers("tests/unit/backend/test_headers/header1.hxx")
 
         required_header = ["tests/unit/backend/test_headers/header1.hxx"]
-        self.assertListEqual(PyRDF.includes_headers, required_header)
+        # Feature detection: first try Python 3 function, then Python 2
+        try:
+            self.assertCountEqual(PyRDF.includes_headers, required_header)
+        except AttributeError:
+            self.assertItemsEqual(PyRDF.includes_headers, required_header)
 
     def test_list_include(self):
         """'PyRDF.include' with a list of strings."""
         PyRDF.include_headers(["tests/unit/backend/test_headers/header1.hxx"])
 
         required_header = ["tests/unit/backend/test_headers/header1.hxx"]
-        self.assertListEqual(PyRDF.includes_headers, required_header)
+        # Feature detection: first try Python 3 function, then Python 2
+        try:
+            self.assertCountEqual(PyRDF.includes_headers, required_header)
+        except AttributeError:
+            self.assertItemsEqual(PyRDF.includes_headers, required_header)
 
     def test_list_extend_include(self):
         """
@@ -80,7 +88,11 @@ class IncludeHeadersTest(unittest.TestCase):
 
         required_list = ["tests/unit/backend/test_headers/header1.hxx",
                          "tests/unit/backend/test_headers/header2.hxx"]
-        self.assertListEqual(PyRDF.includes_headers, required_list)
+        # Feature detection: first try Python 3 function, then Python 2
+        try:
+            self.assertCountEqual(PyRDF.includes_headers, required_list)
+        except AttributeError:
+            self.assertItemsEqual(PyRDF.includes_headers, required_list)
 
 
 class DeclareHeadersTest(unittest.TestCase):
