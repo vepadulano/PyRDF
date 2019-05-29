@@ -1,11 +1,127 @@
 import unittest
 import PyRDF
 from PyRDF.backend.Dist import Dist
+from PyRDF.backend.Dist import FriendInfo
+import ROOT
+from array import array
+import os
 
 
 def rangesToTuples(ranges):
     """Convert range objects to tuples with the shape (start, end)"""
     return list(map(lambda r: (r.start, r.end), ranges))
+
+
+class FriendInfoTest(unittest.TestCase):
+    """Unit test for the FriendInfo class"""
+
+    class TestBackend(Dist):
+        """Dummy backend to test the _get_friend_info method in Dist class."""
+
+        def ProcessAndMerge(self, mapper, reducer):
+            """Dummy implementation of ProcessAndMerge."""
+            pass
+
+        def distribute_files(self, includes_list):
+            """
+            Dummy implementation of distribute_files. Does nothing.
+            """
+            pass
+
+    def create_parent_tree(self):
+        """Creates a .root file with the parent TTree"""
+        f = ROOT.TFile("treeparent.root", "recreate")
+        T = ROOT.TTree("T", "test friend trees")
+
+        x = array("f", [0])
+        T.Branch("x", x, "x/F")
+
+        r = ROOT.TRandom()
+        # The parent will have a gaussian distribution with mean 10 and
+        # standard deviation 1
+        for i in range(10000):
+            x[0] = r.Gaus(10, 1)
+            T.Fill()
+
+        f.Write()
+        f.Close()
+
+    def create_friend_tree(self):
+        """Creates a .root file with the friend TTree"""
+        ff = ROOT.TFile("treefriend.root", "recreate")
+        TF = ROOT.TTree("TF", "tree friend")
+
+        x = array("f", [0])
+        TF.Branch("x", x, "x/F")
+
+        r = ROOT.TRandom()
+        # The friend will have a gaussian distribution with mean 20 and
+        # standard deviation 1
+        for i in range(10000):
+            x[0] = r.Gaus(20, 1)
+            TF.Fill()
+
+        ff.Write()
+        ff.Close()
+
+    def test_empty_friend_info(self):
+        """Check that FriendInfo is initialized with two empty lists"""
+
+        friend_info = FriendInfo()
+
+        friend_names = friend_info.friend_names
+        friend_file_names = friend_info.friend_file_names
+
+        # Check that both lists in FriendInfo are empty
+        self.assertTrue(len(friend_names) == 0)
+        self.assertTrue(len(friend_file_names) == 0)
+
+        # Check functioning of __bool__ method
+        self.assertFalse(friend_info)
+
+    def test_friend_info_with_ttree(self):
+        """
+        Check that FriendInfo correctly stores information about the friend
+        trees
+        """
+        self.create_parent_tree()
+        self.create_friend_tree()
+
+        # Parent Tree
+        base_tree_name = "T"
+        base_tree_filename = "treeparent.root"
+        baseTree = ROOT.TChain(base_tree_name)
+        baseTree.Add(base_tree_filename)
+
+        # Friend Tree
+        friend_tree_name = "TF"
+        friend_tree_filename = "treefriend.root"
+        friendTree = ROOT.TChain(friend_tree_name)
+        friendTree.Add(friend_tree_filename)
+
+        # Add friendTree to the parent
+        baseTree.AddFriend(friendTree)
+
+        # Instantiate dummy backend
+        backend = FriendInfoTest.TestBackend()
+
+        # Retrieve FriendInfo instance
+        friend_info = backend._get_friend_info(baseTree)
+
+        # Check that FriendInfo has non-empty lists
+        self.assertTrue(friend_info)
+
+        # Check that the two lists with treenames and filenames are populated
+        # as expected.
+        self.assertListEqual(friend_info.friend_names, [friend_tree_name])
+        self.assertListEqual(
+            friend_info.friend_file_names,
+            [[friend_tree_filename]]
+        )
+
+        # Remove unnecessary .root files
+        os.remove(base_tree_filename)
+        os.remove(friend_tree_filename)
 
 
 class DistBackendInitTest(unittest.TestCase):

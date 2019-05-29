@@ -155,6 +155,21 @@ class HeadNode(Node):
         # RDataFrame may have been created without any TTree or TChain
         return None
 
+    def get_tree(self):
+        """
+        Get ROOT.TTree instance used as an argument to PyRDF.RDataFrame()
+
+        Returns:
+            (ROOT.TTree, None): instance of the tree used to instantiate the
+            RDataFrame, or `None` if another object was used. ROOT.Tchain
+            inherits from ROOT.TTree so that can be the return value as well.
+        """
+        first_arg = self.args[0]
+        if isinstance(first_arg, ROOT.TTree):
+            return first_arg
+
+        return None
+
     def get_inputfiles(self):
         """
         Get list of input files.

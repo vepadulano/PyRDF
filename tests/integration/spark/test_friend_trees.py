@@ -7,11 +7,10 @@ import os
 
 class SparkFriendTreesTest(unittest.TestCase):
     """Integration tests to check the working of PyRDF with friend trees"""
-    def tear_down(self):
+    def tearDown(self):
         """Clean up the `SparkContext` objects that were created."""
-        from pyspark import SparkContext
-        context = SparkContext.getOrCreate()
-        context.stop()
+        from PyRDF import current_backend
+        current_backend.sparkContext.stop()
 
     def create_parent_tree(self):
         """Creates a .root file with the parent TTree"""
@@ -68,8 +67,6 @@ class SparkFriendTreesTest(unittest.TestCase):
         # Add friendTree to the parent
         baseTree.AddFriend(friendTree)
 
-        # Stop current SparkContext if present
-        self.tear_down()
         # Create a PyRDF RDataFrame with the parent and the friend trees
         PyRDF.use("spark")
         df = PyRDF.RDataFrame(baseTree)
