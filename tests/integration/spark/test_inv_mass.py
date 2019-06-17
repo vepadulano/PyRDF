@@ -66,3 +66,7 @@ class SparkHistogramsTest(unittest.TestCase):
                          local.invMass_h.GetEntries())
         # Assert 'phis_h' histogram
         self.assertEqual(spark.phis_h.GetEntries(), local.phis_h.GetEntries())
+
+
+if __name__ == "__main__":
+    unittest.main()

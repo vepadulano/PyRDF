@@ -124,6 +124,7 @@ def include_headers(headers_paths):
     if not isinstance(current_backend, Local):
         current_backend.distribute_files(headers_to_include)
 
+    # Declare the headers in ROOT
     Utils.declare_headers(headers_to_include)
 
     # Finally, add everything to the includes set
@@ -166,6 +167,7 @@ def include_shared_libraries(shared_libraries_paths):
         current_backend.distribute_files(libraries_to_include)
         current_backend.distribute_files(pcm_to_include)
 
+    # Declare the shared libraries in ROOT
     Utils.declare_shared_libraries(libraries_to_include)
 
     # Finally, add everything to the includes set

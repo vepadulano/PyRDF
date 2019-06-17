@@ -125,8 +125,8 @@ class Spark(Dist):
 
         Args:
             includes_list (list): A list consisting of all necessary C++
-            files as strings, created one of the `include` functions of the
-            PyRDF API.
+                files as strings, created one of the `include` functions of
+                the PyRDF API.
         """
         for filepath in includes_list:
             self.sparkContext.addFile(filepath)
