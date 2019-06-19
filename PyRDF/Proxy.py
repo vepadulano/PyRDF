@@ -115,8 +115,17 @@ class TransformationProxy(Proxy):
         else:
             try:
                 return getattr(self.proxied_node, attr)
-            except AttributeError as e:
-                raise e
+            except AttributeError:
+                if self.proxied_node.operation:
+                    msg = "'{0}' object has no attribute '{1}'".format(
+                        str(self.proxied_node.operation.name),
+                        attr
+                    )
+                else:
+                    msg = "'RDataFrame' object has no attribute '{}'".format(
+                        attr
+                    )
+                raise AttributeError(msg)
 
     def _create_new_op(self, *args, **kwargs):
         """
