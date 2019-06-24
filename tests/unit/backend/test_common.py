@@ -12,6 +12,22 @@ class SelectionTest(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             PyRDF.use("dask")
 
+    def test_local_stops_spark(self):
+        """Test that switching to local stops running SparkContext"""
+        # Instantiate a spark backend
+        PyRDF.use("spark")
+
+        from PyRDF import current_backend
+
+        # Save the SparkContext object into a variable
+        sc = current_backend.sparkContext
+        # Retrieve the java object (to check that it has been stopped)
+        javacon = sc._jsc.sc()
+
+        PyRDF.use("local")
+
+        self.assertTrue(javacon.isStopped())
+
 
 class BackendInitTest(unittest.TestCase):
     """Backend abstract class cannot be instantiated."""

@@ -5,6 +5,7 @@ from PyRDF.backend.Local import Local
 from PyRDF.backend.Backend import Backend
 from PyRDF.backend.Utils import Utils
 import os
+from pyspark import SparkContext
 
 current_backend = Local()
 includes_headers = set()  # All headers included in the analysis
@@ -27,6 +28,10 @@ def use(backend_name, conf={}):
     ]
 
     global current_backend
+
+    # Retrieve current Spark context if present and stop it
+    cur_context = SparkContext.getOrCreate()
+    cur_context.stop()
 
     if backend_name in future_backends:
         msg = " This backend environment will be considered in the future !"
