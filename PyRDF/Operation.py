@@ -32,7 +32,7 @@ class Operation(object):
         print(PyRDF.current_backend.supported_operations)
     """
 
-    Types = Enum("Types", "ACTION TRANSFORMATION INSTANT_ACTION")
+    Types = Enum("Types", "ACTION TRANSFORMATION INSTANT_ACTION INFO")
 
     def __init__(self, name, *args, **kwargs):
         """
@@ -80,7 +80,11 @@ class Operation(object):
             'Take': ops.ACTION,
             'Graph': ops.ACTION,
             'Snapshot': ops.INSTANT_ACTION,
-            'Foreach': ops.INSTANT_ACTION
+            'Foreach': ops.INSTANT_ACTION,
+            'GetColumnNames': ops.INFO,
+            'GetDefinedColumnNames': ops.INFO,
+            'GetColumnType': ops.INFO,
+            'GetFilterNames': ops.INFO,
         }
 
         op_type = operations_dict.get(name)
@@ -107,3 +111,13 @@ class Operation(object):
             False otherwise.
         """
         return self.op_type == Operation.Types.TRANSFORMATION
+
+    def is_info(self):
+        """
+        Checks if the current operation is an info operation.
+
+        Returns:
+            bool: True if the current operation is a transformation,
+            False otherwise.
+        """
+        return self.op_type == Operation.Types.INFO
