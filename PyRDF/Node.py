@@ -136,7 +136,7 @@ class Node(object):
         if not self.children:
             # Every pruning condition is written on a separate line
             if not self.has_user_references or \
-                self.is_prunable_action() or self.is_prunable_info():
+               self.is_prunable_action() or self.is_prunable_info():
 
                 # ***** Condition 1 *****
                 # If the node is wrapped by a proxy which is not directly

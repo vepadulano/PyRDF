@@ -123,11 +123,10 @@ class TransformationProxy(Proxy):
         Handles an operation call to the current node and returns the new node
         built using the operation call.
         """
+        from PyRDF import current_backend
         # Create a new `Operation` object for the
         # incoming operation call
         op = Operation(self.proxied_node._new_op_name, *args, **kwargs)
-
-        from PyRDF import current_backend
         # Create a new `Node` object to house the operation
         newNode = Node(operation=op, get_head=self.proxied_node.get_head)
 
@@ -137,11 +136,11 @@ class TransformationProxy(Proxy):
         # Return the appropriate proxy object for the node
         if op.is_action():
             return ActionProxy(newNode)
-        elif op.is_transformation() :
+        elif op.is_transformation():
             return TransformationProxy(newNode)
         else:
-            generator = CallableGenerator(self.proxied_node.get_head())
             try:
+                generator = CallableGenerator(self.proxied_node.get_head())
                 current_backend.execute(generator, trigger_loop=False)
             except TypeError as e:
                 self.proxied_node.children.remove(newNode)

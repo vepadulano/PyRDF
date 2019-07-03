@@ -526,7 +526,7 @@ class Dist(Backend):
             warnings.warn(msg, UserWarning, stacklevel=2)
             PyRDF.use("local")
             from .. import current_backend
-            return current_backend.execute(generator, trigger_loop = True)
+            return current_backend.execute(generator, trigger_loop=True)
 
         # Values produced after Map-Reduce
         values = self.ProcessAndMerge(mapper, reducer)

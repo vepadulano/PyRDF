@@ -33,7 +33,7 @@ class CallableGenerator(object):
             # current PyRDF node as the head node
             node_py = self.head_node
         else:
-            if node_py.operation.is_action() or node_py.operation.is_info() :
+            if node_py.operation.is_action() or node_py.operation.is_info():
                 # Collect all action nodes in order to return them
                 return_nodes.append(node_py)
 

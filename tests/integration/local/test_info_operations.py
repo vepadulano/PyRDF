@@ -2,6 +2,7 @@ import unittest
 import PyRDF
 import ROOT
 
+
 class InfoOperationsLocalTest(unittest.TestCase):
     """
     Check that Info operations return the expected result rather than a proxy.

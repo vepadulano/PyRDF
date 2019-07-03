@@ -60,7 +60,7 @@ class Local(Backend):
         # Get the action nodes in the same order as values
         nodes = generator.get_action_nodes()
 
-        for node,value in zip(nodes, values):
+        for node, value in zip(nodes, values):
             # Set the obtained values and
             # 'RResultPtr's of action nodes
             if trigger_loop and hasattr(value, 'GetValue'):
