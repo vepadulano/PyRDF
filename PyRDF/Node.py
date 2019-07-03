@@ -62,6 +62,7 @@ class Node(object):
         self.children = []
         self._new_op_name = ""
         self.value = None
+        self.ResultPtr = None
         self.pyroot_node = None
         self.has_user_references = True
 
@@ -101,7 +102,29 @@ class Node(object):
         else:
             self.operation = None
 
-    def is_prunable(self):
+    def is_prunable_action(self):
+        """
+        Checks if an action node can be pruned. Action nodes whose value was
+        already computed can be pruned.
+
+        Returns:
+            bool: True if the node is an action and its value was already
+            computed, False otherwise.
+        """
+        return self.operation and self.operation.is_action() and self.value
+
+    def is_prunable_info(self):
+        """
+        Checks if an info node can be pruned. Info nodes whose ResultPtr was
+        already assigned can be pruned.
+
+        Returns:
+            bool: True if the node is an action and its value was already
+            computed, False otherwise.
+        """
+        return self.operation and self.operation.is_info() and self.ResultPtr
+
+    def is_prunable_node(self):
         """
         Checks whether the current node can be pruned from the computational
         graph.
@@ -113,7 +136,7 @@ class Node(object):
         if not self.children:
             # Every pruning condition is written on a separate line
             if not self.has_user_references or \
-               (self.operation and self.operation.is_action() and self.value):
+                self.is_prunable_action() or self.is_prunable_info():
 
                 # ***** Condition 1 *****
                 # If the node is wrapped by a proxy which is not directly
@@ -123,6 +146,11 @@ class Node(object):
                 # If the current node's value was already
                 # computed, it should get pruned only if it's
                 # an Action node.
+
+                # ***** Condition 3 *****
+                # If the current node's value was already
+                # computed, it should get pruned only if it's
+                # an Info operation.
                 return True
         return False
 
@@ -144,4 +172,4 @@ class Node(object):
                 children.append(n)
 
         self.children = children
-        return self.is_prunable()
+        return self.is_prunable_node()
