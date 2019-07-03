@@ -77,7 +77,7 @@ class ActionProxy(Proxy):
         from PyRDF import current_backend
         if not self.proxied_node.value:  # If event-loop not triggered
             generator = CallableGenerator(self.proxied_node.get_head())
-            current_backend.execute(generator)
+            current_backend.execute(generator, trigger_loop=True)
 
         return self.proxied_node.value
 
@@ -127,6 +127,7 @@ class TransformationProxy(Proxy):
         # incoming operation call
         op = Operation(self.proxied_node._new_op_name, *args, **kwargs)
 
+        from PyRDF import current_backend
         # Create a new `Node` object to house the operation
         newNode = Node(operation=op, get_head=self.proxied_node.get_head)
 
@@ -136,5 +137,13 @@ class TransformationProxy(Proxy):
         # Return the appropriate proxy object for the node
         if op.is_action():
             return ActionProxy(newNode)
-        else:
+        elif op.is_transformation() :
             return TransformationProxy(newNode)
+        else:
+            generator = CallableGenerator(self.proxied_node.get_head())
+            try:
+                current_backend.execute(generator, trigger_loop=False)
+            except TypeError as e:
+                self.proxied_node.children.remove(newNode)
+                raise e
+            return newNode.ResultPtr

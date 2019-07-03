@@ -353,7 +353,7 @@ class Dist(Backend):
 
         return FriendInfo(friend_names, friend_file_names)
 
-    def execute(self, generator):
+    def execute(self, generator, trigger_loop=True):
         """
         Executes the current RDataFrame graph
         in the given distributed environment.
@@ -526,7 +526,7 @@ class Dist(Backend):
             warnings.warn(msg, UserWarning, stacklevel=2)
             PyRDF.use("local")
             from .. import current_backend
-            return current_backend.execute(generator)
+            return current_backend.execute(generator, trigger_loop = True)
 
         # Values produced after Map-Reduce
         values = self.ProcessAndMerge(mapper, reducer)

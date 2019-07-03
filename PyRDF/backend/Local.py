@@ -38,7 +38,7 @@ class Local(Backend):
                                      if op not in operations_not_supported]
         self.pyroot_rdf = None
 
-    def execute(self, generator):
+    def execute(self, generator, trigger_loop=False):
         """
         Executes locally the current RDataFrame graph.
 
@@ -52,8 +52,7 @@ class Local(Backend):
 
         # if the RDataFrame has not been created yet or if a new one
         # is created by the user in the same session
-        if (not self.pyroot_rdf) or \
-           (self.pyroot_rdf is not generator.head_node):
+        if not self.pyroot_rdf or self.pyroot_rdf is not generator.head_node:
             self.pyroot_rdf = ROOT.ROOT.RDataFrame(*generator.head_node.args)
 
         values = mapper(self.pyroot_rdf)  # Execute the mapper function
@@ -61,13 +60,16 @@ class Local(Backend):
         # Get the action nodes in the same order as values
         nodes = generator.get_action_nodes()
 
-        values[0].GetValue()  # Trigger event-loop
+        print('nodes, ', nodes)
+        print('values, ', values)
 
-        for i in range(len(values)):
+        for node,value in zip(nodes, values):
             # Set the obtained values and
             # 'RResultPtr's of action nodes
-            nodes[i].value = values[i].GetValue()
+            if trigger_loop and hasattr(value, 'GetValue'):
+                # Info actions do not have GetValue
+                node.value = value.GetValue()
             # We store the 'RResultPtr's because,
             # those should be in scope while doing
             # a 'GetValue' call on them
-            nodes[i].ResultPtr = values[i]
+            node.ResultPtr = value
