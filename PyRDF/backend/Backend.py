@@ -40,6 +40,10 @@ class Backend(ABC):
         'Foreach',
         'Reduce',
         'Aggregate',
+        'GetColumnNames',
+        'GetDefinedColumnNames',
+        'GetColumnType',
+        'GetFilterNames',
         'Graph'
     ]
 
@@ -93,7 +97,7 @@ class Backend(ABC):
             )
 
     @abstractmethod
-    def execute(self, generator):
+    def execute(self, generator, trigger_loop=False):
         """
         Subclasses must define how to run the RDataFrame graph on a given
         environment.
