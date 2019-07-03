@@ -94,6 +94,7 @@ class AttrReadTest(unittest.TestCase):
             "children",
             "_new_op_name",
             "value",
+            "ResultPtr",
             "pyroot_node",
             "has_user_references"
         ]
@@ -145,7 +146,7 @@ class GetValueTests(unittest.TestCase):
         Test backend to verify the working of 'GetValue' instance method
         in Proxy.
         """
-        def execute(self, generator):
+        def execute(self, generator, trigger_loop):
             """
             Test implementation of the execute method
             for 'TestBackend'. This records the head

@@ -20,6 +20,11 @@ class ClassifyTest(unittest.TestCase):
         op = Operation("Define", "c1")
         self.assertEqual(op.op_type, Operation.Types.TRANSFORMATION)
 
+    def test_info_action(self):
+        """Info nodes are classified accurately."""
+        op = Operation("GetColumnNames")
+        self.assertEqual(op.op_type, Operation.Types.INFO)
+
     def test_none(self):
         """Incorrect operations raise an Exception."""
         with self.assertRaises(Exception):

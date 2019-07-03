@@ -60,9 +60,6 @@ class Local(Backend):
         # Get the action nodes in the same order as values
         nodes = generator.get_action_nodes()
 
-        print('nodes, ', nodes)
-        print('values, ', values)
-
         for node,value in zip(nodes, values):
             # Set the obtained values and
             # 'RResultPtr's of action nodes
