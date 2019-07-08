@@ -24,8 +24,12 @@ class SelectionTest(unittest.TestCase):
         # Retrieve the java object (to check that it has been stopped)
         javacon = sc._jsc.sc()
 
+        # Check the java Spark context is alive
+        self.assertFalse(javacon.isStopped())
+
         PyRDF.use("local")
 
+        # Check that `use` function correctly stopped the Spark context
         self.assertTrue(javacon.isStopped())
 
 
