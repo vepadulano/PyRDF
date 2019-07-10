@@ -30,7 +30,7 @@ Sample usage::
 
    api
    backend
-   
+
 Indices and tables
 ==================
 
