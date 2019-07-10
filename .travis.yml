@@ -9,21 +9,6 @@ matrix:
     # Here you can add or remove specific builds, and Python versions. You
     # should currently be able to use Python 2.6, 2.7, or 3.3 or later.
 
-    - stage: 'docs building'
-      env: TEST_SUITE=docs
-      python: '3.7'
-      cache: pip
-      after_success:
-        #test the docs
-      deploy:
-        provider: pages
-        skip_cleanup: true
-        keep_history: true
-        github_token: $token # set in the Travis dashboard
-        local_dir: docs
-        on:
-          branch: master
-      if: branch = master
     - stage: 'style checks'
       python: '2.7.15'
       language: python
@@ -39,7 +24,6 @@ matrix:
 
 
 stages:
-  - 'docs building'
   - 'style checks'
   - 'unit tests'
 
@@ -53,7 +37,7 @@ before_install:
   - export PATH="$HOME/miniconda/bin:$PATH"
   - conda info -a
   - export SPARK_LOCAL_IP="127.0.0.1"
-   
+
 install:
 
   # We just set up a conda environment with the right Python version. This
