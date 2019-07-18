@@ -2,6 +2,9 @@ from __future__ import print_function
 from PyRDF.Node import Node
 import ROOT
 from PyRDF.Proxy import TransformationProxy
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class RDataFrame(object):
@@ -21,6 +24,9 @@ class RDataFrame(object):
         """
         head_node = HeadNode(*args)
         proxy_head = TransformationProxy(head_node)
+
+        # Logger debug statements
+        logger.debug("Created RDataFrame head node and proxy")
         return proxy_head
 
 

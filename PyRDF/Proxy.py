@@ -3,10 +3,14 @@ from PyRDF.CallableGenerator import CallableGenerator
 from abc import ABCMeta, abstractmethod
 from PyRDF.Operation import Operation
 from PyRDF.Node import Node
+import logging
+
 # Abstract class declaration
 # This ensures compatibility between Python 2 and 3 versions, since in
 # Python 2 there is no ABC class
 ABC = ABCMeta('ABC', (object,), {})
+
+logger = logging.getLogger(__name__)
 
 
 class Proxy(ABC):
@@ -138,6 +142,9 @@ class TransformationProxy(Proxy):
 
         # Create a new `Node` object to house the operation
         newNode = Node(operation=op, get_head=self.proxied_node.get_head)
+
+        # Logger debug statements
+        logger.debug("Created new {} node".format(op.name))
 
         # Add the new node as a child of the current node
         self.proxied_node.children.append(newNode)

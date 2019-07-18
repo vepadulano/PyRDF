@@ -5,12 +5,40 @@ from PyRDF.backend.Local import Local
 from PyRDF.backend.Backend import Backend
 from PyRDF.backend.Utils import Utils
 import os
+import logging
+import sys
 from pyspark import SparkContext
 
 current_backend = Local()
+
 includes_headers = set()  # All headers included in the analysis
 includes_shared_libraries = set()  # All shared libraries included
 includes_files = set()  # All other generic files included
+
+logger = logging.getLogger(__name__)
+
+
+def create_logger(level="WARNING", log_path="./PyRDF.log"):
+    """PyRDF basic logger"""
+    logger = logging.getLogger(__name__)
+
+    level = getattr(logging, level)
+
+    logger.setLevel(level)
+
+    format_string = ("%(levelname)s: %(name)s[%(asctime)s]: %(message)s")
+    formatter = logging.Formatter(format_string)
+
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setFormatter(formatter)
+    logger.addHandler(stream_handler)
+
+    if log_path:
+        file_handler = logging.FileHandler(log_path)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+
+    return logger
 
 
 def use(backend_name, conf={}):
@@ -34,7 +62,7 @@ def use(backend_name, conf={}):
     cur_context.stop()
 
     if backend_name in future_backends:
-        msg = " This backend environment will be considered in the future !"
+        msg = "This backend environment will be considered in the future !"
         raise NotImplementedError(msg)
     elif backend_name == "local":
         current_backend = Local(conf)
@@ -42,7 +70,7 @@ def use(backend_name, conf={}):
         from PyRDF.backend.Spark import Spark
         current_backend = Spark(conf)
     else:
-        msg = " Incorrect backend environment \"{}\"".format(backend_name)
+        msg = "Incorrect backend environment \"{}\"".format(backend_name)
         raise Exception(msg)
 
 
@@ -58,6 +86,8 @@ def _get_paths_set_from_string(path_string):
         set: The set with all paths returned from the directory, or a set
             with only the path of the string.
     """
+    logger.debug("Retrieving paths from {}".format(path_string))
+
     if os.path.isdir(path_string):
         # Create a set with all the headers in the directory
         paths_set = {
@@ -67,9 +97,14 @@ def _get_paths_set_from_string(path_string):
             for filename
             in filenames
         }
+        logger.debug("\nInitial path: {} \nPaths retrieved: {}".format(
+            path_string,
+            paths_set
+        ))
         return paths_set
     elif os.path.isfile(path_string):
         # Convert to set if this is a string
+        logger.debug("File path retrieved: {}".format(path_string))
         return {path_string}
 
 

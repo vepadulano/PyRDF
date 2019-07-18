@@ -1,5 +1,8 @@
 import ROOT
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Utils(object):
@@ -19,6 +22,10 @@ class Utils(object):
         """
         root_path = "-I{}".format(include_path)
         ROOT.gInterpreter.AddIncludePath(root_path)
+
+        # Retrieve ROOT internal list of include paths and add debug statement
+        root_includepath = ROOT.gInterpreter.GetIncludePath()
+        logger.debug("ROOT include paths:\n{}".format(root_includepath))
 
     @classmethod
     def declare_headers(cls, headers_to_include):

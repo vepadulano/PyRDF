@@ -1,5 +1,8 @@
 import ROOT
 from PyRDF.backend.Backend import Backend
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Local(Backend):
@@ -60,6 +63,10 @@ class Local(Backend):
 
         # Get the action nodes in the same order as values
         nodes = generator.get_action_nodes()
+
+        # Retrieve action names and output to debug logger
+        action_names = [node.operation.name for node in nodes]
+        logger.debug("Action operations in the loop:\n{}".format(action_names))
 
         values[0].GetValue()  # Trigger event-loop
 

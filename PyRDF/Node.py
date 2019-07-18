@@ -1,5 +1,8 @@
 from __future__ import print_function
 from PyRDF.Operation import Operation
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Node(object):
@@ -123,7 +126,21 @@ class Node(object):
                 # If the current node's value was already
                 # computed, it should get pruned only if it's
                 # an Action node.
+
+                # Logger debug statements
+                logger.debug("{} node can be pruned".format(
+                    self.operation.name
+                ))
+
                 return True
+
+        # Logger debug statements
+        if self.operation:  # Node has an operation
+            logger.debug("{} node shouldn't be pruned".format(
+                self.operation.name
+            ))
+        else:  # Node is the RDataFrame
+            logger.debug("Graph pruning completed")
         return False
 
     def graph_prune(self):
@@ -138,7 +155,16 @@ class Node(object):
         """
         children = []
 
+        # Logger debug statements
+        if self.operation:
+            logger.debug("Checking {} node for pruning".format(
+                self.operation.name
+            ))
+        else:
+            logger.debug("Starting computational graph pruning")
+
         for n in self.children:
+            # Logger debug statement
             # Select children based on pruning condition
             if not n.graph_prune():
                 children.append(n)
