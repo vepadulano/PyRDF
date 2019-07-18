@@ -10,6 +10,11 @@ class SharedLibrariesIncludeLocalTest(unittest.TestCase):
     Check that the required shared libraries files are properly included.
     """
 
+    def tearDown(self):
+        """remove included libraries after analysis"""
+        PyRDF.includes_headers.clear()
+        PyRDF.includes_shared_libraries.clear()
+
     def test_includes_shared_lib_with_filter_op(self):
         """
         Check that the filter operation is able to use C++ functions that

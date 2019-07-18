@@ -5,6 +5,10 @@ import PyRDF
 class IncludesLocalTest(unittest.TestCase):
     """Check that the required header files are properly included."""
 
+    def tearDown(self):
+        """remove included headers after analysis"""
+        PyRDF.includes_headers.clear()
+
     def test_include_dir_and_headers(self):
         """
         Check that the filter operation is able to use C++ functions included

@@ -62,8 +62,8 @@ class IncludeHeadersTest(unittest.TestCase):
     """Tests to check the working of 'PyRDF.include' function."""
 
     def tearDown(self):
-        """Resets the module-level variable 'includes' to an empty set."""
-        PyRDF.includes_headers = set()  # reset includes
+        """remove included headers after analysis"""
+        PyRDF.includes_headers.clear()
 
     def test_default_empty_list_include(self):
         """
@@ -117,6 +117,10 @@ class IncludeHeadersTest(unittest.TestCase):
 
 class DeclareHeadersTest(unittest.TestCase):
     """Static method 'declare_headers' in Backend class."""
+
+    def tearDown(self):
+        """remove included headers after analysis"""
+        PyRDF.includes_headers.clear()
 
     def test_single_header_declare(self):
         """'declare_headers' with a single header to be included."""

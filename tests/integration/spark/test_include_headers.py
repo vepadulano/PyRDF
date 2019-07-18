@@ -9,9 +9,13 @@ class IncludesSparkTest(unittest.TestCase):
     environment.
     """
     def tearDown(self):
-        """Clean up the `SparkContext` objects that were created."""
+        """
+        Clean up the `SparkContext` objects that were created and remove
+        included headers from the global set.
+        """
         from PyRDF import current_backend
         current_backend.sparkContext.stop()
+        PyRDF.includes_headers.clear()
 
     def test_includes_function_with_filter_and_histo(self):
         """
