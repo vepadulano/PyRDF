@@ -173,16 +173,16 @@ class DistBuildRangesTest(unittest.TestCase):
         """
         backend = DistBuildRangesTest.TestBackend()
         nentries_small = 10
-        npartitions_small = 5
         nentries_large = 100
-        npartitions_large = 10
 
         # First case
-        rng = backend._get_balanced_ranges(nentries_small, npartitions_small)
+        backend.npartitions = 5
+        rng = backend._get_balanced_ranges(nentries_small)
         ranges_small = rangesToTuples(rng)
 
         # Second case
-        rng = backend._get_balanced_ranges(nentries_large, npartitions_large)
+        backend.npartitions = 10
+        rng = backend._get_balanced_ranges(nentries_large)
         ranges_large = rangesToTuples(rng)
 
         ranges_small_reqd = [(0, 2), (2, 4), (4, 6), (6, 8), (8, 10)]
@@ -210,18 +210,17 @@ class DistBuildRangesTest(unittest.TestCase):
         """
         backend = DistBuildRangesTest.TestBackend()
         nentries_1 = 10
-        npartitions_1 = 4
+        backend.npartitions = 4
         nentries_2 = 9
-        npartitions_2 = 4
 
         # Example in which fractional part of
         # (nentries/npartitions) >= 0.5
-        rng = backend._get_balanced_ranges(nentries_1, npartitions_1)
+        rng = backend._get_balanced_ranges(nentries_1)
         ranges_1 = rangesToTuples(rng)
 
         # Example in which fractional part of
         # (nentries/npartitions) < 0.5
-        rng = backend._get_balanced_ranges(nentries_2, npartitions_2)
+        rng = backend._get_balanced_ranges(nentries_2)
         ranges_2 = rangesToTuples(rng)
 
         # Required output pairs
@@ -239,9 +238,9 @@ class DistBuildRangesTest(unittest.TestCase):
         """
         backend = DistBuildRangesTest.TestBackend()
         nentries = 5
-        npartitions = 7  # > nentries
+        backend.npartitions = 7  # > nentries
 
-        rng = backend._get_balanced_ranges(nentries, npartitions)
+        rng = backend._get_balanced_ranges(nentries)
         ranges = rangesToTuples(rng)
 
         ranges_reqd = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5)]
@@ -258,10 +257,9 @@ class DistBuildRangesTest(unittest.TestCase):
         treename = "TotemNtuple"
         filelist = ["tests/unit/backend/Slimmed_ntuple.root"]
         nentries = 10
-        npartitions = 1
+        backend.npartitions = 1
 
-        crs = backend._get_clustered_ranges(nentries, npartitions, treename,
-                                            filelist)
+        crs = backend._get_clustered_ranges(nentries, treename, filelist)
         ranges = rangesToTuples(crs)
 
         ranges_reqd = [(0, 10)]
@@ -280,14 +278,13 @@ class DistBuildRangesTest(unittest.TestCase):
         treename = "TotemNtuple"
         filelist = ["tests/unit/backend/Slimmed_ntuple.root"]
         nentries = 10
-        npartitions = 2
+        backend.npartitions = 2
 
         ranges_reqd = [(0, 10)]
 
         with warnings.catch_warnings(record=True) as w:
             # Trigger warning
-            crs = backend._get_clustered_ranges(nentries, npartitions, treename,
-                                                filelist)
+            crs = backend._get_clustered_ranges(nentries, treename, filelist)
             ranges = rangesToTuples(crs)
 
             # Verify ranges
@@ -307,10 +304,9 @@ class DistBuildRangesTest(unittest.TestCase):
         treename = "myTree"
         filelist = ["tests/unit/backend/2clusters.root"]
         nentries = 1000
-        npartitions = 2
+        backend.npartitions = 2
 
-        crs = backend._get_clustered_ranges(nentries, npartitions, treename,
-                                            filelist)
+        crs = backend._get_clustered_ranges(nentries, treename, filelist)
         ranges = rangesToTuples(crs)
 
         ranges_reqd = [
@@ -330,10 +326,9 @@ class DistBuildRangesTest(unittest.TestCase):
         treename = "myTree"
         filelist = ["tests/unit/backend/4clusters.root"]
         nentries = 1000
-        npartitions = 4
+        backend.npartitions = 4
 
-        crs = backend._get_clustered_ranges(nentries, npartitions, treename,
-                                            filelist)
+        crs = backend._get_clustered_ranges(nentries, treename, filelist)
         ranges = rangesToTuples(crs)
 
         ranges_reqd = [
@@ -355,10 +350,9 @@ class DistBuildRangesTest(unittest.TestCase):
         treename = "myTree"
         filelist = ["tests/unit/backend/1000clusters.root"]
         nentries = 1000
-        npartitions = 4
+        backend.npartitions = 4
 
-        crs = backend._get_clustered_ranges(nentries, npartitions, treename,
-                                            filelist)
+        crs = backend._get_clustered_ranges(nentries, treename, filelist)
         ranges = rangesToTuples(crs)
 
         ranges_reqd = [
@@ -381,10 +375,9 @@ class DistBuildRangesTest(unittest.TestCase):
         treename = "myTree"
         filelist = ["tests/unit/backend/1000clusters.root"]
         nentries = 1000
-        npartitions = 1000
+        backend.npartitions = 1000
 
-        crs = backend._get_clustered_ranges(nentries, npartitions, treename,
-                                            filelist)
+        crs = backend._get_clustered_ranges(nentries, treename, filelist)
         ranges = rangesToTuples(crs)
 
         start = 0
@@ -409,9 +402,9 @@ class DistBuildRangesTest(unittest.TestCase):
         backend.files = "tests/unit/backend/1000clusters.root"
         backend.friend_info = None
         backend.nentries = 1000
-        npartitions = 1000
+        backend.npartitions = 1000
 
-        crs = backend.build_ranges(npartitions)
+        crs = backend.build_ranges()
         ranges = rangesToTuples(crs)
 
         start = 0
@@ -435,9 +428,9 @@ class DistBuildRangesTest(unittest.TestCase):
         backend.treename = None
         backend.files = None
         backend.nentries = 50
-        npartitions = 16
+        backend.npartitions = 16
 
-        crs = backend.build_ranges(npartitions)
+        crs = backend.build_ranges()
         ranges = rangesToTuples(crs)
 
         ranges_reqd = [
@@ -491,8 +484,8 @@ class DistRDataFrameInterface(unittest.TestCase):
         # the RDataFrame head node
         hist.GetValue()
 
-        partitions = 2
-        ranges = rangesToTuples(backend.build_ranges(partitions))
+        backend.npartitions = 2
+        ranges = rangesToTuples(backend.build_ranges())
         return ranges
 
     def test_empty_rdataframe_with_number_of_entries(self):

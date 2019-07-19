@@ -43,9 +43,6 @@ class Spark(Dist):
         """
         super(Spark, self).__init__(config)
 
-        # Remove the value of 'npartitions' from config dict
-        self.npartitions = config.pop('npartitions', None)
-
         sparkConf = SparkConf().setAll(config.items())
         self.sparkContext = SparkContext.getOrCreate(sparkConf)
 
@@ -106,7 +103,7 @@ class Spark(Dist):
 
             return mapper(current_range)
 
-        ranges = self.build_ranges(self.npartitions)  # Get range pairs
+        ranges = self.build_ranges()  # Get range pairs
 
         # Build parallel collection
         sc = self.sparkContext

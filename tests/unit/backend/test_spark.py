@@ -216,3 +216,32 @@ class FallbackTest(unittest.TestCase):
 
         self.assertIsInstance(PyRDF.current_backend, Local)
         self.assertEqual(entries, 0)
+
+
+class ChangeAttributeTest(unittest.TestCase):
+    """Tests that check correct changes in the class attributes"""
+
+    def test_change_attribute_when_npartitions_greater_than_clusters(self):
+        """
+        Check that the `npartitions class attribute is changed when it is
+        greater than the number of clusters in the ROOT file.
+        """
+        PyRDF.use("spark", {"npartitions": 10})
+
+        from PyRDF import current_backend
+
+        self.assertEqual(current_backend.npartitions, 10)
+
+        treename = "TotemNtuple"
+        filelist = ["tests/unit/backend/Slimmed_ntuple.root"]
+        df = PyRDF.RDataFrame(treename, filelist)
+
+        histo = df.Histo1D("track_rp_3.x")
+        nentries = histo.GetEntries()
+
+        self.assertEqual(nentries, 10)
+        self.assertEqual(current_backend.npartitions, 1)
+
+
+if __name__ == "__main__":
+    unittest.main()

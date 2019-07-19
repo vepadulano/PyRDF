@@ -45,6 +45,14 @@ class Range(object):
 class FriendInfo(object):
     """
     A simple class to hold information about friend trees.
+
+    Attributes:
+        friend_names (list): A list with the names of the `ROOT.TTree` objects
+            which are friends of the main `ROOT.TTree`.
+
+        friend_file_names (list): A list with the paths to the files
+            corresponding to the trees in the `friend_names` attribute. Each
+            element of `friend_names` can correspond to multiple file names.
     """
 
     def __init__(self, friend_names=[], friend_file_names=[]):
@@ -80,7 +88,19 @@ class FriendInfo(object):
 
 
 class Dist(Backend):
-    """Base class for implementing all distributed backends."""
+    """
+    Base class for implementing all distributed backends.
+
+    Attributes:
+        npartitions (int): The number of chunks to divide the dataset in, each
+            chunk is then processed in parallel.
+
+        supported_operations (list): list of supported RDataFrame operations
+            in a distributed environment.
+
+        friend_info (PyRDF.Dist.FriendInfo): A class instance that holds
+            information about any friend trees of the main ROOT.TTree
+    """
 
     def __init__(self, config={}):
         """
@@ -109,10 +129,12 @@ class Dist(Backend):
             'Aggregate'
         ]
 
+        # Remove the value of 'npartitions' from config dict
+        self.npartitions = config.pop('npartitions', None)
+
         self.supported_operations = [op for op in self.supported_operations
                                      if op not in operations_not_supported]
-        # Initialize FriendInfo object that will hold information about
-        # any friend trees of the main tree
+
         self.friend_info = FriendInfo()
 
     def get_clusters(self, treename, filelist):
@@ -154,7 +176,7 @@ class Dist(Backend):
 
         return clusters
 
-    def _get_balanced_ranges(self, nentries, npartitions):
+    def _get_balanced_ranges(self, nentries):
         """
         Builds range pairs from the given values of the number of entries in
         the dataset and number of partitions required. Each range contains the
@@ -164,18 +186,16 @@ class Dist(Backend):
         Args:
             nentries (int): The number of entries in a dataset.
 
-            npartitions (int): The number of parallel computations.
-
         Returns:
             list: List of :obj:`Range`s objects.
         """
-        partition_size = int(nentries / npartitions)
+        partition_size = int(nentries / self.npartitions)
 
         i = 0  # Iterator
 
         ranges = []
 
-        remainder = nentries % npartitions
+        remainder = nentries % self.npartitions
 
         while i < nentries:
             # Start value of current range
@@ -193,15 +213,13 @@ class Dist(Backend):
 
         return ranges
 
-    def _get_clustered_ranges(self, nentries, npartitions, treename, filelist,
+    def _get_clustered_ranges(self, nentries, treename, filelist,
                               friend_info=FriendInfo()):
         """
         Builds range pairs taking into account the clusters of the dataset.
 
         Args:
             nentries (int): The number of entries in a dataset.
-
-            npartitions (int): The number of parallel computations.
 
             treename (str): Name of the tree.
 
@@ -217,15 +235,15 @@ class Dist(Backend):
 
         # Restrict 'npartitions' if it's greater
         # than number of clusters in the filelist
-        if npartitions > numclusters:
+        if self.npartitions > numclusters:
             msg = ("Number of partitions is greater than number of clusters"
                    "in the filelist")
             msg += "\nUsing {} partition(s)".format(numclusters)
             warnings.warn(msg, UserWarning, stacklevel=2)
-            npartitions = numclusters
+            self.npartitions = numclusters
 
-        partSize = numclusters // npartitions
-        remainder = numclusters % npartitions
+        partSize = numclusters // self.npartitions
+        remainder = numclusters % self.npartitions
 
         i = 0  # Iterator
         ranges = []
@@ -283,23 +301,22 @@ class Dist(Backend):
 
         return files
 
-    def build_ranges(self, npartitions):
+    def build_ranges(self):
         """
         Define two type of ranges based on the arguments passed to the
         RDataFrame head node.
         """
-        if npartitions > self.nentries:
+        if self.npartitions > self.nentries:
             # Restrict 'npartitions' if it's greater
             # than 'nentries'
-            npartitions = self.nentries
+            self.npartitions = self.nentries
 
         if self.treename and self.files:
             filelist = self._get_filelist(self.files)
-            return self._get_clustered_ranges(self.nentries, npartitions,
-                                              self.treename, filelist,
-                                              self.friend_info)
+            return self._get_clustered_ranges(self.nentries, self.treename,
+                                              filelist, self.friend_info)
         else:
-            return self._get_balanced_ranges(self.nentries, npartitions)
+            return self._get_balanced_ranges(self.nentries)
 
     def _get_friend_info(self, tree):
         """
