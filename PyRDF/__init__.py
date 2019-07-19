@@ -57,15 +57,14 @@ def use(backend_name, conf={}):
 
     global current_backend
 
-    # Retrieve current Spark context if present and stop it
-    cur_context = SparkContext.getOrCreate()
-    cur_context.stop()
-
     if backend_name in future_backends:
         msg = "This backend environment will be considered in the future !"
         raise NotImplementedError(msg)
     elif backend_name == "local":
         current_backend = Local(conf)
+        # Retrieve current Spark context if present and stop it
+        cur_context = SparkContext.getOrCreate()
+        cur_context.stop()
     elif backend_name == "spark":
         from PyRDF.backend.Spark import Spark
         current_backend = Spark(conf)
