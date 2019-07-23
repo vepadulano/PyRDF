@@ -152,5 +152,10 @@ class TransformationProxy(Proxy):
         # Return the appropriate proxy object for the node
         if op.is_action():
             return ActionProxy(newNode)
+        elif op.name == "AsNumpy":
+            from PyRDF import current_backend
+            generator = CallableGenerator(self.proxied_node.get_head())
+            current_backend.execute(generator)
+            return newNode.value
         else:
             return TransformationProxy(newNode)

@@ -40,7 +40,8 @@ class Backend(ABC):
         'Foreach',
         'Reduce',
         'Aggregate',
-        'Graph'
+        'Graph',
+        'AsNumpy'
     ]
 
     initialization = staticmethod(lambda: None)

@@ -5,6 +5,7 @@ from abc import abstractmethod
 import glob
 import warnings
 import ROOT
+import numpy
 
 
 class Range(object):
@@ -459,6 +460,8 @@ class Dist(Backend):
             output = callable_function(rdf_range)  # output of the callable
 
             for i in range(len(output)):
+                if isinstance(output[i], dict):
+                    continue
                 # FIX ME : RResultPtrs aren't serializable,
                 # because of which we have to manually find
                 # out the types here and copy construct the
@@ -490,10 +493,18 @@ class Dist(Backend):
                 given lists.
             """
             import ROOT
+
             for i in range(len(values_list1)):
                 # A bunch of if-else conditions to merge two values
-                if (isinstance(values_list1[i], ROOT.TH1) or
-                   isinstance(values_list1[i], ROOT.TH2)):
+                if isinstance(values_list1[i], dict):
+                    combined = {
+                        key: numpy.concatenate([values_list1[i][key],
+                                                values_list2[i][key]])
+                        for key in values_list1[i]
+                    }
+                    values_list1[i] = combined
+                elif (isinstance(values_list1[i], ROOT.TH1) or
+                      isinstance(values_list1[i], ROOT.TH2)):
                     # Merging two objects of type ROOT.TH1D or ROOT.TH2D
                     values_list1[i].Add(values_list2[i])
 

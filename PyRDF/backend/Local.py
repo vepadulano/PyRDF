@@ -39,6 +39,8 @@ class Local(Backend):
 
         self.supported_operations = [op for op in self.supported_operations
                                      if op not in operations_not_supported]
+        logger.debug("Creating `Local` backend. Available operations:\n{}"
+                     .format(self.supported_operations))
         self.pyroot_rdf = None
 
     def execute(self, generator):
@@ -68,13 +70,16 @@ class Local(Backend):
         action_names = [node.operation.name for node in nodes]
         logger.debug("Action operations in the loop:\n{}".format(action_names))
 
-        values[0].GetValue()  # Trigger event-loop
+        # values[0].GetValue()  # Trigger event-loop
 
         for i in range(len(values)):
-            # Set the obtained values and
-            # 'RResultPtr's of action nodes
-            nodes[i].value = values[i].GetValue()
-            # We store the 'RResultPtr's because,
-            # those should be in scope while doing
-            # a 'GetValue' call on them
-            nodes[i].ResultPtr = values[i]
+            if nodes[i].operation.name == "AsNumpy":
+                nodes[i].value = values[i]
+            else:
+                # Set the obtained values and
+                # 'RResultPtr's of action nodes
+                nodes[i].value = values[i].GetValue()
+                # We store the 'RResultPtr's because,
+                # those should be in scope while doing
+                # a 'GetValue' call on them
+                nodes[i].ResultPtr = values[i]

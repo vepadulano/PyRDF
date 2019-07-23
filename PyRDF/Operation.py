@@ -80,7 +80,8 @@ class Operation(object):
             'Take': ops.ACTION,
             'Graph': ops.ACTION,
             'Snapshot': ops.INSTANT_ACTION,
-            'Foreach': ops.INSTANT_ACTION
+            'Foreach': ops.INSTANT_ACTION,
+            'AsNumpy': ops.INSTANT_ACTION
         }
 
         op_type = operations_dict.get(name)
@@ -107,3 +108,13 @@ class Operation(object):
             False otherwise.
         """
         return self.op_type == Operation.Types.TRANSFORMATION
+
+    def is_instant_action(self):
+        """
+        Checks if the current operation is an instant action.
+
+        Returns:
+            bool: True if the current operation is an instant action,
+                False otherwise.
+        """
+        return self.op_type == Operation.Types.INSTANT_ACTION
