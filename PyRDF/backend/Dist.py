@@ -119,7 +119,6 @@ class Dist(Backend):
             'Mean',
             'Max',
             'Min',
-            'Count',
             'Range',
             'Take',
             'Snapshot',
@@ -451,7 +450,6 @@ class Dist(Backend):
                     rdf = ROOT.ROOT.RDataFrame(chain, selected_branches)
                 else:
                     rdf = ROOT.ROOT.RDataFrame(chain)
-
             else:
                 rdf = ROOT.ROOT.RDataFrame(*rdf_args)  # PyROOT RDF object
 
@@ -473,7 +471,6 @@ class Dist(Backend):
                 # after a call to `GetValue`, the values die
                 # along with the RResultPtrs
                 output[i] = value_type(output[i].GetValue())
-
             return output
 
         def reducer(values_list1, values_list2):
@@ -500,6 +497,7 @@ class Dist(Backend):
                    isinstance(values_list1[i], ROOT.TH2)):
                     # Merging two objects of type ROOT.TH1D or ROOT.TH2D
                     values_list1[i].Add(values_list2[i])
+
                 elif isinstance(values_list1[i], ROOT.TGraph):
                     # Prepare a TList
                     tlist = ROOT.TList()
@@ -512,6 +510,12 @@ class Dist(Backend):
                     if num_points == -1:
                         msg = "Error reducing two result values of type TGraph!"
                         raise Exception(msg)
+
+                elif (isinstance(values_list1[i], int)
+                      or isinstance(values_list1[i], long)):  # noqa: Python 2
+                    # Adding values resulting from a Count() operation
+                    values_list1[i] += values_list2[i]
+
                 else:
                     msg = ("Type \"{}\" is not supported by the reducer yet!"
                            .format(type(values_list1[i])))

@@ -151,3 +151,10 @@ class ReducerMergeTest(unittest.TestCase):
 
         # Compare the Y co-ordinates of the graphs
         self.assertListEqual(list(graph_py.GetY()), list(graph_cpp.GetY()))
+
+    def test_distributed_count(self):
+        """Test support for `Count` operation in distributed backend"""
+        rdf_py = PyRDF.RDataFrame(100)
+        count = rdf_py.Count()
+
+        self.assertEqual(count.GetValue(), 100)
