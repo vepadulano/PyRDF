@@ -158,3 +158,11 @@ class ReducerMergeTest(unittest.TestCase):
         count = rdf_py.Count()
 
         self.assertEqual(count.GetValue(), 100)
+
+    def test_distributed_sum(self):
+        """Test support for `Sum` operation in distributed backend"""
+        rdf_py = PyRDF.RDataFrame(10)
+        rdf_def = rdf_py.Define("x", "rdfentry_")
+        rdf_sum = rdf_def.Sum("x")
+
+        self.assertAlmostEqual(rdf_sum.GetValue(), 45.0)

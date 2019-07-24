@@ -115,7 +115,6 @@ class Dist(Backend):
         super(Dist, self).__init__(config)
         # Operations that aren't supported in distributed backends
         operations_not_supported = [
-            'Sum',
             'Mean',
             'Max',
             'Min',
@@ -510,6 +509,11 @@ class Dist(Backend):
                     if num_points == -1:
                         msg = "Error reducing two result values of type TGraph!"
                         raise Exception(msg)
+
+                elif isinstance(values_list1[i], float):
+                    # Adding values resulting from a Sum() operation
+                    # Sum() always returns a float in python
+                    values_list1[i] += values_list2[i]
 
                 elif (isinstance(values_list1[i], int)
                       or isinstance(values_list1[i], long)):  # noqa: Python 2
