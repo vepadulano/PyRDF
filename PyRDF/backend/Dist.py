@@ -121,7 +121,6 @@ class Dist(Backend):
             'Min',
             'Range',
             'Take',
-            'Snapshot',
             'Foreach',
             'Reduce',
             'Report',
@@ -453,18 +452,26 @@ class Dist(Backend):
             else:
                 rdf = ROOT.ROOT.RDataFrame(*rdf_args)  # PyROOT RDF object
 
-            # TODO : If we want to run multi-threaded in a Spark node in
-            # the future, use `TEntryList` instead of `Range`
-            rdf_range = rdf.Range(current_range.start, current_range.end)
+            # # TODO : If we want to run multi-threaded in a Spark node in
+            # # the future, use `TEntryList` instead of `Range`
+            # rdf_range = rdf.Range(current_range.start, current_range.end)
 
-            output = callable_function(rdf_range)  # output of the callable
+            # Output of the callable
+            output = callable_function(rdf, range=current_range)
 
             for i in range(len(output)):
+<<<<<<< HEAD
                 if isinstance(output[i], dict):
                     # Fix class name to 'ndarray' to avoid issues with
                     # Pickle protocol 2
                     for value in output[i].values():
                         value.__class__.__name__ = "ndarray"
+=======
+                # `AsNumpy` and `Snapshot` return respectively `dict` and `list`
+                # that don't have the `GetValue` method.
+                if (isinstance(output[i], dict) or
+                        isinstance(output[i], list)):
+>>>>>>> [WIP] Support Snapshot operation
                     continue
                 # FIX ME : RResultPtrs aren't serializable,
                 # because of which we have to manually find
@@ -500,7 +507,13 @@ class Dist(Backend):
 
             for i in range(len(values_list1)):
                 # A bunch of if-else conditions to merge two values
-                if isinstance(values_list1[i], dict):
+
+                # Create a global list with all the files of the partial
+                # snapshots
+                if isinstance(values_list1[i], list):
+                    values_list1[i].extend(values_list2[i])
+
+                elif isinstance(values_list1[i], dict):
                     combined = {
                         key: numpy.concatenate([values_list1[i][key],
                                                 values_list2[i][key]])
@@ -530,8 +543,8 @@ class Dist(Backend):
                     # Sum() always returns a float in python
                     values_list1[i] += values_list2[i]
 
-                elif (isinstance(values_list1[i], int)
-                      or isinstance(values_list1[i], long)):  # noqa: Python 2
+                elif (isinstance(values_list1[i], int) or
+                        isinstance(values_list1[i], long)):  # noqa: Python 2
                     # Adding values resulting from a Count() operation
                     values_list1[i] += values_list2[i]
 
@@ -575,7 +588,18 @@ class Dist(Backend):
 
         # Set the value of every action node
         for node, value in zip(nodes, values):
-            node.value = value
+            if node.operation.name == "Snapshot":
+                # Retrieve treename from operation args and start TChain
+                snapshot_treename = node.operation.args[0]
+                snapshot_chain = ROOT.TChain(snapshot_treename)
+                # Add partial snapshot files to the chain
+                for filename in value:
+                    snapshot_chain.Add(filename)
+                # Create a new rdf with the chain and return that to user
+                snapshot_rdf = PyRDF.RDataFrame(snapshot_chain)
+                node.value = snapshot_rdf
+            else:
+                node.value = value
 
     @abstractmethod
     def ProcessAndMerge(self, mapper, reducer):

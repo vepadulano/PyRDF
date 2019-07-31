@@ -59,7 +59,7 @@ class CallableGenerator(object):
         # Prune the graph to check user references
         self.head_node.graph_prune()
 
-        def mapper(node_cpp, node_py=None):
+        def mapper(node_cpp, node_py=None, range=None):
             """
             The callable that recurses through the PyRDF nodes and executes
             operations from a starting (PyROOT) RDF node.
@@ -76,7 +76,11 @@ class CallableGenerator(object):
             """
             return_vals = []
 
-            parent_node = node_cpp
+            if range:
+                parent_node = node_cpp.Range(range.start, range.end)
+            else:
+                parent_node = node_cpp
+
             if not node_py:
                 # In the first recursive state, just set the
                 # current PyRDF node as the head node
@@ -86,7 +90,21 @@ class CallableGenerator(object):
                 # node (node_cpp)
                 RDFOperation = getattr(node_cpp, node_py.operation.name)
                 operation = node_py.operation
-                pyroot_node = RDFOperation(*operation.args, **operation.kwargs)
+
+                if range and operation.name == "Snapshot":
+                    # Retrieve filename and append range boundaries
+                    filename = operation.args[1].split(".")[0]
+                    start = str(range.start)
+                    end = str(range.end - 1)
+                    path_with_range = "{}_{}_{}.root".format(filename,
+                                                             start, end)
+                    # Create a partial snapshot on the current range
+                    pyroot_node = RDFOperation(operation.args[0],
+                                               path_with_range)
+                else:
+                    pyroot_node = RDFOperation(*operation.args,
+                                               **operation.kwargs)
+
                 # The result is a pyroot object which is stored together with
                 # the pyrdf node. This binds the pyroot object lifetime to the
                 # pyrdf node, so both nodes will be kept alive as long as there
@@ -100,11 +118,16 @@ class CallableGenerator(object):
                 if (node_py.operation.is_action() or
                         node_py.operation.is_instant_action()):
                     # Collect all action nodes in order to return them
-                    return_vals.append(pyroot_node)
+                    # If it's a distributed snapshot return only path to
+                    # the file with the partial snapshot
+                    if range and operation.name == "Snapshot":
+                        return_vals.append([path_with_range])
+                    else:
+                        return_vals.append(pyroot_node)
 
             for n in node_py.children:
                 # Recurse through children and get their output
-                prev_vals = mapper(parent_node, node_py=n)
+                prev_vals = mapper(parent_node, node_py=n, range=range)
 
                 # Attach the output of the children node
                 return_vals.extend(prev_vals)

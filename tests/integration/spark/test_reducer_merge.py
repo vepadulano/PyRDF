@@ -1,6 +1,7 @@
 import unittest
 import ROOT
 import PyRDF
+import os
 
 
 class ReducerMergeTest(unittest.TestCase):
@@ -196,3 +197,27 @@ class ReducerMergeTest(unittest.TestCase):
         float_32_dtype = numpy.dtype("float32")
         self.assertEqual(npy_x.dtype, int_32_dtype)
         self.assertEqual(npy_y.dtype, float_32_dtype)
+
+    def test_distributed_snapshot(self):
+        """Test support for `Snapshot` in distributed backend"""
+        # A simple dataframe with ten sequential numbers from 0 to 9
+        df = PyRDF.RDataFrame(10).Define("x", "(int)rdfentry_")
+
+        # Count rows in the dataframe
+        nrows = df.Count()
+
+        # Snapshot to two files, build a ROOT.TChain with them and retrieve a
+        # PyRDF.RDataFrame
+        snapdf = df.Snapshot("snapTree", "snapFile.root")
+
+        # Count the rows in the snapshotted dataframe
+        snapcount = snapdf.Count()
+
+        self.assertEqual(nrows.GetValue(), 10)
+        self.assertEqual(snapcount.GetValue(), 10)
+
+        # Retrieve list of file from the snapshotted PyRDF.RDataFrame
+        input_files = snapdf.proxied_node.get_inputfiles()
+        # Remove unnecessary .root files
+        for filename in input_files:
+            os.remove(filename)

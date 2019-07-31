@@ -131,9 +131,6 @@ class OperationSupportTest(unittest.TestCase):
             backend.check_supported("Take")
 
         with self.assertRaises(Exception):
-            backend.check_supported("Snapshot")
-
-        with self.assertRaises(Exception):
             backend.check_supported("Foreach")
 
         with self.assertRaises(Exception):

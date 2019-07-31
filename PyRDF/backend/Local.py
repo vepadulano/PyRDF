@@ -27,7 +27,6 @@ class Local(Backend):
         super(Local, self).__init__(config)
         operations_not_supported = [
             'Take',
-            'Snapshot',
             'Foreach',
             'Reduce',
             'Aggregate',
@@ -73,7 +72,7 @@ class Local(Backend):
         # values[0].GetValue()  # Trigger event-loop
 
         for i in range(len(values)):
-            if nodes[i].operation.name == "AsNumpy":
+            if nodes[i].operation.name in ["AsNumpy", "Snapshot"]:
                 nodes[i].value = values[i]
             else:
                 # Set the obtained values and
