@@ -125,6 +125,7 @@ dependencies:
   - notebook=5.7.8=py27_0
   - numpy=1.16.4=py27h99e49ec_0
   - numpy-base=1.16.4=py27h2f8d375_0
+  - openjdk=8.0.152=h46b5887_1
   - openssl=1.1.1c=h7b6447c_1
   - packaging=19.0=py27_0
   - pandas=0.24.2=py27he6710b0_0
