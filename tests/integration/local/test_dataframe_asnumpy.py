@@ -5,7 +5,6 @@ import unittest
 class RDataFrameAsNumpy(unittest.TestCase):
     """Test `AsNumpy` functionality for RDataFrame"""
 
-    @unittest.expectedFailure
     def test_asnumpy_return_arrays(self):
         """Test support for `AsNumpy` pythonization in local backend"""
         import numpy
