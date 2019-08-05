@@ -112,11 +112,15 @@ Since release [0.1.0](https://github.com/JavierCVilla/PyRDF/releases/tag/v0.1.0)
   ```python
   # Configure PyRDF to run on Spark splitting the dataset into 32 partitions
   PyRDF.use("spark", {'npartitions': '32'})
-
-  # Add python module (temporal)
-  sc.addPyFile("./PyRDF.zip")
   ```
 
   The second parameter of `PyRDF.use` allows us to add some configuration to the Spark context such as the number of partitions, modify this number to suit your needs.
 
-#### 7. Have a look at the [demos](#pyrdf-demos) to see examples of use.
+#### 7. (optional) Type the following in a cell to ship your custom PyRDF to the Spark workers during the analysis:
+
+  ```python
+  # Add python module (temporal)
+  sc.addPyFile("./PyRDF.zip")
+  ```
+
+#### 8. Have a look at the [demos](#pyrdf-demos) to see examples of use.
