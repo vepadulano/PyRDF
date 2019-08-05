@@ -29,25 +29,7 @@ Since release [0.1.0](https://github.com/JavierCVilla/PyRDF/releases/tag/v0.1.0)
   git clone https://github.com/JavierCVilla/PyRDF
   ```
 
-#### 5. Go to PyRDF main directory:
-
-  ```
-  cd PyRDF
-  ```
-
-#### 6. Install PyRDF in your current SWAN session:
-
-  ```
-  python setup.py install --user
-  ```
-
-#### 7. Go back to your project directory:
-
-  ```
-  cd ../
-  ```
-
-#### 8. (optional) If you are going to work with Spark, PyRDF needs to be sent to the remote workers as well. The next command creates a zip file with the content of the module:
+#### 5. (optional) If you are going to work with Spark, PyRDF needs to be sent to the remote workers as well. The next command creates a zip file with the content of the module:
 
   ```
   python PyRDF/demos/swan-setup.py
