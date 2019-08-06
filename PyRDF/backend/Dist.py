@@ -457,21 +457,18 @@ class Dist(Backend):
             # rdf_range = rdf.Range(current_range.start, current_range.end)
 
             # Output of the callable
-            output = callable_function(rdf, range=current_range)
+            output = callable_function(rdf, rdf_range=current_range)
 
             for i in range(len(output)):
-<<<<<<< HEAD
+                # `AsNumpy` and `Snapshot` return respectively `dict` and `list`
+                # that don't have the `GetValue` method.
                 if isinstance(output[i], dict):
                     # Fix class name to 'ndarray' to avoid issues with
                     # Pickle protocol 2
                     for value in output[i].values():
                         value.__class__.__name__ = "ndarray"
-=======
-                # `AsNumpy` and `Snapshot` return respectively `dict` and `list`
-                # that don't have the `GetValue` method.
-                if (isinstance(output[i], dict) or
-                        isinstance(output[i], list)):
->>>>>>> [WIP] Support Snapshot operation
+                    continue
+                if isinstance(output[i], list):
                     continue
                 # FIX ME : RResultPtrs aren't serializable,
                 # because of which we have to manually find

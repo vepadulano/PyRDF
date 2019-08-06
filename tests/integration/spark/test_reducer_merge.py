@@ -201,7 +201,7 @@ class ReducerMergeTest(unittest.TestCase):
     def test_distributed_snapshot(self):
         """Test support for `Snapshot` in distributed backend"""
         # A simple dataframe with ten sequential numbers from 0 to 9
-        df = PyRDF.RDataFrame(10).Define("x", "(int)rdfentry_")
+        df = PyRDF.RDataFrame(10).Define("x", "rdfentry_")
 
         # Count rows in the dataframe
         nrows = df.Count()
@@ -218,6 +218,8 @@ class ReducerMergeTest(unittest.TestCase):
 
         # Retrieve list of file from the snapshotted PyRDF.RDataFrame
         input_files = snapdf.proxied_node.get_inputfiles()
-        # Remove unnecessary .root files
+        # Check that the intermediary .root files were created
+        # Then remove them because they are not necessary
         for filename in input_files:
+            self.assertTrue(os.path.exists(filename))
             os.remove(filename)

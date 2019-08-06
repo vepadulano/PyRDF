@@ -59,7 +59,7 @@ class CallableGenerator(object):
         # Prune the graph to check user references
         self.head_node.graph_prune()
 
-        def mapper(node_cpp, node_py=None, range=None):
+        def mapper(node_cpp, node_py=None, rdf_range=None):
             """
             The callable that recurses through the PyRDF nodes and executes
             operations from a starting (PyROOT) RDF node.
@@ -69,6 +69,9 @@ class CallableGenerator(object):
                     should be given in as a PyROOT RDataFrame object.
                 node_py (optional): The current state's PyRDF node. If `None`,
                     it takes the value of `self.head_node`.
+                rdf_range (optional): The current range of the RDataFrame to run
+                    the analysis on. This is an helper parameter for the
+                    analysis in a distributed environment.
 
             Returns:
                 list: A list of :obj:`ROOT.RResultPtr` objects in DFS order of
@@ -76,8 +79,8 @@ class CallableGenerator(object):
             """
             return_vals = []
 
-            if range:
-                parent_node = node_cpp.Range(range.start, range.end)
+            if rdf_range:
+                parent_node = node_cpp.Range(rdf_range.start, rdf_range.end)
             else:
                 parent_node = node_cpp
 
@@ -91,11 +94,11 @@ class CallableGenerator(object):
                 RDFOperation = getattr(node_cpp, node_py.operation.name)
                 operation = node_py.operation
 
-                if range and operation.name == "Snapshot":
+                if rdf_range and operation.name == "Snapshot":
                     # Retrieve filename and append range boundaries
                     filename = operation.args[1].split(".")[0]
-                    start = str(range.start)
-                    end = str(range.end - 1)
+                    start = str(rdf_range.start)
+                    end = str(rdf_range.end - 1)
                     path_with_range = "{}_{}_{}.root".format(filename,
                                                              start, end)
                     # Create a partial snapshot on the current range
@@ -120,14 +123,14 @@ class CallableGenerator(object):
                     # Collect all action nodes in order to return them
                     # If it's a distributed snapshot return only path to
                     # the file with the partial snapshot
-                    if range and operation.name == "Snapshot":
+                    if rdf_range and operation.name == "Snapshot":
                         return_vals.append([path_with_range])
                     else:
                         return_vals.append(pyroot_node)
 
             for n in node_py.children:
                 # Recurse through children and get their output
-                prev_vals = mapper(parent_node, node_py=n, range=range)
+                prev_vals = mapper(parent_node, node_py=n, rdf_range=rdf_range)
 
                 # Attach the output of the children node
                 return_vals.extend(prev_vals)

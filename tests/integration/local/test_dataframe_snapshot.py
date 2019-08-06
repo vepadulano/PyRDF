@@ -10,8 +10,7 @@ class RDataFrameSnapshot(unittest.TestCase):
         """Test support for `Snapshot` in local backend"""
         def fill_tree(treeName, fileName):
             rdf = PyRDF.RDataFrame(100)
-            return rdf.Define("b1", "(int) rdfentry_")\
-                      .Define("b2", "(float) rdfentry_ * rdfentry_")\
+            return rdf.Define("b1", "rdfentry_")\
                       .Snapshot(treeName, fileName)
 
         # We prepare an input tree to run on
