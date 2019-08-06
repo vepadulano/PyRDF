@@ -461,6 +461,10 @@ class Dist(Backend):
 
             for i in range(len(output)):
                 if isinstance(output[i], dict):
+                    # Fix class name to 'ndarray' to avoid issues with
+                    # Pickle protocol 2
+                    for value in output[i].values():
+                            value.__class__.__name__ = "ndarray"
                     continue
                 # FIX ME : RResultPtrs aren't serializable,
                 # because of which we have to manually find
