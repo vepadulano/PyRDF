@@ -464,7 +464,7 @@ class Dist(Backend):
                     # Fix class name to 'ndarray' to avoid issues with
                     # Pickle protocol 2
                     for value in output[i].values():
-                            value.__class__.__name__ = "ndarray"
+                        value.__class__.__name__ = "ndarray"
                     continue
                 # FIX ME : RResultPtrs aren't serializable,
                 # because of which we have to manually find
