@@ -7,45 +7,10 @@ The following demos are available in SWAN:
 | [ROOT df102 Tutorial](df102_NanoAODDimuonAnalysis.ipynb) |  NanoAOD Dimuon Analysis |  <a href="https://cern.ch/swanserver/cgi-bin/go?projurl=https://raw.githubusercontent.com/JavierCVilla/PyRDF/new-demo/demos/df102_NanoAODDimuonAnalysis.ipynb" target="_blank"><img src="http://swanserver.web.cern.ch/swanserver/images/badge_swan_white_150.png" alt="Open in SWAN" style="height:1.3em"></a> |
 | [RDF Demo](RDF_demo.ipynb) | Dimuon invariant mass spectrum plot | <a href="https://cern.ch/swanserver/cgi-bin/go?projurl=https://raw.githubusercontent.com/JavierCVilla/PyRDF/new-demo/demos/RDF_demo.ipynb" target="_blank"><img src="http://swanserver.web.cern.ch/swanserver/images/badge_swan_white_150.png" alt="Open in SWAN" style="height:1.3em"></a> |
 
-Since release [0.1.0](https://github.com/JavierCVilla/PyRDF/releases/tag/v0.1.0) PyRDF is part of the [LCG Releases](http://lcginfo.cern.ch/pkg/PyRDF/). This means that you can use it on SWAN straight away via `import PyRDF` in a notebook. If you developed your custom PyRDF version, or you want to use the very latest features we provide, the next paragraph will show you how to do that.
+Since release [0.1.0](https://github.com/JavierCVilla/PyRDF/releases/tag/v0.1.0) PyRDF is part of the [LCG Releases](http://lcginfo.cern.ch/pkg/PyRDF/). This means that you can use it on SWAN straight away via `import PyRDF` in a notebook.
 
-## Custom PyRDF on SWAN HOW-TO
-
-#### 1. Enter to [SWAN](swan.cern.ch)
-
-#### 2. Open a terminal in SWAN:
-
-  ![](images/swan-tutorial-1.png)
-
-#### 3. Go to your project folder:
-
-  ```
-  cd SWAN_projects/<Project_PATH>
-  ```
-
-#### 4. Clone the PyRDF repository from Github:
-
-  ```
-  git clone https://github.com/JavierCVilla/PyRDF
-  ```
-
-#### 5. (optional) If you are going to work with Spark, PyRDF needs to be sent to the remote workers as well. The next command creates a zip file with the content of the module:
-
-  ```
-  python PyRDF/demos/swan-setup.py
-  ```
-
-#### 9. You can now go to your notebook. Type the following in the first cell:
-
-  ```python
-  import sys
-  # Tell python to first look for PyRDF in this folder
-  # otherwise it will pick up the LCG Releases package.
-  sys.path.insert(0, "path/to/custom/PyRDF")
-  import PyRDF
-  ```
-
-#### 10. Proceed with your analysis as usual.
+* [Section 1](#connecting-to-the-spark-cluster-on-swan-with-pyrdf) will show you how to exploit the potential of the Spark cluster with PyRDF.
+* [Section 2](#ustom-pyrdf-on-swan-how-to) should serve you if you developed your own custom version of PyRDF, or if you want to use the very latest features we provide.
 
 ## Connecting to the Spark Cluster on SWAN with PyRDF
 
@@ -59,7 +24,7 @@ Since release [0.1.0](https://github.com/JavierCVilla/PyRDF/releases/tag/v0.1.0)
 
  ![](images/swan-tutorial-2.png)
 
-#### 4. (optional) If you want to ship a custom version of PyRDF to the workers, provided you followed the steps in the previous [section](#custom-pyrdf-on-swan-how-to), you should configure the SparkContext as follows:
+#### 4. (optional) If you want to ship a custom version of PyRDF to the workers, provided you followed the steps in this [section](#custom-pyrdf-on-swan-how-to), you should configure the SparkContext as follows:
 
   ```
   "sparkconnect": {
@@ -106,3 +71,41 @@ Since release [0.1.0](https://github.com/JavierCVilla/PyRDF/releases/tag/v0.1.0)
   ```
 
 #### 8. Have a look at the [demos](#pyrdf-demos) to see examples of use.
+
+## Custom PyRDF on SWAN HOW-TO
+
+#### 1. Enter to [SWAN](swan.cern.ch)
+
+#### 2. Open a terminal in SWAN:
+
+  ![](images/swan-tutorial-1.png)
+
+#### 3. Go to your project folder:
+
+  ```
+  cd SWAN_projects/<Project_PATH>
+  ```
+
+#### 4. Clone the PyRDF repository from Github:
+
+  ```
+  git clone https://github.com/JavierCVilla/PyRDF
+  ```
+
+#### 5. (optional) If you are going to work with Spark, PyRDF needs to be sent to the remote workers as well. The next command creates a zip file with the content of the module:
+
+  ```
+  python PyRDF/demos/swan-setup.py
+  ```
+
+#### 6. You can now go to your notebook. Type the following in the first cell:
+
+  ```python
+  import sys
+  # Tell python to first look for PyRDF in this folder
+  # otherwise it will pick up the LCG Releases package.
+  sys.path.insert(0, "path/to/custom/PyRDF")
+  import PyRDF
+  ```
+
+#### 7. Proceed with your analysis as usual.
