@@ -1,3 +1,6 @@
+import ntpath  # Filename from path (should be platform-independent)
+
+
 class CallableGenerator(object):
     """
     Class that generates a callable to parse a PyRDF graph.
@@ -96,7 +99,7 @@ class CallableGenerator(object):
 
                 if rdf_range and operation.name == "Snapshot":
                     # Retrieve filename and append range boundaries
-                    filename = operation.args[1].split(".")[0]
+                    filename = ntpath.basename(operation.args[1]).split(".")[0]
                     start = str(rdf_range.start)
                     end = str(rdf_range.end - 1)
                     path_with_range = "{}_{}_{}.root".format(filename,

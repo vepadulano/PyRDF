@@ -218,8 +218,12 @@ class ReducerMergeTest(unittest.TestCase):
 
         # Retrieve list of file from the snapshotted PyRDF.RDataFrame
         input_files = snapdf.proxied_node.get_inputfiles()
-        # Check that the intermediary .root files were created
-        # Then remove them because they are not necessary
-        for filename in input_files:
+        # Create list of supposed filenames for the intermediary files
+        tmp_files = ["snapFile_0_4.root", "snapFile_5_9.root"]
+        # Check that the two lists are the same
+        self.assertListEqual(input_files, tmp_files)
+        # Check that the intermediary .root files were created with the right
+        # names, then remove them because they are not necessary
+        for filename in tmp_files:
             self.assertTrue(os.path.exists(filename))
             os.remove(filename)

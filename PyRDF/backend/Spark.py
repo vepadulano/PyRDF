@@ -3,7 +3,7 @@ from PyRDF.backend.Dist import Dist
 from PyRDF.backend.Utils import Utils
 from pyspark import SparkConf, SparkContext
 from pyspark import SparkFiles
-import ntpath
+import ntpath  # Filename from path (should be platform-independent)
 
 
 class Spark(Dist):
