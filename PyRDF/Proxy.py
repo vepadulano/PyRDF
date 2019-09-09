@@ -4,6 +4,27 @@ from abc import ABCMeta, abstractmethod
 from PyRDF.Operation import Operation
 from PyRDF.Node import Node
 import logging
+import ROOT
+from contextlib import contextmanager
+
+
+@contextmanager
+def _managed_tcontext():
+    """
+    Factory function, decorated with `contextlib.contextmanager` to make it
+    work in a `with` context manager. It creates a `ROOT.TDirectory.TContext`
+    that will store the current `ROOT.gDirectory` variable. At the end of the
+    context, the C++ destructor of the `TContext` object will be explicitly
+    called, thanks to the `__destruct__` dunder method implemented in PyROOT.
+    This will restore the `gDirectory` variable to its initial value, allowing
+    changing it in the context manager without permanent effects.
+    """
+    try:
+        ctxt = ROOT.TDirectory.TContext()
+        yield None
+    finally:
+        ctxt.__destruct__()
+
 
 # Abstract class declaration
 # This ensures compatibility between Python 2 and 3 versions, since in
@@ -79,9 +100,13 @@ class ActionProxy(Proxy):
             current action node in the computational graph.
         """
         from PyRDF import current_backend
-        if not self.proxied_node.value:  # If event-loop not triggered
-            generator = CallableGenerator(self.proxied_node.get_head())
-            current_backend.execute(generator)
+
+        # Creating a ROOT.TDirectory.TContext in a context manager so that
+        # ROOT.gDirectory won't be changed by the event loop execution.
+        with _managed_tcontext():
+            if not self.proxied_node.value:  # If event-loop not triggered
+                generator = CallableGenerator(self.proxied_node.get_head())
+                current_backend.execute(generator)
 
         return self.proxied_node.value
 
