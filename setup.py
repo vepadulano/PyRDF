@@ -14,7 +14,7 @@ if sys.version_info >= (3,):
 setup(
     name='PyRDF',
     packages=find_packages(),
-    version='0.1.0',
+    version='0.2.0',
     description='Python Library for doing RDataFrame Analysis',
     author='Shravan Murali',
     author_email='shravanmurali@gmail.com',
