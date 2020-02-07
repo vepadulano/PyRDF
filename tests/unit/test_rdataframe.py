@@ -189,13 +189,12 @@ class NumEntriesTest(unittest.TestCase):
 
         """
         tree = ROOT.TTree("tree", "test")  # Create tree
-        tree.Branch("x", 1)
-        tree.Branch("y", 2)
-        num_entries = 4
+        v = ROOT.std.vector("int")(4)  # Create a vector of 0s of size 4
+        tree.Branch("vectorb", v)  # Create branch to hold the vector
 
-        for i in range(num_entries):
-            # Fill the tree with the same branches
-            tree.Fill()
+        for i in range(4):
+            v[i] = 1  # Change the vector element to 1
+            tree.Fill()  # Fill the tree with that element
 
         rdf = RDataFrame(tree)
 
