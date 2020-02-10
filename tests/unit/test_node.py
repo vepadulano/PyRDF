@@ -19,7 +19,7 @@ class OperationReadTest(unittest.TestCase):
         """Arguments (unnamed) are read accurately."""
         node = TransformationProxy(Node(None, None))
         newNode = node.Define(1, "b", a="1", b=2)
-        self.assertEqual(newNode.operation.args, (1, "b"))
+        self.assertEqual(newNode.operation.args, [1, "b"])
 
     def test_kwargs_read(self):
         """Named arguments are read accurately."""
@@ -282,7 +282,7 @@ class DunderMethodsTest(unittest.TestCase):
         node_dict = {"children": [n1.proxied_node]}
         n1_dict = {
             'operation_name': "Define",
-            'operation_args': ("a",),
+            'operation_args': ["a"],
             'operation_kwargs': {"b": "c"},
             'children': []
         }
@@ -304,7 +304,7 @@ class DunderMethodsTest(unittest.TestCase):
         node_dict = {"children": [n1]}
         n1_dict = {
             'operation_name': "Define",
-            'operation_args': ("a",),
+            'operation_args': ["a"],
             'operation_kwargs': {"b": "c"},
             'children': []
         }

@@ -67,9 +67,9 @@ class AttrReadTest(unittest.TestCase):
         proxy = TransformationProxy(node)
 
         transformations = {
-            "Define": ("x", "tdfentry_"),
-            "Filter": ("tdfentry_ > 0",),
-            "Range": ("tdfentry_",)
+            "Define": ["x", "tdfentry_"],
+            "Filter": ["tdfentry_ > 0"],
+            "Range": ["tdfentry_"]
         }
 
         for transformation, args in transformations.items():

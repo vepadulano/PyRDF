@@ -102,11 +102,9 @@ class CallableGenerator(object):
                     path_with_range = "{}_{}_{}.root".format(filename,
                                                              start, end)
                     # Create a partial snapshot on the current range
-                    pyroot_node = RDFOperation(operation.args[0],
-                                               path_with_range)
-                else:
-                    pyroot_node = RDFOperation(*operation.args,
-                                               **operation.kwargs)
+                    operation.args[1] = path_with_range
+                pyroot_node = RDFOperation(*operation.args,
+                                           **operation.kwargs)
 
                 # The result is a pyroot object which is stored together with
                 # the pyrdf node. This binds the pyroot object lifetime to the

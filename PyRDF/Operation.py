@@ -48,7 +48,7 @@ class Operation(object):
         kwargs (dict): Keyword arguments for the current operation.
         """
         self.name = name
-        self.args = args
+        self.args = list(args)
         self.kwargs = kwargs
         self.op_type = self._classify_operation(name)
 
