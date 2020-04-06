@@ -168,7 +168,6 @@ class ReducerMergeTest(unittest.TestCase):
 
         self.assertAlmostEqual(rdf_sum.GetValue(), 45.0)
 
-    @unittest.expectedFailure
     def test_distributed_asnumpy(self):
         """Test support for `AsNumpy` pythonization in distributed backend"""
         import numpy
