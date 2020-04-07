@@ -156,7 +156,7 @@ class Dist(Backend):
         offset = 0
 
         for filename in filelist:
-            f = ROOT.TFile.Open(filename)
+            f = ROOT.TFile.Open(str(filename))
             t = f.Get(treename)
 
             entries = t.GetEntriesFast()
@@ -418,7 +418,7 @@ class Dist(Backend):
                 # Build TChain of files for this range:
                 chain = ROOT.TChain(treename)
                 for f in current_range.filelist:
-                    chain.Add(f)
+                    chain.Add(str(f))
 
                 # We assume 'end' is exclusive
                 chain.SetCacheEntryRange(start, end)

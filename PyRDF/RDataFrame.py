@@ -136,7 +136,7 @@ class HeadNode(Node):
         else:
             # If the second argument is a list or vector
             for fname in second_arg:
-                chain.Add(fname)
+                chain.Add(str(fname))
 
         return chain.GetEntries()
 
