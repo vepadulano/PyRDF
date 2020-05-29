@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 import sys
 
 req_file = open('requirements.txt', 'r')
-req_list = [l.strip() for l in req_file]
+req_list = [file_line.strip() for file_line in req_file]
 
 extra = {}
 if sys.version_info >= (3,):
