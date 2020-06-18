@@ -508,12 +508,13 @@ class Dist(Backend.Backend):
             callable.
 
             Args:
-                current_range (tuple): A pair that contains the starting and
-                    ending values of the current range.
+                current_range (Range): A Range named tuple, representing the
+                    range of entries to be processed, their input files and
+                    information about friend trees.
 
             Returns:
-                list: This respresents the list of values of all action nodes
-                in the computational graph.
+                list: This respresents the list of (mergeable)values of all
+                action nodes in the computational graph.
             """
             import ROOT
 
@@ -572,92 +573,60 @@ class Dist(Backend.Backend):
             # Output of the callable
             output = callable_function(rdf, rdf_range=current_range)
 
-            for i in range(len(output)):
-                # `AsNumpy` and `Snapshot` return respectively `dict` and `list`
-                # that don't have the `GetValue` method.
-                if isinstance(output[i], (dict, list)):
-                    continue
-                # FIX ME : RResultPtrs aren't serializable,
-                # because of which we have to manually find
-                # out the types here and copy construct the
-                # values.
+            mergeables = [
+                resultptr  # Here resultptr is already the result value
+                if isinstance(resultptr, (dict, list))
+                else ROOT.ROOT.Detail.RDF.GetMergeableValue(resultptr)
+                for resultptr in output
+            ]
+            return mergeables
 
-                # The type of the value of the action node
-                value_type = type(output[i].GetValue())
-                # The `value_type` is required here because,
-                # after a call to `GetValue`, the values die
-                # along with the RResultPtrs
-                output[i] = value_type(output[i].GetValue())
-            return output
-
-        def reducer(values_list1, values_list2):
+        def reducer(mergeables_out, mergeables_in):
             """
             Merges two given lists of values that were
             returned by the mapper function for two different
             ranges.
 
             Args:
-                values_list1 (list): A list of computed values for a given
-                    entry range in a dataset.
+                mergeables_out (list): A list of computed (mergeable)values for
+                    a given entry range in a dataset. The elements of this list
+                    will be updated with the information contained in the
+                    elements of the other argument list.
 
-                values_list2 (list): A list of computed values for a given
-                    entry range in a dataset.
+                mergeables_in (list): A list of computed (mergeable)values for
+                    a given entry range in a dataset.
 
             Returns:
-                list: This is a list of values obtained after merging two
-                given lists.
+                list: The list of updated (mergeable)values.
             """
+
             import ROOT
 
-            for i in range(len(values_list1)):
-                # A bunch of if-else conditions to merge two values
-
+            # We still need the list index to modify results of `Snapshot` and
+            # `AsNumpy` in place.
+            for index, (mergeable_out, mergeable_in) in enumerate(
+                    zip(mergeables_out, mergeables_in)):
                 # Create a global list with all the files of the partial
-                # snapshots
-                if isinstance(values_list1[i], list):
-                    values_list1[i].extend(values_list2[i])
+                # snapshots.
+                if isinstance(mergeable_out, list):
+                    mergeables_out[index].extend(mergeable_in)
 
-                elif isinstance(values_list1[i], dict):
-                    combined = {
-                        key: numpy.concatenate([values_list1[i][key],
-                                                values_list2[i][key]])
-                        for key in values_list1[i]
+                # Concatenate the partial numpy arrays along the same key of
+                # the dictionary.
+                elif isinstance(mergeable_out, dict):
+                    mergeables_out[index] = {
+                        key: numpy.concatenate([mergeable_out[key],
+                                                mergeable_in[key]])
+                        for key in mergeable_out
                     }
-                    values_list1[i] = combined
-                elif (isinstance(values_list1[i], ROOT.TH1) or
-                      isinstance(values_list1[i], ROOT.TH2)):
-                    # Merging two objects of type ROOT.TH1D or ROOT.TH2D
-                    values_list1[i].Add(values_list2[i])
 
-                elif isinstance(values_list1[i], ROOT.TGraph):
-                    # Prepare a TList
-                    tlist = ROOT.TList()
-                    tlist.Add(values_list2[i])
-
-                    # Merge the second graph onto the first
-                    num_points = values_list1[i].Merge(tlist)
-
-                    # Check if there was an error in merging
-                    if num_points == -1:
-                        msg = "Error reducing two result values of type TGraph!"
-                        raise Exception(msg)
-
-                elif isinstance(values_list1[i], float):
-                    # Adding values resulting from a Sum() operation
-                    # Sum() always returns a float in python
-                    values_list1[i] += values_list2[i]
-
-                elif (isinstance(values_list1[i], int) or
-                        isinstance(values_list1[i], long)):  # noqa: Python 2
-                    # Adding values resulting from a Count() operation
-                    values_list1[i] += values_list2[i]
-
+                # The `MergeValues` function modifies the arguments in place
+                # so there's no need to access the list elements.
                 else:
-                    msg = ("Type \"{}\" is not supported by the reducer yet!"
-                           .format(type(values_list1[i])))
-                    raise NotImplementedError(msg)
+                    ROOT.ROOT.Detail.RDF.MergeValues(
+                        mergeable_out, mergeable_in)
 
-            return values_list1
+            return mergeables_out
 
         # Get number of entries in the input dataset using
         # arguments passed to RDataFrame constructor
@@ -702,8 +671,10 @@ class Dist(Backend.Backend):
                 # Create a new rdf with the chain and return that to user
                 snapshot_rdf = PyRDF.RDataFrame(snapshot_chain)
                 node.value = snapshot_rdf
-            else:
+            elif node.operation.name == "AsNumpy":
                 node.value = value
+            else:
+                node.value = value.GetValue()
 
     @abstractmethod
     def ProcessAndMerge(self, mapper, reducer):

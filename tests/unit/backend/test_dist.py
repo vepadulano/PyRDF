@@ -453,8 +453,17 @@ class DistRDataFrameInterface(unittest.TestCase):
             Return a mock list of a single value.
 
             """
-            values = [1]
-            return values
+
+            class DummyValue(object):
+                """
+                Dummy value class to avoid triggering Spark execution. Needed
+                to provide a `GetValue` method to call in `Dist.execute`.
+                """
+
+                def GetValue(self):
+                    return 1
+
+            return [DummyValue()]
 
         def distribute_files(self, includes_list):
             """
