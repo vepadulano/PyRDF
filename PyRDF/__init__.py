@@ -7,7 +7,6 @@ from PyRDF.backend.Utils import Utils
 import os
 import logging
 import sys
-from pyspark import SparkContext
 
 current_backend = Local()
 
@@ -62,9 +61,6 @@ def use(backend_name, conf={}):
         raise NotImplementedError(msg)
     elif backend_name == "local":
         current_backend = Local(conf)
-        # Retrieve current Spark context if present and stop it
-        cur_context = SparkContext.getOrCreate()
-        cur_context.stop()
     elif backend_name == "spark":
         from PyRDF.backend.Spark import Spark
         current_backend = Spark(conf)
