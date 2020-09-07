@@ -403,6 +403,10 @@ class Dist(Backend):
             """
             import ROOT
 
+            ROOT.gEnv.SetValue("TFile.AsyncPrefetching", 1)
+            # Common path for all workers to cache data
+            ROOT.gEnv.SetValue("Cache.Directory", "file:/root/Projects/pyrdf-cache/cache/")
+
             # We have to decide whether to do this in Dist or in subclasses
             # Utils.declare_headers(worker_includes)  # Declare headers if any
 
@@ -413,6 +417,10 @@ class Dist(Backend):
             # Build rdf
             start = int(current_range.start)
             end = int(current_range.end)
+
+            print("\n\n##################################################\n\n")
+            print("Working on range: {} - {}".format(start, end))
+            print("\n\n##################################################\n\n")
 
             if treename:
                 # Build TChain of files for this range:
