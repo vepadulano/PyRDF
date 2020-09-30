@@ -1,12 +1,12 @@
-name: ci-py37
+name: ci-py27
 channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.8
+  - python=2.7
   - flake8
   - pytest
   - numpy
-  - openjdk=11
-  - pyspark=3
+  - openjdk=8
+  - pyspark=2.4
   - root

@@ -1,5 +1,6 @@
-name: ci-py37
+name: ci-py38
 channels:
+  - https://root.cern/download/conda-nightly/latest
   - conda-forge
   - defaults
 dependencies:
@@ -9,4 +10,4 @@ dependencies:
   - numpy
   - openjdk=11
   - pyspark=3
-  - root
+  - root=6.23

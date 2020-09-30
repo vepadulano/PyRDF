@@ -10,15 +10,17 @@ matrix:
     # should currently be able to use Python 2.6, 2.7, or 3.3 or later.
 
     - stage: 'style checks'
-      python: '2.7.15'
+      python: '3.7'
       language: python
       env: TEST_SUITE=flake8
     - stage: 'unit tests'
-      python: '2.7.15'
-      env: TEST_SUITE=unit
+      python: '2.7'
       language: python
+      env: TEST_SUITE=unit
     - python: '3.7'
-      os: linux
+      language: python
+      env: TEST_SUITE=unit
+    - python: '3.8'
       language: python
       env: TEST_SUITE=unit
 
@@ -48,3 +50,4 @@ install:
 
 script:
   - bash .travis-$TEST_SUITE-script.sh
+
