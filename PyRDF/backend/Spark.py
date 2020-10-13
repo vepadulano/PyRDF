@@ -3,6 +3,7 @@ from PyRDF.backend.Dist import Dist
 from PyRDF.backend.Utils import Utils
 from pyspark import SparkConf, SparkContext
 from pyspark import SparkFiles
+from pyspark import StorageLevel
 import ntpath  # Filename from path (should be platform-independent)
 
 
@@ -48,6 +49,8 @@ class Spark(Dist):
 
         # Set the value of 'npartitions' if it doesn't exist
         self.npartitions = self._get_partitions()
+
+        self.parallel_collection = None
 
     def _get_partitions(self):
         npart = (self.npartitions or
@@ -106,11 +109,13 @@ class Spark(Dist):
         ranges = self.build_ranges()  # Get range pairs
 
         # Build parallel collection
-        sc = self.sparkContext
-        parallel_collection = sc.parallelize(ranges, self.npartitions)
+        if self.parallel_collection is None:
+            sc = self.sparkContext
+            self.parallel_collection = sc.parallelize(ranges, self.npartitions)
+            self.parallel_collection.persist(StorageLevel.MEMORY_ONLY)
 
         # Map-Reduce using Spark
-        return parallel_collection.map(spark_mapper).treeReduce(reducer)
+        return self.parallel_collection.map(spark_mapper).treeReduce(reducer)
 
     def distribute_files(self, includes_list):
         """

@@ -405,7 +405,7 @@ class Dist(Backend):
 
             ROOT.gEnv.SetValue("TFile.AsyncPrefetching", 1)
             # Common path for all workers to cache data
-            ROOT.gEnv.SetValue("Cache.Directory", "file:/root/Projects/pyrdf-cache/cache/")
+            ROOT.gEnv.SetValue("Cache.Directory", "file:cache/")
 
             # We have to decide whether to do this in Dist or in subclasses
             # Utils.declare_headers(worker_includes)  # Declare headers if any
