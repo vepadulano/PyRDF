@@ -6,41 +6,19 @@ import glob
 import warnings
 import ROOT
 import numpy
+from collections import namedtuple
+
+Range = namedtuple(
+    "Range", ["start", "end", "filelist", "friend_info"], defaults=[None, None])
 
 
-class Range(object):
-    """
-    Base class to represent ranges.
-
-    A range represents a logical partition of the entries of a chain and is
-    the basis for parallelization. First entry of the range (start) is
-    inclusive while the second one is not (end).
-    """
-
-    def __init__(self, start, end, filelist=None, friend_info=None):
-        """
-        Create an instance of a Range
-
-        Args:
-            start (int): First entry of the range.
-
-            end (int): Last entry of the range, which is exclusive.
-
-            filelist (list, optional): Files where the range of entries
-                belongs to.
-        """
-        self.start = start
-        self.end = end
-        self.filelist = filelist
-        self.friend_info = friend_info
-
-    def __repr__(self):
-        """Return a string representation of the range composition."""
-        if self.filelist:
-            return ("(" + str(self.start) + "," + str(self.end) + "), " +
-                    str(self.filelist))
-        else:
-            return "(" + str(self.start) + "," + str(self.end) + ")"
+def _n_even_chunks(iterable, n_chunks):
+    """Yield `n_chunks` as even chunks as possible from `iterable`."""
+    last = 0
+    for i in range(1, n_chunks + 1):
+        cur = int(round(i * (len(iterable) / n_chunks)))
+        yield iterable[last:cur]
+        last = cur
 
 
 class FriendInfo(object):
@@ -153,7 +131,11 @@ class Dist(Backend):
         import ROOT
 
         clusters = []
+        cluster = namedtuple(
+            "cluster", ["start", "end", "offset", "filetuple"])
+        fileandindex = namedtuple("fileandindex", ["filename", "index"])
         offset = 0
+        fileindex = 0
 
         for filename in filelist:
             f = ROOT.TFile.Open(str(filename))
@@ -166,10 +148,11 @@ class Dist(Backend):
 
             while start < entries:
                 end = it()
-                cluster = (start + offset, end + offset, offset, filename)
-                clusters.append(cluster)
+                clusters.append(cluster(start + offset, end + offset, offset,
+                                        fileandindex(filename, fileindex)))
                 start = end
 
+            fileindex += 1
             offset += entries
 
         return clusters
@@ -228,8 +211,8 @@ class Dist(Backend):
         Returns:
             list: List of :obj:`Range`s objects.
         """
-        clusters = self.get_clusters(treename, filelist)
-        numclusters = len(clusters)
+        filesandclusters = self.get_clusters(treename, filelist)
+        numclusters = len(filesandclusters)
 
         # Restrict 'npartitions' if it's greater
         # than number of clusters in the filelist
@@ -240,41 +223,86 @@ class Dist(Backend):
             warnings.warn(msg, UserWarning, stacklevel=2)
             self.npartitions = numclusters
 
-        partSize = numclusters // self.npartitions
-        remainder = numclusters % self.npartitions
+        """
+        Split list of clusters into multiple sublists. Each sublist will hold
+        the clusters that should fit into each partition of the distributed
+        dataset, e.g.
+        [
+            # Partition 1 will process the following clusters
+            [
+                (start_0, end_0, offset_0, (filename_0, fileindex_0)),
+                (start_1, end_1, offset_1, (filename_1, fileindex_1)),
+                ...,
+                (start_n, end_n, offset_n, (filename_n, fileindex_n))
+            ],
+            # Partition 2 will process these other clusters
+            [
+                (start_n+1, end_n+1, offset_n+1, (filename_n+1, fileindex_n+1)),
+                ...,
+                (start_m, end_m, offset_m, (filename_m, fileindex_m))
+            ],
+            ...
+        ]
+        """
+        clusters_split_by_partition = list(
+            _n_even_chunks(filesandclusters, self.npartitions))
 
-        i = 0  # Iterator
-        ranges = []
-        entries_to_process = 0
+        partitions_startentries = [min(clusters)[0]
+                                   for clusters
+                                   in clusters_split_by_partition]
+        partitions_endentries = [max(clusters)[1]
+                                 for clusters in clusters_split_by_partition]
+        partitions_offset = [clusters[0].offset
+                             for clusters in clusters_split_by_partition]
 
-        while i < numclusters:
-            index_start = i
-            start = clusters[i][0]
-            i = i + partSize
-            if remainder > 0:
-                i += 1
-                remainder -= 1
-            index_end = i
-            if i == numclusters:
-                end = clusters[-1][1]
-            else:
-                end = clusters[i - 1][1]
+        """
+        This list comprehension recognizes which files should be opened when
+        reading a certain clustered range.
+        Example:
+        Filelist: [file_1,file_2,file_3,file_4]
 
-            range_files = []
-            for idx in range(index_start, index_end):
-                current_file = clusters[idx][3]
-                if range_files and range_files[-1] == current_file:
-                    continue
-                range_files.append(clusters[idx][3])
+        Clustered range: [0,150]
+        file_1 holds entries [0, 100]
+        file_2 holds entries [101, 200]
+        Then the clustered range should open [file_1, file_2]
 
-            offset_first_cluster = clusters[index_start][2]
-            ranges.append(Range(start - offset_first_cluster,
-                                end - offset_first_cluster,
-                                range_files,
-                                friend_info))
-            entries_to_process += (end - start)
+        Clustered range: [150,350]
+        file_3 holds entris [201, 300]
+        file_4 holds entries [301, 400]
+        Then the clustered range should open [file_2, file_3, file_4]
 
-        return ranges
+        To extract the right files for each range we use a file index in the
+        input `fileandindex` tuple that is present in each `cluster` tuple.
+        The file index corresponds to the index of the file in the input
+        `TChain` so that we know we have to keep a file even if it has the same
+        name of the previous one.
+
+        In each file only the clusters needed to process the clustered range
+        will be read. In the end the list comprehension for the example above
+        will be of the form:
+        [
+            [file_1, file_2],
+            [file_2, file_3, file_4]
+        ]
+        """
+        partitions_filelist = [
+            [
+                filetuple.filename
+                for filetuple in set([  # set to take unique file indexes
+                    cluster.filetuple for cluster in clusters
+                ])
+            ]
+            for clusters in clusters_split_by_partition
+        ]
+
+        clustered_ranges = [
+            Range(start - offset, end - offset, range_files, friend_info)
+            for start, end, offset, range_files
+            in zip(partitions_startentries, partitions_endentries,
+                   partitions_offset, partitions_filelist)
+        ]
+
+        return clustered_ranges
 
     def _get_filelist(self, files):
         """
