@@ -1,46 +1,61 @@
 from __future__ import print_function
-import PyRDF
-from PyRDF.backend.Backend import Backend
-from abc import abstractmethod
+
+import collections
 import glob
+import logging
 import warnings
-import ROOT
+from abc import abstractmethod
+
 import numpy
+import PyRDF
+import ROOT
+from PyRDF.backend import Backend
+
+logger = logging.getLogger(__name__)
+
+Range = collections.namedtuple("Range",
+                               ["start", "end", "filelist", "friend_info"])
 
 
-class Range(object):
+def _n_even_chunks(iterable, n_chunks):
     """
-    Base class to represent ranges.
+    Yield `n_chunks` as even chunks as possible from `iterable`. Though generic,
+    this function is used in _get_clustered_ranges to split a list of clusters
+    into multiple sublists. Each sublist will hold the clusters that should fit
+    in a single partition of the distributed dataset::
 
-    A range represents a logical partition of the entries of a chain and is
-    the basis for parallelization. First entry of the range (start) is
-    inclusive while the second one is not (end).
+        [
+            # Partition 1 will process the following clusters
+            [
+                (start_0_0, end_0_0, offset_0, (filename_0, 0)),
+                (start_0_1, end_0_1, offset_0, (filename_0, 0)),
+                ...,
+                (start_1_0, end_1_0, offset_1, (filename_1, 1)),
+                (start_1_1, end_1_1, offset_1, (filename_1, 1)),
+                ...,
+                (start_n_0, end_n_0, offset_n, (filename_n, n)),
+                (start_n_1, end_n_1, offset_n, (filename_n, n)),
+                ...
+            ],
+            # Partition 2 will process these other clusters
+            [
+                (start_n+1_0, end_n+1_0, offset_n+1, (filename_n+1, n+1)),
+                (start_n+1_1, end_n+1_1, offset_n+1, (filename_n+1, n+1)),
+                ...,
+                (start_m_0, end_m_0, offset_m, (filename_m, m)),
+                (start_m_1, end_m_1, offset_m, (filename_m, m)),
+                ...
+            ],
+            ...
+        ]
+
     """
-
-    def __init__(self, start, end, filelist=None, friend_info=None):
-        """
-        Create an instance of a Range
-
-        Args:
-            start (int): First entry of the range.
-
-            end (int): Last entry of the range, which is exclusive.
-
-            filelist (list, optional): Files where the range of entries
-                belongs to.
-        """
-        self.start = start
-        self.end = end
-        self.filelist = filelist
-        self.friend_info = friend_info
-
-    def __repr__(self):
-        """Return a string representation of the range composition."""
-        if self.filelist:
-            return ("(" + str(self.start) + "," + str(self.end) + "), " +
-                    str(self.filelist))
-        else:
-            return "(" + str(self.start) + "," + str(self.end) + ")"
+    last = 0
+    itlenght = len(iterable)
+    for i in range(1, n_chunks + 1):
+        cur = int(round(i * (itlenght / n_chunks)))
+        yield iterable[last:cur]
+        last = cur
 
 
 class FriendInfo(object):
@@ -88,7 +103,7 @@ class FriendInfo(object):
         return self.__bool__()
 
 
-class Dist(Backend):
+class Dist(Backend.Backend):
     """
     Base class for implementing all distributed backends.
 
@@ -147,13 +162,29 @@ class Dist(Backend):
         Returns:
             list: List of tuples defining the cluster boundaries. Each tuple
             contains four elements: first entry of a cluster, last entry of
-            cluster, offset of the cluster and file where the cluster
-            belongs to.
+            cluster (exclusive), offset of the cluster and file where the
+            cluster belongs to::
+
+                [
+                    (0, 100, 0, ("filename_1.root", 0)),
+                    (100, 200, 0, ("filename_1.root", 0)),
+                    ...,
+                    (10000, 10100, 10000, ("filename_2.root", 1)),
+                    (10100, 10200, 10000, ("filename_2.root", 1)),
+                    ...,
+                    (n, n+100, n, ("filename_n.root", n)),
+                    (n+100, n+200, n, ("filename_n.root", n)),
+                    ...
+                ]
         """
-        import ROOT
 
         clusters = []
+        cluster = collections.namedtuple(
+            "cluster", ["start", "end", "offset", "filetuple"])
+        fileandindex = collections.namedtuple("fileandindex",
+                                              ["filename", "index"])
         offset = 0
+        fileindex = 0
 
         for filename in filelist:
             f = ROOT.TFile.Open(str(filename))
@@ -166,11 +197,15 @@ class Dist(Backend):
 
             while start < entries:
                 end = it()
-                cluster = (start + offset, end + offset, offset, filename)
-                clusters.append(cluster)
+                clusters.append(cluster(start + offset, end + offset, offset,
+                                        fileandindex(filename, fileindex)))
                 start = end
 
+            fileindex += 1
             offset += entries
+
+        logger.debug("Returning files with their clusters:\n%s",
+                     "\n\n".join(map(str, clusters)))
 
         return clusters
 
@@ -207,18 +242,18 @@ class Dist(Backend):
                 end = i = end + 1
                 remainder -= 1
 
-            ranges.append(Range(start, end))
+            ranges.append(Range(start, end, None, None))
 
         return ranges
 
-    def _get_clustered_ranges(self, nentries, treename, filelist,
+    def _get_clustered_ranges(self, treename, filelist,
                               friend_info=FriendInfo()):
         """
-        Builds range pairs taking into account the clusters of the dataset.
+        Builds ``Range`` objects taking into account the clusters of the
+        dataset. Each range will represent the entries processed within a single
+        partition of the distributed dataset.
 
         Args:
-            nentries (int): The number of entries in a dataset.
-
             treename (str): Name of the tree.
 
             filelist (list): List of ROOT files.
@@ -226,55 +261,127 @@ class Dist(Backend):
             friend_info (FriendInfo): Information about friend trees.
 
         Returns:
-            list: List of :obj:`Range`s objects.
-        """
-        clusters = self.get_clusters(treename, filelist)
-        numclusters = len(clusters)
+            list[collections.namedtuple]: List containinig the ranges in which
+            the dataset has been split for distributed execution. Each ``Range``
+            contains a starting entry, an ending entry, the list of files
+            that are traversed to get all the entries and information about
+            friend trees::
 
-        # Restrict 'npartitions' if it's greater
-        # than number of clusters in the filelist
+                [
+                    Range(start=0,
+                        end=42287856,
+                        filelist=['Run2012B_TauPlusX.root',
+                                  'Run2012C_TauPlusX.root'],
+                        friend_info=None),
+                    Range(start=6640348,
+                        end=51303171,
+                        filelist=['Run2012C_TauPlusX.root'],
+                        friend_info=None)
+                ]
+
+        """
+
+        # Retrieve a list of clusters for all files of the tree
+        clustersinfiles = self.get_clusters(treename, filelist)
+        numclusters = len(clustersinfiles)
+
+        # Restrict `npartitions` if it's greater than clusters of the dataset
         if self.npartitions > numclusters:
-            msg = ("Number of partitions is greater than number of clusters"
-                   "in the filelist")
-            msg += "\nUsing {} partition(s)".format(numclusters)
+            msg = ("Number of partitions is greater than number of clusters "
+                   "in the dataset. Using {} partition(s)".format(numclusters))
             warnings.warn(msg, UserWarning, stacklevel=2)
             self.npartitions = numclusters
 
-        partSize = numclusters // self.npartitions
-        remainder = numclusters % self.npartitions
+        logger.debug("%s clusters will be split along %s partitions.",
+                     numclusters, self.npartitions)
 
-        i = 0  # Iterator
-        ranges = []
-        entries_to_process = 0
+        """
+        This list comprehension builds ``Range`` tuples with the following
+        elements:
 
-        while i < numclusters:
-            index_start = i
-            start = clusters[i][0]
-            i = i + partSize
-            if remainder > 0:
-                i += 1
-                remainder -= 1
-            index_end = i
-            if i == numclusters:
-                end = clusters[-1][1]
-            else:
-                end = clusters[i - 1][1]
+        1. ``start``: The minimum entry among all the clusters considered in a
+           given partition. The offset of the first cluster of the list is
+           subtracted. This is useful to keep the reference of the range with
+           respect to the current files (see below).
+        2. ``end``: The maximum entry among all the clusters considered in a
+           given partition. The offset of the first cluster of the list is
+           subtracted. This is useful to keep the reference of the range with
+           respect to the current files (see below).
+        3. ``filelist``: The list of files that are span between entries
+           ``start`` and ``end``::
 
-            range_files = []
-            for idx in range(index_start, index_end):
-                current_file = clusters[idx][3]
-                if range_files and range_files[-1] == current_file:
-                    continue
-                range_files.append(clusters[idx][3])
+                Filelist: [file_1,file_2,file_3,file_4]
 
-            offset_first_cluster = clusters[index_start][2]
-            ranges.append(Range(start - offset_first_cluster,
-                                end - offset_first_cluster,
-                                range_files,
-                                friend_info))
-            entries_to_process += (end - start)
+                Clustered range: [0,150]
+                file_1 holds entries [0, 100]
+                file_2 holds entries [101, 200]
+                Then the clustered range should open [file_1, file_2]
 
-        return ranges
+                Clustered range: [150,350]
+                file_3 holds entris [201, 300]
+                file_4 holds entries [301, 400]
+                Then the clustered range should open [file_2, file_3, file_4]
+
+           Each ``cluster`` namedtuple has a ``fileandindex`` namedtuple. The
+           second element of this tuple corresponds to the index of the file in
+           the input `TChain`. This way all files can be uniquely identified,
+           even if there is some repetition (e.g. when building a TChain with
+           multiple instances of the same file). The algorithm to retrieve the
+           correct files for each range takes the unique filenames from the list
+           of clusters and sorts them by their index to keep the original order.
+
+           In each file only the clusters needed to process the clustered range
+           will be read.
+        4. ``friend_info``: Information about friend trees.
+
+        In each range, the offset of the first file is always subtracted to the
+        ``start`` and ``end`` entries. This is needed to maintain a reference of
+        the entries of the range with respect to the list of files that hold
+        them. For example, given the following files::
+
+            tree10000entries10clusters.root --> 10000 entries, 10 clusters
+            tree20000entries10clusters.root --> 20000 entries, 10 clusters
+            tree30000entries10clusters.root --> 30000 entries, 10 clusters
+
+        Building 2 ranges will lead to the following tuples::
+
+            Range(start=0,
+                  end=20000,
+                  filelist=['tree10000entries10clusters.root',
+                            'tree20000entries10clusters.root'],
+                  friend_info=None)
+
+            Range(start=10000,
+                  end=50000,
+                  filelist=['tree20000entries10clusters.root',
+                            'tree30000entries10clusters.root'],
+                  friend_info=None)
+
+        The first ``Range`` will read the first 10000 entries from the first
+        file, then switch to the second file and read the first 10000 entries.
+        The second ``Range`` will start from entry number 10000 of the second
+        file up until the end of that file (entry number 20000), then switch to
+        the third file and read the whole 30000 entries there.
+        """
+        clustered_ranges = [
+            Range(
+                min(clusters)[0] - clusters[0].offset,  # type: int
+                max(clusters)[1] - clusters[0].offset,  # type: int
+                [
+                    filetuple.filename
+                    for filetuple in sorted(set([
+                        cluster.filetuple for cluster in clusters
+                    ]), key=lambda curtuple: curtuple[1])
+                ],  # type: list[str]
+                friend_info  # type: FriendInfo
+            )  # type: collections.namedtuple
+            for clusters in _n_even_chunks(clustersinfiles, self.npartitions)
+        ]
+
+        logger.debug("Created following clustered ranges:\n%s",
+                     "\n\n".join(map(str, clustered_ranges)))
+
+        return clustered_ranges
 
     def _get_filelist(self, files):
         """
@@ -311,9 +418,16 @@ class Dist(Backend):
 
         if self.treename and self.files:
             filelist = self._get_filelist(self.files)
-            return self._get_clustered_ranges(self.nentries, self.treename,
-                                              filelist, self.friend_info)
+            logger.debug("Building clustered ranges for tree %s with the "
+                         "following input files:\n%s",
+                         self.treename,
+                         list(self.files)
+                         )
+            return self._get_clustered_ranges(self.treename, filelist,
+                                              self.friend_info)
         else:
+            logger.debug(
+                "Building balanced ranges for %d entries.", self.nentries)
             return self._get_balanced_ranges(self.nentries)
 
     def _get_friend_info(self, tree):
@@ -385,7 +499,7 @@ class Dist(Backend):
         selected_branches = generator.head_node.get_branches()
 
         # Avoid having references to the instance inside the mapper
-        initialization = Backend.initialization
+        initialization = Backend.Backend.initialization
 
         def mapper(current_range):
             """
@@ -405,7 +519,6 @@ class Dist(Backend):
 
             # We have to decide whether to do this in Dist or in subclasses
             # Utils.declare_headers(worker_includes)  # Declare headers if any
-
             # Run initialization method to prepare the worker runtime
             # environment
             initialization()

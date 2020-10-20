@@ -256,10 +256,9 @@ class DistBuildRangesTest(unittest.TestCase):
         backend = DistBuildRangesTest.TestBackend()
         treename = "TotemNtuple"
         filelist = ["tests/unit/backend/Slimmed_ntuple.root"]
-        nentries = 10
         backend.npartitions = 1
 
-        crs = backend._get_clustered_ranges(nentries, treename, filelist)
+        crs = backend._get_clustered_ranges(treename, filelist)
         ranges = rangesToTuples(crs)
 
         ranges_reqd = [(0, 10)]
@@ -277,14 +276,13 @@ class DistBuildRangesTest(unittest.TestCase):
         backend = DistBuildRangesTest.TestBackend()
         treename = "TotemNtuple"
         filelist = ["tests/unit/backend/Slimmed_ntuple.root"]
-        nentries = 10
         backend.npartitions = 2
 
         ranges_reqd = [(0, 10)]
 
         with warnings.catch_warnings(record=True) as w:
             # Trigger warning
-            crs = backend._get_clustered_ranges(nentries, treename, filelist)
+            crs = backend._get_clustered_ranges(treename, filelist)
             ranges = rangesToTuples(crs)
 
             # Verify ranges
@@ -303,10 +301,9 @@ class DistBuildRangesTest(unittest.TestCase):
         backend = DistBuildRangesTest.TestBackend()
         treename = "myTree"
         filelist = ["tests/unit/backend/2clusters.root"]
-        nentries = 1000
         backend.npartitions = 2
 
-        crs = backend._get_clustered_ranges(nentries, treename, filelist)
+        crs = backend._get_clustered_ranges(treename, filelist)
         ranges = rangesToTuples(crs)
 
         ranges_reqd = [
@@ -325,10 +322,9 @@ class DistBuildRangesTest(unittest.TestCase):
         backend = DistBuildRangesTest.TestBackend()
         treename = "myTree"
         filelist = ["tests/unit/backend/4clusters.root"]
-        nentries = 1000
         backend.npartitions = 4
 
-        crs = backend._get_clustered_ranges(nentries, treename, filelist)
+        crs = backend._get_clustered_ranges(treename, filelist)
         ranges = rangesToTuples(crs)
 
         ranges_reqd = [
@@ -349,10 +345,9 @@ class DistBuildRangesTest(unittest.TestCase):
         backend = DistBuildRangesTest.TestBackend()
         treename = "myTree"
         filelist = ["tests/unit/backend/1000clusters.root"]
-        nentries = 1000
         backend.npartitions = 4
 
-        crs = backend._get_clustered_ranges(nentries, treename, filelist)
+        crs = backend._get_clustered_ranges(treename, filelist)
         ranges = rangesToTuples(crs)
 
         ranges_reqd = [
@@ -374,10 +369,9 @@ class DistBuildRangesTest(unittest.TestCase):
         backend = DistBuildRangesTest.TestBackend()
         treename = "myTree"
         filelist = ["tests/unit/backend/1000clusters.root"]
-        nentries = 1000
         backend.npartitions = 1000
 
-        crs = backend._get_clustered_ranges(nentries, treename, filelist)
+        crs = backend._get_clustered_ranges(treename, filelist)
         ranges = rangesToTuples(crs)
 
         start = 0
