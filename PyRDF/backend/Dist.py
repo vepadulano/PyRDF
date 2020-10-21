@@ -6,7 +6,10 @@ import glob
 import warnings
 import ROOT
 import numpy
+import logging
 from collections import namedtuple
+
+logger = logging.getLogger(__name__)
 
 Range = namedtuple(
     "Range", ["start", "end", "filelist", "friend_info"], defaults=[None, None])
@@ -155,6 +158,9 @@ class Dist(Backend):
             fileindex += 1
             offset += entries
 
+        logger.debug("Returning files with their clusters:\n{}".format(
+            "\n\n".join(map(str, clusters))))
+
         return clusters
 
     def _get_balanced_ranges(self, nentries):
@@ -223,6 +229,9 @@ class Dist(Backend):
             warnings.warn(msg, UserWarning, stacklevel=2)
             self.npartitions = numclusters
 
+        logger.debug("{} clusters will be split along {} partitions.".format(
+            numclusters, self.npartitions))
+
         """
         Split list of clusters into multiple sublists. Each sublist will hold
         the clusters that should fit into each partition of the distributed
@@ -247,6 +256,10 @@ class Dist(Backend):
         clusters_split_by_partition = list(
             _n_even_chunks(filesandclusters, self.npartitions))
 
+        logger.debug("Number of clusters per partition: {}".format([
+            len(clusters) for clusters in clusters_split_by_partition
+        ]))
+
         partitions_startentries = [min(clusters)[0]
                                    for clusters
                                    in clusters_split_by_partition]
@@ -254,6 +267,13 @@ class Dist(Backend):
                                  for clusters in clusters_split_by_partition]
         partitions_offset = [clusters[0].offset
                              for clusters in clusters_split_by_partition]
+
+        logger.debug("Partition boundaries (start, end, offset): {}".format([
+            (start, end, offset)
+            for start, end, offset in
+            zip(partitions_startentries, partitions_endentries,
+                partitions_offset)
+        ]))
 
         """
         This list comprehension recognizes which files should be opened when
@@ -302,6 +322,10 @@ class Dist(Backend):
                    partitions_offset, partitions_filelist)
         ]
 
+        logger.debug("Created following clustered ranges:\n{}".format(
+            "\n\n".join(map(str, clustered_ranges))
+        ))
+
         return clustered_ranges
 
     def _get_filelist(self, files):
@@ -339,9 +363,18 @@ class Dist(Backend):
 
         if self.treename and self.files:
             filelist = self._get_filelist(self.files)
+            logger.debug("Building clustered ranges for tree {} with the "
+                         "following input files:\n{}".format(
+                             self.treename,
+                             list(self.files)
+                         ))
+            logger.debug("Total entries in the tree: {}".format(self.nentries))
             return self._get_clustered_ranges(self.nentries, self.treename,
                                               filelist, self.friend_info)
         else:
+            logger.debug("Building balanced ranges for {} entries.".format(
+                self.nentries
+            ))
             return self._get_balanced_ranges(self.nentries)
 
     def _get_friend_info(self, tree):
