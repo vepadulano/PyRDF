@@ -11,8 +11,7 @@ from collections import namedtuple
 
 logger = logging.getLogger(__name__)
 
-Range = namedtuple(
-    "Range", ["start", "end", "filelist", "friend_info"], defaults=[None, None])
+Range = namedtuple("Range", ["start", "end", "filelist", "friend_info"])
 
 
 def _n_even_chunks(iterable, n_chunks):
@@ -196,7 +195,7 @@ class Dist(Backend):
                 end = i = end + 1
                 remainder -= 1
 
-            ranges.append(Range(start, end))
+            ranges.append(Range(start, end, None, None))
 
         return ranges
 
