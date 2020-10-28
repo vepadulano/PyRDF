@@ -109,6 +109,9 @@ class Dist(Backend):
 
         # Remove the value of 'npartitions' from config dict
         self.npartitions = config.pop('npartitions', None)
+        
+        self.use_tfileprefetch = config.pop('use_tfileprefetch', False)
+        
 
         self.supported_operations = [op for op in self.supported_operations
                                      if op not in operations_not_supported]
@@ -446,6 +449,8 @@ class Dist(Backend):
 
         # Avoid having references to the instance inside the mapper
         initialization = Backend.initialization
+        
+        use_tfileprefetch = self.use_tfileprefetch
 
         def mapper(current_range):
             """
@@ -463,6 +468,11 @@ class Dist(Backend):
             """
             import ROOT
 
+            if use_tfileprefetch:
+                ROOT.gEnv.SetValue("TFile.AsyncPrefetching", 1)
+                # Common path for all workers to cache data
+                ROOT.gEnv.SetValue("Cache.Directory", "file:/root/cache")
+
             # We have to decide whether to do this in Dist or in subclasses
             # Utils.declare_headers(worker_includes)  # Declare headers if any
 
@@ -473,6 +483,14 @@ class Dist(Backend):
             # Build rdf
             start = int(current_range.start)
             end = int(current_range.end)
+            
+            
+
+            print("\n\n##################################################\n\n")
+            print("TFile.AsyncPrefetching is set to: {}".format(ROOT.gEnv.GetValue("TFile.AsyncPrefetching", 0)))
+            print("Cache.Directory is set to: {}".format(ROOT.gEnv.GetValue("Cache.Directory", "")))
+            print("Working on range: {} - {}".format(start, end))
+            print("\n\n##################################################\n\n")
 
             if treename:
                 # Build TChain of files for this range:
