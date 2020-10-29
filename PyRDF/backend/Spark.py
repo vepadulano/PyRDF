@@ -44,6 +44,8 @@ class Spark(Dist):
         """
         super(Spark, self).__init__(config)
 
+        self.reuse_parallel_collection = config.pop("reuse_parallel_collection", False)
+
         sparkConf = SparkConf().setAll(config.items())
         self.sparkContext = SparkContext.getOrCreate(sparkConf)
 
@@ -51,8 +53,6 @@ class Spark(Dist):
         self.npartitions = self._get_partitions()
        
         self.parallel_collection = None
-        
-        self.reuse_parallel_collection = config.pop("reuse_parallel_collection", False)
 
     def _get_partitions(self):
         npart = (self.npartitions or
@@ -114,7 +114,7 @@ class Spark(Dist):
         sc = self.sparkContext
         if (self.parallel_collection is None) or (not self.reuse_parallel_collection):
             self.parallel_collection = sc.parallelize(ranges, self.npartitions)
-            self.parallel_collection.persist(StorageLevel.MEMORY_ONLY)
+            self.parallel_collection.persist(StorageLevel.DISK_ONLY)
 
         # Map-Reduce using Spark
         return self.parallel_collection.map(spark_mapper).treeReduce(reducer)

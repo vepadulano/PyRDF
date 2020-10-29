@@ -138,7 +138,7 @@ class Dist(Backend):
         clusters = []
         cluster = namedtuple(
             "cluster", ["start", "end", "offset", "filetuple"])
-        fileandindex = namedtuple("fileandindex", ["filename", "index"])
+        fileandindex = namedtuple("fileandindex", ["filename", "fileindex"])
         offset = 0
         fileindex = 0
 
@@ -471,7 +471,7 @@ class Dist(Backend):
             if use_tfileprefetch:
                 ROOT.gEnv.SetValue("TFile.AsyncPrefetching", 1)
                 # Common path for all workers to cache data
-                ROOT.gEnv.SetValue("Cache.Directory", "file:/root/cache")
+                ROOT.gEnv.SetValue("Cache.Directory", "file:/root/spark/cache")
 
             # We have to decide whether to do this in Dist or in subclasses
             # Utils.declare_headers(worker_includes)  # Declare headers if any
