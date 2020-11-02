@@ -44,15 +44,14 @@ class Spark(Dist):
         """
         super(Spark, self).__init__(config)
 
+        self.parallel_collection = None
         self.reuse_parallel_collection = config.pop("reuse_parallel_collection", False)
-
+        
         sparkConf = SparkConf().setAll(config.items())
         self.sparkContext = SparkContext.getOrCreate(sparkConf)
 
         # Set the value of 'npartitions' if it doesn't exist
         self.npartitions = self._get_partitions()
-       
-        self.parallel_collection = None
 
     def _get_partitions(self):
         npart = (self.npartitions or
