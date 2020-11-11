@@ -50,20 +50,17 @@ def use(backend_name, conf={}):
             necessary configuration parameters. Its default value is an empty
             dictionary {}.
     """
-    future_backends = [
-        "dask"
-    ]
 
     global current_backend
 
-    if backend_name in future_backends:
-        msg = "This backend environment will be considered in the future !"
-        raise NotImplementedError(msg)
-    elif backend_name == "local":
+    if backend_name == "local":
         current_backend = Local(conf)
     elif backend_name == "spark":
         from PyRDF.backend.Spark import Spark
         current_backend = Spark(conf)
+    elif backend_name == "dask":
+        from PyRDF.backend.Dask import Dask
+        current_backend = Dask(conf)
     else:
         msg = "Incorrect backend environment \"{}\"".format(backend_name)
         raise Exception(msg)
