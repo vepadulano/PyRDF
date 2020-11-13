@@ -4,6 +4,7 @@ from PyRDF.backend.Utils import Utils
 from pyspark import SparkConf, SparkContext
 from pyspark import SparkFiles
 import ntpath  # Filename from path (should be platform-independent)
+from pyspark_flame import FlameProfiler
 
 
 class Spark(Dist):
@@ -43,8 +44,15 @@ class Spark(Dist):
         """
         super(Spark, self).__init__(config)
 
+        use_flameprofiler = config.pop("use_flameprofiler", "false")
+
         sparkConf = SparkConf().setAll(config.items())
-        self.sparkContext = SparkContext.getOrCreate(sparkConf)
+        if (use_flameprofiler == "true"):
+            print("Using flame profiler in Spark job")
+            self.sparkContext = SparkContext(conf = sparkConf, profiler_cls = FlameProfiler)
+            print(self.sparkContext)
+        else:
+            self.sparkContext = SparkContext.getOrCreate(sparkConf)
 
         # Set the value of 'npartitions' if it doesn't exist
         self.npartitions = self._get_partitions()
@@ -127,3 +135,4 @@ class Spark(Dist):
         """
         for filepath in includes_list:
             self.sparkContext.addFile(filepath)
+
