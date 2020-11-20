@@ -145,8 +145,25 @@ class Spark(Dist):
             else:
                 self.parallel_collection = sc.parallelize(ranges, self.npartitions)
         # Map-Reduce using Spark
-        return self.parallel_collection.map(spark_mapper).treeReduce(reducer)
-
+        print("Starting mapper.")
+        tmap = ROOT.TStopwatch()
+        mapped = self.parallel_collection.map(spark_mapper)
+        tmap.Stop()
+        maptime = round(tmap.RealTime(), 2)
+        print("mapper finished.")
+        print("Starting reducer.")
+        tred = ROOT.TStopwatch()
+        reduced = mapped.treeReduce(reducer)
+        tred.Stop()
+        redtime = round(tred.Realtime(), 2)
+        print("reducer finished.")
+        with open("pyrdf_mapper.csv", "a+") as f:
+            f.write(str(maptime))
+            f.write("\n")
+        with open("pyrdf_reducer.csv", "a+") as f:
+            f.write(str(redtime))
+            f.write("\n")
+        return reduced
     def distribute_files(self, includes_list):
         """
         Spark supports sending files to the executors via the
