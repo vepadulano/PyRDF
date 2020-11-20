@@ -3,8 +3,11 @@ from PyRDF.backend.Dist import Dist
 from PyRDF.backend.Utils import Utils
 from pyspark import SparkConf, SparkContext
 from pyspark import SparkFiles
+from pyspark import StorageLevel
 import ntpath  # Filename from path (should be platform-independent)
-
+#from pyspark_flame import FlameProfiler
+import ROOT
+ROOT.gROOT.SetBatch(True)
 
 class Spark(Dist):
     """
@@ -43,9 +46,20 @@ class Spark(Dist):
         """
         super(Spark, self).__init__(config)
 
-        sparkConf = SparkConf().setAll(config.items())
-        self.sparkContext = SparkContext.getOrCreate(sparkConf)
+        import ROOT
+        ROOT.gROOT.SetBatch(True)
 
+        self.parallel_collection = None
+        self.reuse_parallel_collection = config.pop("reuse_parallel_collection", False)
+
+ #      use_flameprofiler = config.pop("use_flameprofiler", "false")
+
+        sparkConf = SparkConf().setAll(config.items())
+#        if (use_flameprofiler == "true"):
+#            self.sparkContext = SparkContext(conf = sparkConf, profiler_cls = FlameProfiler)
+#        else:
+#            self.sparkContext = SparkContext.getOrCreate(sparkConf)
+        self.sparkContext = SparkContext.getOrCreate(sparkConf)
         # Set the value of 'npartitions' if it doesn't exist
         self.npartitions = self._get_partitions()
 
@@ -73,6 +87,8 @@ class Spark(Dist):
         """
         from PyRDF import includes_headers
         from PyRDF import includes_shared_libraries
+        import ROOT
+        ROOT.gROOT.SetBatch(True)
 
         def spark_mapper(current_range):
             """
@@ -87,6 +103,9 @@ class Spark(Dist):
                 function: The map function to be executed on each executor,
                 complete with all headers needed for the analysis.
             """
+            import ROOT
+            ROOT.gROOT.SetBatch(True)
+
             # Get and declare headers on each worker
             headers_on_executor = [
                 SparkFiles.get(ntpath.basename(filepath))
@@ -102,15 +121,31 @@ class Spark(Dist):
             Utils.declare_shared_libraries(shared_libs_on_ex)
 
             return mapper(current_range)
-
+        print("Starting building ranges.")
+        t = ROOT.TStopwatch()
         ranges = self.build_ranges()  # Get range pairs
+        t.Stop()
+        realtime = round(t.RealTime(), 2)
+        print("Building ranges took {} seconds.".format(realtime))
+
+        with open("pyrdf_buildranges.csv", "a+") as f:  
+            f.write(str(realtime))
+            f.write("\n")
 
         # Build parallel collection
         sc = self.sparkContext
-        parallel_collection = sc.parallelize(ranges, self.npartitions)
 
+        if (self.parallel_collection is None):
+            self.parallel_collection = sc.parallelize(ranges, self.npartitions)
+            if self.reuse_parallel_collection:
+                self.parallel_collection.persist(StorageLevel.DISK_ONLY)
+        else:
+            if self.reuse_parallel_collection:
+                self.parallel_collection.persist(StorageLevel.DISK_ONLY)
+            else:
+                self.parallel_collection = sc.parallelize(ranges, self.npartitions)
         # Map-Reduce using Spark
-        return parallel_collection.map(spark_mapper).treeReduce(reducer)
+        return self.parallel_collection.map(spark_mapper).treeReduce(reducer)
 
     def distribute_files(self, includes_list):
         """

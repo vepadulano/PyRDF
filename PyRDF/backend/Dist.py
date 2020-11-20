@@ -5,9 +5,11 @@ from abc import abstractmethod
 import glob
 import warnings
 import ROOT
+ROOT.gROOT.SetBatch(True)
 import numpy
 import logging
 from collections import namedtuple
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +96,10 @@ class Dist(Backend):
 
         """
         super(Dist, self).__init__(config)
+
+        import ROOT
+        ROOT.gROOT.SetBatch(True)
+
         # Operations that aren't supported in distributed backends
         operations_not_supported = [
             'Mean',
@@ -109,6 +115,9 @@ class Dist(Backend):
 
         # Remove the value of 'npartitions' from config dict
         self.npartitions = config.pop('npartitions', None)
+
+        self.use_tfileprefetch = config.pop('use_tfileprefetch', False)
+        self.use_xrdcaching = config.pop('use_xrdcaching', False)
 
         self.supported_operations = [op for op in self.supported_operations
                                      if op not in operations_not_supported]
@@ -131,6 +140,7 @@ class Dist(Backend):
             belongs to.
         """
         import ROOT
+        ROOT.gROOT.SetBatch(True)
 
         clusters = []
         cluster = namedtuple(
@@ -307,9 +317,9 @@ class Dist(Backend):
         partitions_filelist = [
             [
                 filetuple.filename
-                for filetuple in set([  # set to take unique file indexes
+                for filetuple in sorted(set([  # set to take unique file indexes
                     cluster.filetuple for cluster in clusters
-                ])
+                ]), key=lambda curtuple: curtuple[1])
             ]
             for clusters in clusters_split_by_partition
         ]
@@ -438,6 +448,10 @@ class Dist(Backend):
                 :obj:`CallableGenerator` that is responsible for generating
                 the callable function.
         """
+
+        import ROOT
+        ROOT.gROOT.SetBatch(True)
+
         callable_function = generator.get_callable()
         # Arguments needed to create PyROOT RDF object
         rdf_args = generator.head_node.args
@@ -446,6 +460,9 @@ class Dist(Backend):
 
         # Avoid having references to the instance inside the mapper
         initialization = Backend.initialization
+
+        use_tfileprefetch = self.use_tfileprefetch
+        use_xrdcaching = self.use_xrdcaching
 
         def mapper(current_range):
             """
@@ -461,7 +478,19 @@ class Dist(Backend):
                 list: This respresents the list of values of all action nodes
                 in the computational graph.
             """
+            if use_xrdcaching:
+                import os
+                os.environ["XRD_PLUGIN"]="/cvmfs/sft.cern.ch/lcg/views/LCG_98python3spark3/x86_64-centos7-gcc8-opt/lib64/libXrdClProxyPlugin.so"
+                os.environ["XROOT_PROXY"]="root://" + os.environ.get("HOSTNAME") + ":2002//"
+                print("XROOTD: {}".format(os.environ.get("XROOT_PROXY")))
+
             import ROOT
+            ROOT.gROOT.SetBatch(True)
+
+            if use_tfileprefetch:
+                ROOT.gEnv.SetValue("TFile.AsyncPrefetching", 1)
+                # Common path for all workers to cache data
+                ROOT.gEnv.SetValue("Cache.Directory", "file:/local/scratch/ssd/vpadulano/dimuon")
 
             # We have to decide whether to do this in Dist or in subclasses
             # Utils.declare_headers(worker_includes)  # Declare headers if any
@@ -473,6 +502,12 @@ class Dist(Backend):
             # Build rdf
             start = int(current_range.start)
             end = int(current_range.end)
+
+            print("\n\n##################################################\n\n")
+            print("TFile.AsyncPrefetching is set to: {}".format(ROOT.gEnv.GetValue("TFile.AsyncPrefetching", 0)))
+            print("Cache.Directory is set to: {}".format(ROOT.gEnv.GetValue("Cache.Directory", "")))
+            print("Working on range: {} - {}".format(start, end))
+            print("\n\n##################################################\n\n")
 
             if treename:
                 # Build TChain of files for this range:
@@ -555,6 +590,7 @@ class Dist(Backend):
                 given lists.
             """
             import ROOT
+            ROOT.gROOT.SetBatch(True)
 
             for i in range(len(values_list1)):
                 # A bunch of if-else conditions to merge two values
