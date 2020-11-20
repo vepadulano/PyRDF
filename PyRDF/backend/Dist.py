@@ -487,6 +487,8 @@ class Dist(Backend):
             import ROOT
             ROOT.gROOT.SetBatch(True)
 
+            t = ROOT.TStopwatch() # Start measuring time spent in mapper
+
             if use_tfileprefetch:
                 ROOT.gEnv.SetValue("TFile.AsyncPrefetching", 1)
                 # Common path for all workers to cache data
@@ -570,6 +572,13 @@ class Dist(Backend):
                 # after a call to `GetValue`, the values die
                 # along with the RResultPtrs
                 output[i] = value_type(output[i].GetValue())
+
+            t.Stop()
+            realtime = round(t.RealTime(), 2)
+            with open("pyrdf_mapper.csv", "a+") as f:
+                f.write(str(realtime))
+                f.write("\n")
+
             return output
 
         def reducer(values_list1, values_list2):
@@ -591,6 +600,8 @@ class Dist(Backend):
             """
             import ROOT
             ROOT.gROOT.SetBatch(True)
+
+            t = ROOT.TStopwatch() # Start measuring time spent in reducer
 
             for i in range(len(values_list1)):
                 # A bunch of if-else conditions to merge two values
@@ -639,6 +650,12 @@ class Dist(Backend):
                     msg = ("Type \"{}\" is not supported by the reducer yet!"
                            .format(type(values_list1[i])))
                     raise NotImplementedError(msg)
+
+            t.Stop()
+            realtime = round(t.RealTime(), 2)
+            with open("pyrdf_reducer.csv", "a+") as f:
+                f.write(str(realtime))
+                f.write("\n")
 
             return values_list1
 
