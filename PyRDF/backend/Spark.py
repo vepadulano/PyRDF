@@ -51,6 +51,7 @@ class Spark(Dist):
 
         self.parallel_collection = None
         self.reuse_parallel_collection = config.pop("reuse_parallel_collection", False)
+        self.htt_cache = config.pop("htt_cache", False)
 
  #      use_flameprofiler = config.pop("use_flameprofiler", "false")
 
@@ -139,6 +140,9 @@ class Spark(Dist):
             self.parallel_collection = sc.parallelize(ranges, self.npartitions)
             if self.reuse_parallel_collection:
                 self.parallel_collection.persist(StorageLevel.DISK_ONLY)
+        elif self.htt_cache:
+            self.parallel_collection = sc.parallelize(ranges, self.npartitions)
+            self.parallel_collection.persist(StorageLevel.DISK_ONLY)
         else:
             if self.reuse_parallel_collection:
                 self.parallel_collection.persist(StorageLevel.DISK_ONLY)
