@@ -1,6 +1,15 @@
-import ROOT
-import os
 import logging
+import multiprocessing
+import os
+import threading
+
+try:
+    import queue
+except ImportError:
+    import Queue as queue
+
+import PyRDF
+import ROOT
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +34,7 @@ class Utils(object):
 
         # Retrieve ROOT internal list of include paths and add debug statement
         root_includepath = ROOT.gInterpreter.GetIncludePath()
-        logger.debug("ROOT include paths:\n{}".format(root_includepath))
+        logger.debug("ROOT include paths:\n%s", root_includepath)
 
     @classmethod
     def declare_headers(cls, headers_to_include):
@@ -69,3 +78,46 @@ class Utils(object):
                 if not os.path.exists(shared_library):
                     raise IOError("Shared library does not exist!")
                 raise Exception("ROOT couldn't load the shared library!")
+
+    @classmethod
+    def RunGraphs(cls, proxies, concurrent_runs=4):
+        """
+        Trigger the execution of multiple RDataFrame computation graphs on the
+        distributed backend in use. If the backend doesn't support multiple job
+        submissions concurrently, the distributed computation graphs will be
+        executed sequentially.
+
+        Args:
+            proxies(list): List of action proxies that should be triggered. Only
+                actions belonging to different RDataFrame graphs will be
+                triggered to avoid useless calls.
+
+            concurrent_runs(int, optional): Number of graphs that will be
+                executed concurrently in a distributed backend. Defaults to 4.
+
+        Example::
+
+            # Create 3 different dataframes and book an histogram on each one
+            histoproxies = [
+                PyRDF.RDataFrame(100)
+                    .Define("x", "rdfentry_")
+                    .Histo1D(("name", "title", 10, 0, 100), "x")
+                for _ in range(4)
+            ]
+
+            # Execute the 3 computation graphs
+            PyRDF.backend.Utils.RunGraphs(histoproxies)
+
+            # Retrieve all the histograms in one go
+            histos = [histoproxy.GetValue() for histoproxy in histoproxies]
+        """
+
+        # Get proxies belonging to distinct computation graphs
+        uniquegraphs = {proxy.proxied_node.get_head(): proxy
+                        for proxy in proxies}.values()
+
+        try:
+            PyRDF.current_backend.RunGraphs(uniquegraphs, concurrent_runs)
+        except NotImplementedError:
+            for proxy in uniquegraphs:
+                proxy.GetValue()

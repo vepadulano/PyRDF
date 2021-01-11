@@ -1,6 +1,10 @@
+import array
+import os
 import unittest
-import ROOT
+
 import PyRDF
+import pyspark
+import ROOT
 from PyRDF.backend.Utils import Utils
 
 
@@ -156,3 +160,72 @@ class InitializationTest(unittest.TestCase):
         varvalue = 2
         PyRDF.initialize(defineIntVariable, "myInt", varvalue)
         self.assertEqual(ROOT.myInt, varvalue)
+
+
+class RunGraphsTest(unittest.TestCase):
+    """Tests for the concurrent submission of distributed jobs in PyRDF"""
+
+    def tearDown(self):
+        """Clean up the `SparkContext` object that was created."""
+        pyspark.SparkContext.getOrCreate().stop()
+
+    def ttree_write(self, treename, filename, mean, std_dev):
+        """Create a TTree and write it to file."""
+        f = ROOT.TFile(filename, "recreate")
+        t = ROOT.TTree(treename, "ConcurrentSparkJobsTest")
+
+        x = array.array("f", [0])
+        t.Branch("x", x, "x/F")
+
+        r = ROOT.TRandom()
+        # Fill the branch with a gaussian distribution
+        for _ in range(10000):
+            x[0] = r.Gaus(mean, std_dev)
+            t.Fill()
+
+        f.Write()
+        f.Close()
+
+    def test_rungraphs_local(self):
+        """Test RunGraphs with Local backend"""
+        PyRDF.use("local")
+
+        counts = [PyRDF.RDataFrame(10).Count() for _ in range(4)]
+
+        Utils.RunGraphs(counts)
+
+        for count in counts:
+            self.assertEqual(count.GetValue(), 10)
+
+    def test_rungraphs_spark_3histos(self):
+        """
+        Create three datasets to run some simple analysis on, then submit them
+        concurrently as Spark jobs from different threads.
+        """
+        PyRDF.use("spark")
+
+        treenames = ["tree{}".format(i) for i in range(1, 4)]
+        filenames = ["file{}.root".format(i) for i in range(1, 4)]
+        means = [10, 20, 30]
+        std_devs = [1, 2, 3]
+
+        for treename, filename, mean, std_dev in zip(
+                treenames, filenames, means, std_devs):
+            self.ttree_write(treename, filename, mean, std_dev)
+
+        histoproxies = [PyRDF.RDataFrame(treename, filename)
+                             .Histo1D(("x", "x", 100, 0, 50), "x")
+                        for treename, filename in zip(treenames, filenames)]
+
+        Utils.RunGraphs(histoproxies)
+
+        delta_equal = 0.1
+
+        for histo, mean, std_dev in zip(histoproxies, means, std_devs):
+            self.assertEqual(histo.GetEntries(), 10000)
+            self.assertAlmostEqual(histo.GetMean(), mean, delta=delta_equal)
+            self.assertAlmostEqual(
+                histo.GetStdDev(), std_dev, delta=delta_equal)
+
+        for filename in filenames:
+            os.remove(filename)

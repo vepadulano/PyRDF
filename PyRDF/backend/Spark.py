@@ -1,9 +1,16 @@
 from __future__ import print_function
+
+import ntpath  # Filename from path (should be platform-independent)
+import threading
+
 from PyRDF.backend.Dist import Dist
 from PyRDF.backend.Utils import Utils
-from pyspark import SparkConf, SparkContext
-from pyspark import SparkFiles
-import ntpath  # Filename from path (should be platform-independent)
+from pyspark import SparkConf, SparkContext, SparkFiles
+
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 
 
 class Spark(Dist):
@@ -111,6 +118,43 @@ class Spark(Dist):
 
         # Map-Reduce using Spark
         return parallel_collection.map(spark_mapper).treeReduce(reducer)
+
+    @staticmethod
+    def RunGraphs(proxies, numthreads=4):
+        """
+        Trigger multiple RDF graphs through multithreading, according to Spark
+        docs on `job scheduling <https://spark.apache.org/docs/latest/job-scheduling.html#scheduling-within-an-application>`_.
+
+        Args:
+            proxies(iterable): Action proxies that should be triggered. Only
+                actions belonging to different RDataFrame graphs will be
+                triggered to avoid useless calls.
+
+            numthreads(int, optional): Number of threads to spawn at the same
+                time. Each thread will submit a separate job to the Spark
+                cluster through the same SparkContext. Defaults to 4.
+        """
+
+        # Create queue to store all the action proxies
+        q = queue.Queue()
+
+        for proxy in proxies:
+            q.put(proxy)
+
+        # Function to trigger the computation graph of each proxy in the queue
+        def trigger_loop(queue_):
+            while True:
+                queue_.get().GetValue()
+                queue_.task_done()
+
+        # Create `numthreads` threads that will each submit a Spark job
+        for _ in range(numthreads):
+            worker = threading.Thread(
+                target=trigger_loop, args=(q,), daemon=True)
+            worker.start()
+
+        # Start the execution and wait for all computations to finish
+        q.join()
 
     def distribute_files(self, includes_list):
         """

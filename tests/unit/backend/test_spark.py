@@ -1,7 +1,11 @@
+import array
+import os
 import unittest
+
 import PyRDF
-from PyRDF.backend.Spark import Spark
+import ROOT
 from PyRDF.backend.Local import Local
+from PyRDF.backend.Spark import Spark
 from pyspark import SparkContext
 
 

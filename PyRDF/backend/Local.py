@@ -82,3 +82,11 @@ class Local(Backend):
                 # those should be in scope while doing
                 # a 'GetValue' call on them
                 nodes[i].ResultPtr = values[i]
+
+    @staticmethod
+    def RunGraphs(proxies, concurrent_runs=4):
+        """
+        Trigger the execution of multiple RDataFrame computation graphs. Not
+        implemented in the Local backend.
+        """
+        raise NotImplementedError

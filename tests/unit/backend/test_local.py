@@ -88,3 +88,12 @@ class InitializationTest(unittest.TestCase):
         df = PyRDF.RDataFrame(1)
         s = df.Define("userValue", "getUserValue()").Sum("userValue")
         self.assertEqual(s.GetValue(), 123)
+
+
+class MiscTest(unittest.TestCase):
+    """Miscellaneous tests for Local backend."""
+
+    def test_rungraphs_notimplemented(self):
+        """Check that RunGraphs is not implemented"""
+        with self.assertRaises(NotImplementedError):
+            Local.RunGraphs([PyRDF.RDataFrame(10).Count() for _ in range(4)])
