@@ -1,14 +1,15 @@
-from PyRDF.RDataFrame import RDataFrame  # noqa
-from PyRDF.RDataFrame import RDataFrameException  # noqa
-from PyRDF.CallableGenerator import CallableGenerator  # noqa
-from PyRDF.backend.Local import Local
-from PyRDF.backend.Backend import Backend
-from PyRDF.backend.Utils import Utils
-import os
+"""
+Top level functions and variables of the PyRDF package
+"""
 import logging
+import os
 import sys
 
-current_backend = Local()
+from PyRDF import CallableGenerator  # noqa
+from PyRDF.backend import Backend, Spark, Utils
+from PyRDF.RDataFrame import RDataFrame, RDataFrameException  # noqa
+
+current_backend = None
 
 includes_headers = set()  # All headers included in the analysis
 includes_shared_libraries = set()  # All shared libraries included
@@ -50,23 +51,14 @@ def use(backend_name, conf={}):
             necessary configuration parameters. Its default value is an empty
             dictionary {}.
     """
-    future_backends = [
-        "dask"
-    ]
 
     global current_backend
 
-    if backend_name in future_backends:
-        msg = "This backend environment will be considered in the future !"
-        raise NotImplementedError(msg)
-    elif backend_name == "local":
-        current_backend = Local(conf)
-    elif backend_name == "spark":
-        from PyRDF.backend.Spark import Spark
-        current_backend = Spark(conf)
+    if backend_name == "spark":
+        current_backend = Spark.Spark(conf)
     else:
-        msg = "Incorrect backend environment \"{}\"".format(backend_name)
-        raise Exception(msg)
+        raise NotImplementedError(
+            "The selected backend has not been implemented yet.")
 
 
 def _get_paths_set_from_string(path_string):
@@ -81,7 +73,7 @@ def _get_paths_set_from_string(path_string):
         set: The set with all paths returned from the directory, or a set
             with only the path of the string.
     """
-    logger.debug("Retrieving paths from {}".format(path_string))
+    logger.debug("Retrieving paths from %s", path_string)
 
     if os.path.isdir(path_string):
         # Create a set with all the headers in the directory
@@ -92,14 +84,13 @@ def _get_paths_set_from_string(path_string):
             for filename
             in filenames
         }
-        logger.debug("\nInitial path: {} \nPaths retrieved: {}".format(
-            path_string,
-            paths_set
-        ))
+        logger.debug("Initial path: %s", path_string)
+        logger.debug("Paths retrieved: %s", paths_set)
+
         return paths_set
     elif os.path.isfile(path_string):
         # Convert to set if this is a string
-        logger.debug("File path retrieved: {}".format(path_string))
+        logger.debug("File path retrieved: %s", path_string)
         return {path_string}
 
 
@@ -155,12 +146,11 @@ def include_headers(headers_paths):
         for path_string in headers_paths:
             headers_to_include.update(_get_paths_set_from_string(path_string))
 
-    # If not on the local backend, distribute files to executors
-    if not isinstance(current_backend, Local):
-        current_backend.distribute_files(headers_to_include)
+    # Distribute files to executors
+    current_backend.distribute_files(headers_to_include)
 
     # Declare the headers in ROOT
-    Utils.declare_headers(headers_to_include)
+    Utils.Utils.declare_headers(headers_to_include)
 
     # Finally, add everything to the includes set
     includes_headers.update(headers_to_include)
@@ -197,13 +187,12 @@ def include_shared_libraries(shared_libraries_paths):
             libraries_to_include.update(libraries)
             pcm_to_include.update(pcm)
 
-    # If not on the local backend, distribute files to executors
-    if not isinstance(current_backend, Local):
-        current_backend.distribute_files(libraries_to_include)
-        current_backend.distribute_files(pcm_to_include)
+    # Distribute files to executors
+    current_backend.distribute_files(libraries_to_include)
+    current_backend.distribute_files(pcm_to_include)
 
     # Declare the shared libraries in ROOT
-    Utils.declare_shared_libraries(libraries_to_include)
+    Utils.Utils.declare_shared_libraries(libraries_to_include)
 
     # Finally, add everything to the includes set
     includes_shared_libraries.update(includes_shared_libraries)
@@ -226,9 +215,8 @@ def send_generic_files(files_paths):
         for path_string in files_paths:
             files_to_include.update(_get_paths_set_from_string(path_string))
 
-    # If not on the local backend, distribute files to executors
-    if not isinstance(current_backend, Local):
-        current_backend.distribute_files(files_to_include)
+    # Distribute files to executors
+    current_backend.distribute_files(files_to_include)
 
 
 def initialize(fun, *args, **kwargs):
@@ -248,4 +236,4 @@ def initialize(fun, *args, **kwargs):
 
         **kwargs (dict): Keyword arguments used to execute the function.
     """
-    Backend.register_initialization(fun, *args, **kwargs)
+    Backend.Backend.register_initialization(fun, *args, **kwargs)

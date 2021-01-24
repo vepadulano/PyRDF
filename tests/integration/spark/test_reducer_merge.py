@@ -1,6 +1,7 @@
 import unittest
 import ROOT
 import PyRDF
+import pyspark
 import os
 
 
@@ -14,12 +15,8 @@ class ReducerMergeTest(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        """
-        Restore global current_backend to default Local backend after running
-        all tests
-
-        """
-        PyRDF.use("local")
+        """Stop any created SparkContext before ending the test."""
+        pyspark.SparkContext.getOrCreate().stop()
 
     def assertHistoOrProfile(self, obj_1, obj_2):
         """Asserts equality between two 'ROOT.TH1' or 'ROOT.TH2' objects."""

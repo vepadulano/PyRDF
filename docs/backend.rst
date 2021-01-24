@@ -7,12 +7,6 @@ The parent backend class
 .. automodule:: PyRDF.backend.Backend
 	:members:
 
-The local backend
------------------
-
-.. automodule:: PyRDF.backend.Local
-	:members:
-
 The distributed backend parent class
 ------------------------------------
 

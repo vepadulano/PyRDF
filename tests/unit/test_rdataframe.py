@@ -1,7 +1,6 @@
 import unittest
 import ROOT
-from PyRDF import RDataFrame
-from PyRDF import RDataFrameException
+from PyRDF.RDataFrame import RDataFrame, RDataFrameException
 
 
 class RDataFrameConstructorTests(unittest.TestCase):

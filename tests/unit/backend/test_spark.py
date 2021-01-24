@@ -1,7 +1,6 @@
 import unittest
 import PyRDF
 from PyRDF.backend.Spark import Spark
-from PyRDF.backend.Local import Local
 from pyspark import SparkContext
 
 
@@ -191,28 +190,25 @@ class InitializationTest(unittest.TestCase):
         self.assertEqual(h.GetMean(), 123)
 
 
-class FallbackTest(unittest.TestCase):
+class EmptyTreeErrorTest(unittest.TestCase):
     """
-    Check cases when the distributed backend has to fallback to local execution
+    Distributed execution fails when the tree has no entries.
     """
 
     def test_histo_from_empty_root_file(self):
         """
         Check that when performing operations with the distributed backend on
-        an RDataFrame without entries, PyRDF falls back to using the local
-        backend and outputs the correct (empty) result.
+        an RDataFrame without entries, PyRDF raises an error.
         """
         PyRDF.use("spark")
 
-        # Creates and RDataFrame with 10 integers [0...9]
+        # Create an RDataFrame from a file with an empty tree
         rdf = PyRDF.RDataFrame("NOMINAL", "tests/unit/backend/emptytree.root")
-        histo = rdf.Histo1D("mybranch")
+        histo = rdf.Histo1D(("empty", "empty", 10, 0, 10), "mybranch")
 
-        # Get entries in the histogram, should be zero
-        entries = histo.GetEntries()
-
-        self.assertIsInstance(PyRDF.current_backend, Local)
-        self.assertEqual(entries, 0)
+        # Get entries in the histogram, raises error
+        with self.assertRaises(RuntimeError):
+            histo.GetEntries()
 
 
 class ChangeAttributeTest(unittest.TestCase):

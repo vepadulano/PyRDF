@@ -54,7 +54,7 @@ Since release [0.1.0](https://github.com/JavierCVilla/PyRDF/releases/tag/v0.1.0)
 
 #### 5. Click on the button at the bottom of the Spark menu to connect to the cluster.
 
-#### 6. Select the Spark backend in PyRDF, by default PyRDF will use the `Local` backend which is equivalent to RDataFrame running in a local machine.
+#### 6. Select the Spark backend in PyRDF
 
   ```python
   # Configure PyRDF to run on Spark splitting the dataset into 32 partitions
