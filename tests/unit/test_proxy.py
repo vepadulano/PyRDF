@@ -69,7 +69,6 @@ class AttrReadTest(unittest.TestCase):
         transformations = {
             "Define": ["x", "tdfentry_"],
             "Filter": ["tdfentry_ > 0"],
-            "Range": ["tdfentry_"]
         }
 
         for transformation, args in transformations.items():

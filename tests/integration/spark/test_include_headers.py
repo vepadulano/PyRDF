@@ -24,7 +24,7 @@ class IncludesSparkTest(unittest.TestCase):
         """
         PyRDF.use("spark")
         PyRDF.include_headers(
-            "tests/integration/local/test_headers/header1.hxx"
+            "tests/integration/spark/test_headers/header1.hxx"
         )
 
         rdf = PyRDF.RDataFrame(10)
@@ -58,7 +58,7 @@ class IncludesSparkTest(unittest.TestCase):
         """
         import ROOT
 
-        header_folder = "tests/integration/local/test_headers/headers_folder"
+        header_folder = "tests/integration/spark/test_headers/headers_folder"
 
         PyRDF.use("spark")
         PyRDF.include_headers(header_folder)

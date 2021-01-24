@@ -646,13 +646,9 @@ class Dist(Backend.Backend):
             self.friend_info = self._get_friend_info(self.tree)
 
         if not self.nentries:
-            # Fall back to local execution
-            # if 'nentries' is '0'
-            msg = ("No entries in the Tree, falling back to local execution!")
-            warnings.warn(msg, UserWarning, stacklevel=2)
-            PyRDF.use("local")
-            from .. import current_backend
-            return current_backend.execute(generator)
+            # Empty trees cannot be processed distributedly
+            raise RuntimeError(
+                "No entries in the TTree, distributed execution aborted!")
 
         # Values produced after Map-Reduce
         values = self.ProcessAndMerge(mapper, reducer)

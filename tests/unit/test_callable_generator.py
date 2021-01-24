@@ -1,7 +1,7 @@
 from PyRDF import CallableGenerator
-from PyRDF.Node import Node
+from PyRDF import Node
 import unittest
-from PyRDF.Proxy import TransformationProxy
+from PyRDF import Proxy
 
 
 class CallableGeneratorTest(unittest.TestCase):
@@ -41,7 +41,7 @@ class CallableGeneratorTest(unittest.TestCase):
         t = CallableGeneratorTest.Temp()
 
         # Head node
-        node = TransformationProxy(Node(None, None))
+        node = Proxy.TransformationProxy(Node.Node(None, None))
         # Set of operations to build the graph
         n1 = node.Define()
         n2 = node.Filter().Filter()
@@ -50,7 +50,7 @@ class CallableGeneratorTest(unittest.TestCase):
         n6 = node.Filter()  # noqa: avoid PEP8 F841
 
         # Generate and execute the mapper
-        generator = CallableGenerator(node.proxied_node)
+        generator = CallableGenerator.CallableGenerator(node.proxied_node)
         mapper_func = generator.get_callable()
         values = mapper_func(t)
         nodes = generator.get_action_nodes()
@@ -71,7 +71,7 @@ class CallableGeneratorTest(unittest.TestCase):
         t = CallableGeneratorTest.Temp()
 
         # Head node
-        node = TransformationProxy(Node(None, None))
+        node = Proxy.TransformationProxy(Node.Node(None, None))
 
         # Set of operations to build the graph
         n1 = node.Define()
@@ -84,7 +84,7 @@ class CallableGeneratorTest(unittest.TestCase):
         n5 = n1.Filter()  # noqa: avoid PEP8 F841
 
         # Generate and execute the mapper
-        generator = CallableGenerator(node.proxied_node)
+        generator = CallableGenerator.CallableGenerator(node.proxied_node)
         mapper_func = generator.get_callable()
         values = mapper_func(t)
         nodes = generator.get_action_nodes()
