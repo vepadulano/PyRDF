@@ -26,28 +26,6 @@ pytest -x -v
 check_error $? "pytest"
 
 # Run tutorials
-echo " ======== Running single-threaded tutorials ======== "
-
-# Run single-threaded tutorials locally
-for filename in ./tutorials/local/sequential/df*.py
-do
-	echo " == Running $filename == "
-	python "$filename" &> /dev/null
-  check_error $? "$filename"
-done
-
-
-echo "======== Running multi-threaded tutorials ======== "
-
-# Run multi-threaded tutorials locally
-for filename in ./tutorials/local/MT/df*.py
-do
-	echo " == Running $filename == "
-	python "$filename" &> /dev/null
-  check_error $? "$filename"
-done
-
-
 echo "======== Running Spark tutorials ======== "
 
 # Run Spark tutorials locally
