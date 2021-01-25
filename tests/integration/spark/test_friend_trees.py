@@ -1,16 +1,17 @@
-import ROOT
-import unittest
-import PyRDF
-from array import array
 import os
+import unittest
+from array import array
+
+import PyRDF
+import pyspark
+import ROOT
 
 
 class SparkFriendTreesTest(unittest.TestCase):
     """Integration tests to check the working of PyRDF with friend trees"""
     def tearDown(self):
         """Clean up the `SparkContext` objects that were created."""
-        from PyRDF import current_backend
-        current_backend.sparkContext.stop()
+        pyspark.SparkContext.getOrCreate().stop()
 
     def create_parent_tree(self):
         """Creates a .root file with the parent TTree"""
@@ -68,8 +69,7 @@ class SparkFriendTreesTest(unittest.TestCase):
         baseTree.AddFriend(friendTree)
 
         # Create a PyRDF RDataFrame with the parent and the friend trees
-        PyRDF.use("spark")
-        df = PyRDF.RDataFrame(baseTree)
+        df = PyRDF.make_spark_dataframe(baseTree)
 
         # Create histograms
         h_parent = df.Histo1D("x")

@@ -1,7 +1,7 @@
-from PyRDF import CallableGenerator
-from PyRDF import Node
 import unittest
-from PyRDF import Proxy
+
+from PyRDF import CallableGenerator, Node, Proxy
+from PyRDF.Backends import Dist
 
 
 class CallableGeneratorTest(unittest.TestCase):
@@ -9,6 +9,23 @@ class CallableGeneratorTest(unittest.TestCase):
     Check mechanism to create a callable function that returns a PyROOT object
     per each PyRDF graph node. This callable takes care of the grape pruning.
     """
+
+    class TestBackend(Dist.DistBackend):
+        """Dummy backend."""
+
+        def ProcessAndMerge(self, mapper, reducer):
+            """Dummy implementation of ProcessAndMerge."""
+            pass
+
+        def distribute_unique_paths(self, includes_list):
+            """
+            Dummy implementation of distribute_unique_paths. Does nothing.
+            """
+            pass
+
+        def make_dataframe(self, *args, **kwargs):
+            """Dummy make_dataframe"""
+            pass
 
     class Temp(object):
         """A Class for mocking RDF CPP object."""
@@ -41,7 +58,9 @@ class CallableGeneratorTest(unittest.TestCase):
         t = CallableGeneratorTest.Temp()
 
         # Head node
-        node = Proxy.TransformationProxy(Node.Node(None, None))
+        hn = Node.HeadNode(1)
+        hn.backend = CallableGeneratorTest.TestBackend()
+        node = Proxy.TransformationProxy(hn)
         # Set of operations to build the graph
         n1 = node.Define()
         n2 = node.Filter().Filter()
@@ -71,7 +90,9 @@ class CallableGeneratorTest(unittest.TestCase):
         t = CallableGeneratorTest.Temp()
 
         # Head node
-        node = Proxy.TransformationProxy(Node.Node(None, None))
+        hn = Node.HeadNode(1)
+        hn.backend = CallableGeneratorTest.TestBackend()
+        node = Proxy.TransformationProxy(hn)
 
         # Set of operations to build the graph
         n1 = node.Define()

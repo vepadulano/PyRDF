@@ -1,16 +1,7 @@
 import unittest
 import ROOT
 import PyRDF
-from PyRDF.backend.Utils import Utils
-
-
-class SelectionTest(unittest.TestCase):
-    """Check 'PyRDF.use' method."""
-
-    def test_future_env_select(self):
-        """Non implemented backends throw a NotImplementedError."""
-        with self.assertRaises(NotImplementedError):
-            PyRDF.use("dask")
+from PyRDF.Backends import Utils
 
 
 class BackendInitTest(unittest.TestCase):
@@ -23,7 +14,7 @@ class BackendInitTest(unittest.TestCase):
 
         """
         with self.assertRaises(TypeError):
-            PyRDF.backend.Backend.Backend()
+            PyRDF.Backends.Base.BaseBackend()
 
     def test_subclass_without_method_error(self):
         """
@@ -31,76 +22,15 @@ class BackendInitTest(unittest.TestCase):
         a `TypeError`.
 
         """
-        class TestBackend(PyRDF.backend.Backend.Backend):
+        class TestBackend(PyRDF.Backends.Base.BaseBackend):
             pass
 
         with self.assertRaises(TypeError):
             TestBackend()
 
 
-class IncludeHeadersTest(unittest.TestCase):
-    """Tests to check the working of 'PyRDF.include' function."""
-
-    def tearDown(self):
-        """remove included headers after analysis"""
-        PyRDF.includes_headers.clear()
-
-    def test_default_empty_list_include(self):
-        """
-        'PyRDF.include' function raises a TypeError if no parameter is
-        given.
-
-        """
-        with self.assertRaises(TypeError):
-            PyRDF.include_headers()
-
-    def test_string_include(self):
-        """'PyRDF.include' with a single string."""
-        PyRDF.include_headers("tests/unit/backend/test_headers/header1.hxx")
-
-        required_header = ["tests/unit/backend/test_headers/header1.hxx"]
-        # Feature detection: first try Python 3 function, then Python 2
-        try:
-            self.assertCountEqual(PyRDF.includes_headers, required_header)
-        except AttributeError:
-            self.assertItemsEqual(PyRDF.includes_headers, required_header)
-
-    def test_list_include(self):
-        """'PyRDF.include' with a list of strings."""
-        PyRDF.include_headers(["tests/unit/backend/test_headers/header1.hxx"])
-
-        required_header = ["tests/unit/backend/test_headers/header1.hxx"]
-        # Feature detection: first try Python 3 function, then Python 2
-        try:
-            self.assertCountEqual(PyRDF.includes_headers, required_header)
-        except AttributeError:
-            self.assertItemsEqual(PyRDF.includes_headers, required_header)
-
-    def test_list_extend_include(self):
-        """
-        Test case to check the working of 'PyRDF.include'
-        function when different lists of strings are passed
-        to it multiple times.
-
-        """
-        PyRDF.include_headers(["tests/unit/backend/test_headers/header1.hxx"])
-        PyRDF.include_headers(["tests/unit/backend/test_headers/header2.hxx"])
-
-        required_list = ["tests/unit/backend/test_headers/header1.hxx",
-                         "tests/unit/backend/test_headers/header2.hxx"]
-        # Feature detection: first try Python 3 function, then Python 2
-        try:
-            self.assertCountEqual(PyRDF.includes_headers, required_list)
-        except AttributeError:
-            self.assertItemsEqual(PyRDF.includes_headers, required_list)
-
-
 class DeclareHeadersTest(unittest.TestCase):
     """Static method 'declare_headers' in Backend class."""
-
-    def tearDown(self):
-        """remove included headers after analysis"""
-        PyRDF.includes_headers.clear()
 
     def test_single_header_declare(self):
         """'declare_headers' with a single header to be included."""
@@ -123,7 +53,7 @@ class DeclareHeadersTest(unittest.TestCase):
         # ROOT interpreter
         with self.assertRaises(AttributeError):
             self.assertRaises(ROOT.b(1))
-        PyRDF.include_headers("tests/unit/backend/test_headers/header4.hxx")
+        Utils.declare_headers(["tests/unit/backend/test_headers/header4.hxx"])
         self.assertEqual(ROOT.b(1), True)
 
 
@@ -140,7 +70,13 @@ class InitializationTest(unittest.TestCase):
             return n
 
         PyRDF.initialize(returnNumber, 123)
-        f = PyRDF.current_backend.initialization
+
+        # Dummy df just to retrieve the initialization function
+        df = PyRDF.make_spark_dataframe(10)
+        f = df._headnode.backend.initialization
+        # Stop the SparkContext
+        df._headnode.backend.sc.stop()
+
         self.assertEqual(f(), 123)
 
     def test_initialization_runs_in_current_environment(self):

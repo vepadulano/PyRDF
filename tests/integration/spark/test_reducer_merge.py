@@ -1,21 +1,18 @@
+import os
 import unittest
-import ROOT
+
+import numpy
 import PyRDF
 import pyspark
-import os
+import ROOT
 
 
 class ReducerMergeTest(unittest.TestCase):
     """Check the working of merge operations in the reducer function."""
 
     @classmethod
-    def setUpClass(cls):
-        """Select Spark backend before running all the tests."""
-        PyRDF.use("spark", {'npartitions': 2, 'spark.executor.instances': 2})
-
-    @classmethod
     def tearDownClass(cls):
-        """Stop any created SparkContext before ending the test."""
+        """Stop the SparkContext at the end."""
         pyspark.SparkContext.getOrCreate().stop()
 
     def assertHistoOrProfile(self, obj_1, obj_2):
@@ -51,7 +48,7 @@ class ReducerMergeTest(unittest.TestCase):
     def test_histo1d_merge(self):
         """Check the working of Histo1D merge operation in the reducer."""
         # Operations with PyRDF
-        rdf_py = PyRDF.RDataFrame(10)
+        rdf_py = PyRDF.make_spark_dataframe(10)
         histo_py = rdf_py.Histo1D("rdfentry_")
 
         # Operations with PyROOT
@@ -66,7 +63,7 @@ class ReducerMergeTest(unittest.TestCase):
         modelTH2D = ("", "", 64, -4, 4, 64, -4, 4)
 
         # Operations with PyRDF
-        rdf_py = PyRDF.RDataFrame(10)
+        rdf_py = PyRDF.make_spark_dataframe(10)
         columns_py = self.define_two_columns(rdf_py)
         histo_py = columns_py.Histo2D(modelTH2D, "x", "y")
 
@@ -82,7 +79,7 @@ class ReducerMergeTest(unittest.TestCase):
         """Check the working of Histo3D merge operation in the reducer."""
         modelTH3D = ("", "", 64, -4, 4, 64, -4, 4, 64, -4, 4)
         # Operations with PyRDF
-        rdf_py = PyRDF.RDataFrame(10)
+        rdf_py = PyRDF.make_spark_dataframe(10)
         columns_py = self.define_three_columns(rdf_py)
         histo_py = columns_py.Histo3D(modelTH3D, "x", "y", "z")
 
@@ -97,7 +94,7 @@ class ReducerMergeTest(unittest.TestCase):
     def test_profile1d_merge(self):
         """Check the working of Profile1D merge operation in the reducer."""
         # Operations with PyRDF
-        rdf_py = PyRDF.RDataFrame(10)
+        rdf_py = PyRDF.make_spark_dataframe(10)
         columns_py = self.define_two_columns(rdf_py)
         profile_py = columns_py.Profile1D(("", "", 64, -4, 4), "x", "y")
 
@@ -114,7 +111,7 @@ class ReducerMergeTest(unittest.TestCase):
         model = ("", "", 64, -4, 4, 64, -4, 4)
 
         # Operations with PyRDF
-        rdf_py = PyRDF.RDataFrame(10)
+        rdf_py = PyRDF.make_spark_dataframe(10)
         columns_py = self.define_three_columns(rdf_py)
         profile_py = columns_py.Profile2D(model, "x", "y", "z")
 
@@ -131,7 +128,7 @@ class ReducerMergeTest(unittest.TestCase):
     def test_tgraph_merge(self):
         """Check the working of TGraph merge operation in the reducer."""
         # Operations with PyRDF
-        rdf_py = PyRDF.RDataFrame(10)
+        rdf_py = PyRDF.make_spark_dataframe(10)
         columns_py = self.define_two_columns(rdf_py)
         graph_py = columns_py.Graph("x", "y")
 
@@ -152,14 +149,14 @@ class ReducerMergeTest(unittest.TestCase):
 
     def test_distributed_count(self):
         """Test support for `Count` operation in distributed backend"""
-        rdf_py = PyRDF.RDataFrame(100)
+        rdf_py = PyRDF.make_spark_dataframe(100)
         count = rdf_py.Count()
 
         self.assertEqual(count.GetValue(), 100)
 
     def test_distributed_sum(self):
         """Test support for `Sum` operation in distributed backend"""
-        rdf_py = PyRDF.RDataFrame(10)
+        rdf_py = PyRDF.make_spark_dataframe(10)
         rdf_def = rdf_py.Define("x", "rdfentry_")
         rdf_sum = rdf_def.Sum("x")
 
@@ -167,11 +164,10 @@ class ReducerMergeTest(unittest.TestCase):
 
     def test_distributed_asnumpy(self):
         """Test support for `AsNumpy` pythonization in distributed backend"""
-        import numpy
 
         # Let's create a simple dataframe with ten rows and two columns
-        df = PyRDF.RDataFrame(10).Define("x", "(int)rdfentry_")\
-                                 .Define("y", "1.f/(1.f+rdfentry_)")
+        df = PyRDF.make_spark_dataframe(10).Define("x", "(int)rdfentry_")\
+            .Define("y", "1.f/(1.f+rdfentry_)")
 
         # Build a dictionary of numpy arrays.
         npy = df.AsNumpy()
@@ -197,13 +193,13 @@ class ReducerMergeTest(unittest.TestCase):
     def test_distributed_snapshot(self):
         """Test support for `Snapshot` in distributed backend"""
         # A simple dataframe with ten sequential numbers from 0 to 9
-        df = PyRDF.RDataFrame(10).Define("x", "rdfentry_")
+        df = PyRDF.make_spark_dataframe(10).Define("x", "rdfentry_")
 
         # Count rows in the dataframe
         nrows = df.Count()
 
         # Snapshot to two files, build a ROOT.TChain with them and retrieve a
-        # PyRDF.RDataFrame
+        # PyRDF.make_spark_dataframe
         snapdf = df.Snapshot("snapTree", "snapFile.root")
 
         # Count the rows in the snapshotted dataframe
@@ -212,7 +208,7 @@ class ReducerMergeTest(unittest.TestCase):
         self.assertEqual(nrows.GetValue(), 10)
         self.assertEqual(snapcount.GetValue(), 10)
 
-        # Retrieve list of file from the snapshotted PyRDF.RDataFrame
+        # Retrieve list of file from the snapshotted dataframe
         input_files = snapdf.proxied_node.get_inputfiles()
         # Create list of supposed filenames for the intermediary files
         tmp_files = ["snapFile_0_4.root", "snapFile_5_9.root"]

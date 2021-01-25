@@ -7,9 +7,9 @@ import warnings
 from abc import abstractmethod
 
 import numpy
-import PyRDF
 import ROOT
-from PyRDF.backend import Backend
+from PyRDF.Backends import Base
+from PyRDF.Backends import Utils
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +103,7 @@ class FriendInfo(object):
         return self.__bool__()
 
 
-class Dist(Backend.Backend):
+class DistBackend(Base.BaseBackend):
     """
     Base class for implementing all distributed backends.
 
@@ -118,17 +118,8 @@ class Dist(Backend.Backend):
             information about any friend trees of the main ROOT.TTree
     """
 
-    def __init__(self, config={}):
-        """
-        Creates an instance of Dist.
-
-        Args:
-            config (dict, optional): The config options for the current
-                distributed backend. Default value is an empty python
-                dictionary: :obj:`{}`.
-
-        """
-        super(Dist, self).__init__(config)
+    def __init__(self):
+        """Creates an instance of Dist."""
         # Operations that aren't supported in distributed backends
         operations_not_supported = [
             'Mean',
@@ -142,13 +133,15 @@ class Dist(Backend.Backend):
             'Aggregate'
         ]
 
-        # Remove the value of 'npartitions' from config dict
-        self.npartitions = config.pop('npartitions', None)
+        self.npartitions = None
 
         self.supported_operations = [op for op in self.supported_operations
                                      if op not in operations_not_supported]
 
         self.friend_info = FriendInfo()
+
+        self.headers = set()
+        self.shared_libraries = set()
 
     def get_clusters(self, treename, filelist):
         """
@@ -187,7 +180,7 @@ class Dist(Backend.Backend):
         fileindex = 0
 
         for filename in filelist:
-            f = ROOT.TFile.Open(str(filename))
+            f = ROOT.TFile.Open(filename)
             t = f.Get(treename)
 
             entries = t.GetEntriesFast()
@@ -499,7 +492,7 @@ class Dist(Backend.Backend):
         selected_branches = generator.head_node.get_branches()
 
         # Avoid having references to the instance inside the mapper
-        initialization = Backend.Backend.initialization
+        initialization = Base.BaseBackend.initialization
 
         def mapper(current_range):
             """
@@ -665,8 +658,7 @@ class Dist(Backend.Backend):
                 for filename in value:
                     snapshot_chain.Add(filename)
                 # Create a new rdf with the chain and return that to user
-                snapshot_rdf = PyRDF.RDataFrame(snapshot_chain)
-                node.value = snapshot_rdf
+                node.value = self.make_dataframe(snapshot_chain)
             elif node.operation.name == "AsNumpy":
                 node.value = value
             else:
@@ -681,9 +673,102 @@ class Dist(Backend.Backend):
         pass
 
     @abstractmethod
-    def distribute_files(self, includes_list):
+    def distribute_unique_paths(self, paths):
         """
         Subclasses must define how to send all files needed for the analysis
         (like headers and libraries) to the workers.
         """
         pass
+
+    def distribute_files(self, files_paths):
+        """
+        Sends to the workers the generic files needed by the user.
+
+        Args:
+            files_paths (str, iter): Paths to the files to be sent to the
+                distributed workers.
+        """
+        files_to_distribute = set()
+
+        if isinstance(files_paths, str):
+            files_to_distribute.update(
+                Utils.get_paths_set_from_string(files_paths))
+        else:
+            for path_string in files_paths:
+                files_to_distribute.update(
+                    Utils.get_paths_set_from_string(path_string))
+
+        self.distribute_unique_paths(files_to_distribute)
+
+    def distribute_headers(self, headers_paths):
+        """
+        Includes the C++ headers to be declared before execution.
+
+        Args:
+            headers_paths (str, iter): A string or an iterable (such as a
+                list, set...) containing the paths to all necessary C++ headers
+                as strings. This function accepts both paths to the headers
+                themselves and paths to directories containing the headers.
+        """
+        headers_to_distribute = set()
+
+        if isinstance(headers_paths, str):
+            headers_to_distribute.update(
+                Utils.get_paths_set_from_string(headers_paths))
+        else:
+            for path_string in headers_paths:
+                headers_to_distribute.update(
+                    Utils.get_paths_set_from_string(path_string))
+
+        # Distribute header files to the workers
+        self.distribute_unique_paths(headers_to_distribute)
+
+        # Declare headers locally
+        Utils.declare_headers(headers_to_distribute)
+
+        # Finally, add everything to the includes set
+        self.headers.update(headers_to_distribute)
+
+    def distribute_shared_libraries(self, shared_libraries_paths):
+        """
+        Includes the C++ shared libraries to be declared before execution. If
+        any pcm file is present in the same folder as the shared libraries, the
+        function will try to retrieve them and distribute them.
+
+        Args:
+            shared_libraries_paths (str, iter): A string or an iterable (such as
+                a list, set...) containing the paths to all necessary C++ shared
+                libraries as strings. This function accepts both paths to the
+                libraries themselves and paths to directories containing the
+                libraries.
+        """
+        libraries_to_distribute = set()
+        pcm_to_distribute = set()
+
+        if isinstance(shared_libraries_paths, str):
+            pcm_to_distribute, libraries_to_distribute = (
+                Utils.check_pcm_in_library_path(shared_libraries_paths))
+        else:
+            for path_string in shared_libraries_paths:
+                pcm, libraries = Utils.check_pcm_in_library_path(
+                    path_string
+                )
+                libraries_to_distribute.update(libraries)
+                pcm_to_distribute.update(pcm)
+
+        # Distribute shared libraries and pcm files to the workers
+        self.distribute_unique_paths(libraries_to_distribute)
+        self.distribute_unique_paths(pcm_to_distribute)
+
+        # Include shared libraries locally
+        Utils.declare_shared_libraries(libraries_to_distribute)
+
+        # Finally, add everything to the includes set
+        self.shared_libraries.update(libraries_to_distribute)
+
+    @abstractmethod
+    def make_dataframe(self, *args, **kwargs):
+        """
+        Distributed backends have to take care of creating an RDataFrame object
+        that can run distributedly.
+        """

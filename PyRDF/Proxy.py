@@ -1,11 +1,15 @@
 from __future__ import print_function
-from PyRDF.CallableGenerator import CallableGenerator
-from abc import ABCMeta, abstractmethod
-from PyRDF.Operation import Operation
-from PyRDF.Node import Node
+
 import logging
-import ROOT
+from abc import ABCMeta
+from abc import abstractmethod
 from contextlib import contextmanager
+
+import ROOT
+
+from PyRDF.CallableGenerator import CallableGenerator
+from PyRDF.Node import Node
+from PyRDF.Operation import Operation
 
 
 @contextmanager
@@ -42,6 +46,7 @@ class Proxy(ABC):
     done via changing the value of the :obj:`has_user_references` of the
     proxied node from :obj:`True` to :obj:`False`.
     """
+
     def __init__(self, node):
         """
         Creates a new `Proxy` object for a given node.
@@ -76,6 +81,7 @@ class ActionProxy(Proxy):
     mechanism, i.e., when they are accessed for the first time,
     they trigger the execution of the whole RDataFrame graph.
     """
+
     def __getattr__(self, attr):
         """
         Intercepts calls on the result of
@@ -99,14 +105,14 @@ class ActionProxy(Proxy):
             The value of the current action node, obtained after executing the
             current action node in the computational graph.
         """
-        from PyRDF import current_backend
 
         # Creating a ROOT.TDirectory.TContext in a context manager so that
         # ROOT.gDirectory won't be changed by the event loop execution.
         with _managed_tcontext():
             if not self.proxied_node.value:  # If event-loop not triggered
-                generator = CallableGenerator(self.proxied_node.get_head())
-                current_backend.execute(generator)
+                headnode = self.proxied_node.get_head()
+                generator = CallableGenerator(headnode)
+                headnode.backend.execute(generator)
 
         return self.proxied_node.value
 
@@ -135,10 +141,9 @@ class TransformationProxy(Proxy):
                 node the user wants to access.
         """
 
-        from PyRDF import current_backend
         # if attr is a supported operation, start
         # operation and node creation
-        if attr in current_backend.supported_operations:
+        if attr in self.proxied_node.get_head().backend.supported_operations:
             self.proxied_node._new_op_name = attr  # Stores new operation name
             return self._create_new_op
         else:
@@ -178,9 +183,9 @@ class TransformationProxy(Proxy):
         if op.is_action():
             return ActionProxy(newNode)
         elif op.name in ["AsNumpy", "Snapshot"]:
-            from PyRDF import current_backend
-            generator = CallableGenerator(self.proxied_node.get_head())
-            current_backend.execute(generator)
+            headnode = self.proxied_node.get_head()
+            generator = CallableGenerator(headnode)
+            headnode.backend.execute(generator)
             return newNode.value
         else:
             return TransformationProxy(newNode)

@@ -1,12 +1,18 @@
-from __future__ import print_function
-from PyRDF.backend.Dist import Dist
-from PyRDF.backend.Utils import Utils
-from pyspark import SparkConf, SparkContext
-from pyspark import SparkFiles
 import ntpath  # Filename from path (should be platform-independent)
 
+from PyRDF import DataFrame
+from PyRDF.Backends import Dist
+from PyRDF.Backends import Utils
 
-class Spark(Dist):
+try:
+    import pyspark
+except ModuleNotFoundError:
+    raise ModuleNotFoundError(
+        ("cannot import module 'pyspark'."
+         " Please make sure Spark is installed."))
+
+
+class SparkBackend(Dist.DistBackend):
     """
     Backend that executes the computational graph using using `Spark` framework
     for distributed execution.
@@ -15,7 +21,7 @@ class Spark(Dist):
 
     MIN_NPARTITIONS = 2
 
-    def __init__(self, config={}):
+    def __init__(self, sparkcontext=None):
         """
         Creates an instance of the Spark backend class.
 
@@ -41,18 +47,20 @@ class Spark(Dist):
             and the already existing SparkContext would be used.
 
         """
-        super(Spark, self).__init__(config)
+        super(SparkBackend, self).__init__()
 
-        sparkConf = SparkConf().setAll(config.items())
-        self.sparkContext = SparkContext.getOrCreate(sparkConf)
+        if sparkcontext is not None:
+            self.sc = sparkcontext
+        else:
+            self.sc = pyspark.SparkContext.getOrCreate()
 
         # Set the value of 'npartitions' if it doesn't exist
         self.npartitions = self._get_partitions()
 
     def _get_partitions(self):
         npart = (self.npartitions or
-                 self.sparkContext.getConf().get('spark.executor.instances') or
-                 Spark.MIN_NPARTITIONS)
+                 self.sc.getConf().get('spark.executor.instances') or
+                 SparkBackend.MIN_NPARTITIONS)
         # getConf().get('spark.executor.instances') could return a string
         return int(npart)
 
@@ -71,8 +79,13 @@ class Spark(Dist):
             list: A list representing the values of action nodes returned
             after computation (Map-Reduce).
         """
-        from PyRDF import includes_headers
-        from PyRDF import includes_shared_libraries
+
+        # These need to be passed as variables and not as class attributes
+        # otherwise the `spark_mapper` function would be referencing this
+        # this instance of the Spark backend along with the referenced
+        # SparkContext. This would cause the errors described in SPARK-5063.
+        headers = self.headers
+        shared_libraries = self.shared_libraries
 
         def spark_mapper(current_range):
             """
@@ -89,15 +102,15 @@ class Spark(Dist):
             """
             # Get and declare headers on each worker
             headers_on_executor = [
-                SparkFiles.get(ntpath.basename(filepath))
-                for filepath in includes_headers
+                pyspark.SparkFiles.get(ntpath.basename(filepath))
+                for filepath in headers
             ]
             Utils.declare_headers(headers_on_executor)
 
             # Get and declare shared libraries on each worker
             shared_libs_on_ex = [
-                SparkFiles.get(ntpath.basename(filepath))
-                for filepath in includes_shared_libraries
+                pyspark.SparkFiles.get(ntpath.basename(filepath))
+                for filepath in shared_libraries
             ]
             Utils.declare_shared_libraries(shared_libs_on_ex)
 
@@ -106,13 +119,12 @@ class Spark(Dist):
         ranges = self.build_ranges()  # Get range pairs
 
         # Build parallel collection
-        sc = self.sparkContext
-        parallel_collection = sc.parallelize(ranges, self.npartitions)
+        parallel_collection = self.sc.parallelize(ranges, self.npartitions)
 
         # Map-Reduce using Spark
         return parallel_collection.map(spark_mapper).treeReduce(reducer)
 
-    def distribute_files(self, includes_list):
+    def distribute_unique_paths(self, paths):
         """
         Spark supports sending files to the executors via the
         `SparkContext.addFile` method. This method receives in input the path
@@ -121,9 +133,12 @@ class Spark(Dist):
         workers when they are initialized.
 
         Args:
-            includes_list (list): A list consisting of all necessary C++
-                files as strings, created one of the `include` functions of
-                the PyRDF API.
+            paths (set): A set of paths to files that should be sent to the
+                distributed workers.
         """
-        for filepath in includes_list:
-            self.sparkContext.addFile(filepath)
+        for filepath in paths:
+            self.sc.addFile(filepath)
+
+    def make_dataframe(self, *args, **kwargs):
+        """Creates an instance of SparkDataFrame"""
+        return DataFrame.DistDataFrame(self, *args, **kwargs)

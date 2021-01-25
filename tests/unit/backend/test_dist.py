@@ -1,10 +1,12 @@
-import unittest
-import PyRDF
-from PyRDF.backend.Dist import Dist
-from PyRDF.backend.Dist import FriendInfo
-import ROOT
-from array import array
 import os
+import unittest
+import warnings
+from array import array
+
+import ROOT
+from PyRDF import Node
+from PyRDF import Proxy
+from PyRDF.Backends import Dist
 
 
 def rangesToTuples(ranges):
@@ -15,17 +17,21 @@ def rangesToTuples(ranges):
 class FriendInfoTest(unittest.TestCase):
     """Unit test for the FriendInfo class"""
 
-    class TestBackend(Dist):
+    class TestBackend(Dist.DistBackend):
         """Dummy backend to test the _get_friend_info method in Dist class."""
 
         def ProcessAndMerge(self, mapper, reducer):
             """Dummy implementation of ProcessAndMerge."""
             pass
 
-        def distribute_files(self, includes_list):
+        def distribute_unique_paths(self, includes_list):
             """
             Dummy implementation of distribute_files. Does nothing.
             """
+            pass
+
+        def make_dataframe(self, *args, **kwargs):
+            """Dummy make_dataframe"""
             pass
 
     def create_parent_tree(self):
@@ -67,7 +73,7 @@ class FriendInfoTest(unittest.TestCase):
     def test_empty_friend_info(self):
         """Check that FriendInfo is initialized with two empty lists"""
 
-        friend_info = FriendInfo()
+        friend_info = Dist.FriendInfo()
 
         friend_names = friend_info.friend_names
         friend_file_names = friend_info.friend_file_names
@@ -134,7 +140,7 @@ class DistBackendInitTest(unittest.TestCase):
 
         """
         with self.assertRaises(TypeError):
-            Dist()
+            Dist.DistBackend()
 
     def test_subclass_without_method_error(self):
         """
@@ -142,7 +148,7 @@ class DistBackendInitTest(unittest.TestCase):
         method throws a `TypeError`.
 
         """
-        class TestBackend(Dist):
+        class TestBackend(Dist.DistBackend):
             pass
 
         with self.assertRaises(TypeError):
@@ -152,17 +158,21 @@ class DistBackendInitTest(unittest.TestCase):
 class DistBuildRangesTest(unittest.TestCase):
     """`BuildRanges instance method in `Dist` class."""
 
-    class TestBackend(Dist):
+    class TestBackend(Dist.DistBackend):
         """Dummy backend to test the BuildRanges method in Dist class."""
 
         def ProcessAndMerge(self, mapper, reducer):
             """Dummy implementation of ProcessAndMerge."""
             pass
 
-        def distribute_files(self, includes_list):
+        def distribute_unique_paths(self, includes_list):
             """
             Dummy implementation of distribute_files. Does nothing.
             """
+            pass
+
+        def make_dataframe(self, *args, **kwargs):
+            """Dummy make_dataframe"""
             pass
 
     def test_nentries_multipleOf_npartitions(self):
@@ -271,7 +281,6 @@ class DistBuildRangesTest(unittest.TestCase):
         partitions is bigger than the number of clusters in the dataset.
 
         """
-        import warnings
 
         backend = DistBuildRangesTest.TestBackend()
         treename = "TotemNtuple"
@@ -442,9 +451,7 @@ class DistRDataFrameInterface(unittest.TestCase):
     parameters
     """
 
-    from PyRDF import current_backend
-
-    class TestBackend(Dist):
+    class TestBackend(Dist.DistBackend):
         """Dummy backend to test the build_ranges method in Dist class."""
 
         def ProcessAndMerge(self, mapper, reducer):
@@ -465,19 +472,41 @@ class DistRDataFrameInterface(unittest.TestCase):
 
             return [DummyValue()]
 
-        def distribute_files(self, includes_list):
+        def distribute_unique_paths(self, includes_list):
             """
             Dummy implementation of distribute_files. Does nothing.
             """
             pass
+
+        def make_dataframe(self, *args, **kwargs):
+            """Dummy make_dataframe"""
+            pass
+
+    class TestDataFrame(object):
+        """
+        Interface to an RDataFrame that can run its computation graph
+        distributedly.
+        """
+
+        def __init__(self, *args):
+            """initialize"""
+
+            self.headnode = Node.HeadNode(*args)
+
+            self.headnode.backend = DistRDataFrameInterface.TestBackend()
+
+            self.headproxy = Proxy.TransformationProxy(self.headnode)
+
+        def __getattr__(self, attr):
+            """getattr"""
+            return getattr(self.headproxy, attr)
 
     def get_ranges_from_rdataframe(self, rdf):
         """
         Common test setup to create ranges out of an RDataFrame instance based
         on its parameters.
         """
-        PyRDF.current_backend = DistRDataFrameInterface.TestBackend()
-        backend = PyRDF.current_backend
+        backend = rdf.headnode.backend
 
         hist = rdf.Define("b1", "tdfentry_")\
                   .Histo1D("b1")
@@ -497,7 +526,7 @@ class DistRDataFrameInterface(unittest.TestCase):
         ranges.
 
         """
-        rdf = PyRDF.RDataFrame(10)
+        rdf = DistRDataFrameInterface.TestDataFrame(10)
 
         ranges = self.get_ranges_from_rdataframe(rdf)
         ranges_reqd = [(0, 5), (5, 10)]
@@ -511,7 +540,7 @@ class DistRDataFrameInterface(unittest.TestCase):
         """
         treename = "myTree"
         filename = "tests/unit/backend/2clusters.root"
-        rdf = PyRDF.RDataFrame(treename, filename)
+        rdf = DistRDataFrameInterface.TestDataFrame(treename, filename)
 
         ranges = self.get_ranges_from_rdataframe(rdf)
         ranges_reqd = [(0, 777), (777, 1000)]
@@ -526,7 +555,7 @@ class DistRDataFrameInterface(unittest.TestCase):
         """
         treename = "myTree"
         filename = "tests/unit/backend/2cluste*.root"
-        rdf = PyRDF.RDataFrame(treename, filename)
+        rdf = DistRDataFrameInterface.TestDataFrame(treename, filename)
 
         ranges = self.get_ranges_from_rdataframe(rdf)
         ranges_reqd = [(0, 777), (777, 1000)]
@@ -541,7 +570,7 @@ class DistRDataFrameInterface(unittest.TestCase):
         """
         treename = "myTree"
         filelist = ["tests/unit/backend/2clusters.root"]
-        rdf = PyRDF.RDataFrame(treename, filelist)
+        rdf = DistRDataFrameInterface.TestDataFrame(treename, filelist)
 
         ranges = self.get_ranges_from_rdataframe(rdf)
         ranges_reqd = [(0, 777), (777, 1000)]
@@ -577,7 +606,7 @@ class DistRDataFrameInterface(unittest.TestCase):
         filelist = ["tests/unit/backend/2clusters.root",
                     "tests/unit/backend/4clusters.root"]
 
-        rdf = PyRDF.RDataFrame(treename, filelist)
+        rdf = DistRDataFrameInterface.TestDataFrame(treename, filelist)
 
         ranges = self.get_ranges_from_rdataframe(rdf)
         ranges_reqd = [(0, 1250), (250, 1000)]
