@@ -1,9 +1,9 @@
-from PyRDF.Proxy import Proxy, ActionProxy, TransformationProxy
-from PyRDF.Node import Node
-from PyRDF.backend.Backend import Backend
-from PyRDF import RDataFrame
 import unittest
-import PyRDF
+
+from PyRDF import Node
+from PyRDF import Proxy
+from PyRDF.Backends import Base
+from PyRDF.Backends import Dist
 
 
 class ProxyInitTest(unittest.TestCase):
@@ -15,44 +15,66 @@ class ProxyInitTest(unittest.TestCase):
         a `TypeError`.
         """
         with self.assertRaises(TypeError):
-            Proxy()
+            Proxy.Proxy()
 
 
 class TypeReturnTest(unittest.TestCase):
     """Tests that right types are returned"""
+
     def test_type_return_transformation(self):
         """
         TransformationProxy object is of type `PyRDF.TransformationProxy` and
         wraps a node object.
         """
-        node = Node(None, None)
-        proxy = TransformationProxy(node)
-        self.assertIsInstance(proxy, TransformationProxy)
-        self.assertIsInstance(proxy.proxied_node, Node)
+        node = Node.Node(None, None)
+        node.backend = None
+        proxy = Proxy.TransformationProxy(node)
+        self.assertIsInstance(proxy, Proxy.TransformationProxy)
+        self.assertIsInstance(proxy.proxied_node, Node.Node)
 
     def test_type_return_action(self):
         """
         ActionProxy object is of type `PyRDF.ActionProxy` and
         wraps a node object.
         """
-        node = Node(None, None)
-        proxy = ActionProxy(node)
-        self.assertIsInstance(proxy, ActionProxy)
-        self.assertIsInstance(proxy.proxied_node, Node)
+        node = Node.Node(None, None)
+        node.backend = None
+        proxy = Proxy.ActionProxy(node)
+        self.assertIsInstance(proxy, Proxy.ActionProxy)
+        self.assertIsInstance(proxy.proxied_node, Node.Node)
 
 
 class AttrReadTest(unittest.TestCase):
     """Test Proxy class methods."""
     class Temp(object):
         """A mock action node result class."""
+
         def val(self, arg):
             """A test method to check function call on the Temp class."""
             return arg + 123  # A simple operation to check
 
+    class TestBackend(Dist.DistBackend):
+        """Dummy backend to test the _get_friend_info method in Dist class."""
+
+        def ProcessAndMerge(self, mapper, reducer):
+            """Dummy implementation of ProcessAndMerge."""
+            pass
+
+        def distribute_unique_paths(self, includes_list):
+            """
+            Dummy implementation of distribute_files. Does nothing.
+            """
+            pass
+
+        def make_dataframe(self, *args, **kwargs):
+            """Dummy make_dataframe"""
+            pass
+
     def test_attr_simple_action(self):
         """ActionProxy object reads the right input attribute."""
-        node = Node(None, None)
-        proxy = ActionProxy(node)
+        node = Node.Node(None, None)
+        node.backend = None
+        proxy = Proxy.ActionProxy(node)
         func = proxy.attr
 
         self.assertEqual(proxy._cur_attr, "attr")
@@ -63,8 +85,9 @@ class AttrReadTest(unittest.TestCase):
         TransformationProxy object reads the right input attributes,
         returning the methods of the proxied node.
         """
-        node = Node(None, None)
-        proxy = TransformationProxy(node)
+        node = Node.Node(None, None)
+        node.backend = AttrReadTest.TestBackend()
+        proxy = Proxy.TransformationProxy(node)
 
         transformations = {
             "Define": ["x", "tdfentry_"],
@@ -74,7 +97,7 @@ class AttrReadTest(unittest.TestCase):
         for transformation, args in transformations.items():
             newProxy = getattr(proxy, transformation)(*args)
             self.assertEqual(proxy.proxied_node._new_op_name, transformation)
-            self.assertIsInstance(newProxy, TransformationProxy)
+            self.assertIsInstance(newProxy, Proxy.TransformationProxy)
             self.assertEqual(newProxy.proxied_node.operation.name,
                              transformation)
             self.assertEqual(newProxy.proxied_node.operation.args, args)
@@ -84,8 +107,9 @@ class AttrReadTest(unittest.TestCase):
         When a node attribute is called on a TransformationProxy object, it
         correctly returns the attribute of the proxied node.
         """
-        node = Node(None, None)
-        proxy = TransformationProxy(node)
+        node = Node.Node(None, None)
+        node.backend = AttrReadTest.TestBackend()
+        proxy = Proxy.TransformationProxy(node)
 
         node_attributes = [
             "get_head",
@@ -106,8 +130,9 @@ class AttrReadTest(unittest.TestCase):
         When a non-defined Node class attribute is called on a
         TransformationProxy object, it raises an AttributeError.
         """
-        node = Node(None, None)
-        proxy = TransformationProxy(node)
+        node = Node.Node(None, None)
+        node.backend = None
+        proxy = Proxy.TransformationProxy(node)
         with self.assertRaises(AttributeError):
             proxy.attribute
 
@@ -118,10 +143,11 @@ class AttrReadTest(unittest.TestCase):
         `__del__` method switches the node attribute `has_user_references` from
         `True` to `False`.
         """
-        node = Node(None, None)
-        proxy = TransformationProxy(node)
+        node = Node.Node(None, None)
+        node.backend = None
+        proxy = Proxy.TransformationProxy(node)
         self.assertTrue(node.has_user_references)
-        proxy = None # noqa: avoid PEP8 F841
+        proxy = None  # noqa: avoid PEP8 F841
         self.assertFalse(node.has_user_references)
 
     def test_return_value(self):
@@ -130,20 +156,22 @@ class AttrReadTest(unittest.TestCase):
         function call.
         """
         t = AttrReadTest.Temp()
-        node = Node(None, None)
+        node = Node.Node(None, None)
+        node.backend = None
         node.value = t
-        proxy = ActionProxy(node)
+        proxy = Proxy.ActionProxy(node)
 
         self.assertEqual(proxy.val(21), 144)
 
 
 class GetValueTests(unittest.TestCase):
     """Check 'GetValue' instance method in Proxy."""
-    class TestBackend(Backend):
+    class TestBackend(Base.BaseBackend):
         """
         Test backend to verify the working of 'GetValue' instance method
         in Proxy.
         """
+
         def execute(self, generator):
             """
             Test implementation of the execute method
@@ -157,32 +185,19 @@ class GetValueTests(unittest.TestCase):
             """do nothing"""
             pass
 
+        def make_dataframe(self, *args, **kwargs):
+            """Dummy make_dataframe"""
+            pass
+
     def test_get_value_with_existing_value(self):
         """
         Test case to check the working of 'GetValue'
         method in Proxy when the current action node
         already houses a value.
         """
-        node = Node(None, None)
-        proxy = ActionProxy(node)
+        node = Node.Node(None, None)
+        node.backend = None
+        proxy = Proxy.ActionProxy(node)
         node.value = 5
 
         self.assertEqual(proxy.GetValue(), 5)
-
-    def test_get_value_with_value_not_existing(self):
-        """
-        Test case to check the working of 'GetValue'
-        method in Proxy when the current action node
-        doesn't contain a value (event-loop hasn't been
-        triggered yet).
-        """
-        PyRDF.current_backend = GetValueTests.TestBackend()
-
-        rdf = RDataFrame(10)  # now this is a proxy too
-        count = rdf.Count()
-
-        count.GetValue()
-
-        # Ensure that TestBackend's execute method was called
-        self.assertIs(PyRDF.current_backend.obtained_head_node,
-                      rdf.proxied_node)

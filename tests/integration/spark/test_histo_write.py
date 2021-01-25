@@ -1,8 +1,10 @@
-import ROOT
-import unittest
-import PyRDF
-from array import array
 import os
+import unittest
+from array import array
+
+import PyRDF
+import pyspark
+import ROOT
 
 
 class SparkHistoWriteTest(unittest.TestCase):
@@ -22,8 +24,7 @@ class SparkHistoWriteTest(unittest.TestCase):
 
     def tearDown(self):
         """Clean up the `SparkContext` object that was created."""
-        from PyRDF import current_backend
-        current_backend.sparkContext.stop()
+        pyspark.SparkContext.getOrCreate().stop()
 
     def create_tree_with_data(self):
         """Creates a .root file with some data"""
@@ -54,8 +55,7 @@ class SparkHistoWriteTest(unittest.TestCase):
         outfile = ROOT.TFile("out_file.root", "recreate")
 
         # Create a PyRDF RDataFrame with the parent and the friend trees
-        PyRDF.use("spark")
-        df = PyRDF.RDataFrame("Events", "tree_gaus.root")
+        df = PyRDF.make_spark_dataframe("Events", "tree_gaus.root")
 
         # Create histogram
         histo = df.Histo1D(("x", "x", 100, 0, 20), "x")

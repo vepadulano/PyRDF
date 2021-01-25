@@ -7,7 +7,7 @@ import functools
 ABC = ABCMeta('ABC', (object,), {})
 
 
-class Backend(ABC):
+class BaseBackend(ABC):
     """
     Base class for RDataFrame backends. Subclasses of this class need to
     implement the 'execute' method.
@@ -45,16 +45,6 @@ class Backend(ABC):
     ]
 
     initialization = staticmethod(lambda: None)
-
-    def __init__(self, config={}):
-        """
-        Creates a new instance of the desired implementation of :obj:`Backend`.
-
-        Args:
-            config (dict): The config object for the required backend. The
-                default value is an empty Python dictionary: :obj:`{}`.
-        """
-        self.config = config
 
     @classmethod
     def register_initialization(cls, fun, *args, **kwargs):

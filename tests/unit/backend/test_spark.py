@@ -1,26 +1,7 @@
 import unittest
 import PyRDF
-from PyRDF.backend.Spark import Spark
-from pyspark import SparkContext
-
-
-class SelectionTest(unittest.TestCase):
-    """Check the accuracy of 'PyRDF.use' method."""
-
-    @classmethod
-    def tearDownClass(cls):
-        """
-        Clean up the `SparkContext` objects that were created during the tests
-        in this class.
-
-        """
-        context = SparkContext.getOrCreate()
-        context.stop()
-
-    def test_spark_select(self):
-        """Check if 'spark' environment gets set correctly."""
-        PyRDF.use("spark")
-        self.assertIsInstance(PyRDF.current_backend, Spark)
+from PyRDF.Backends.Spark import Backend
+import pyspark
 
 
 class SparkBackendInitTest(unittest.TestCase):
@@ -28,104 +9,93 @@ class SparkBackendInitTest(unittest.TestCase):
     Tests to ensure that the instance variables
     of `Spark` class are set according to the
     input `config` dict.
-
     """
 
     @classmethod
     def tearDown(cls):
         """Clean up the `SparkContext` objects that were created."""
-        context = SparkContext.getOrCreate()
-        context.stop()
+        pyspark.SparkContext.getOrCreate().stop()
 
     def test_set_spark_context_default(self):
         """
-        Check that if the config dictionary is empty, a `SparkContext`
-        object is still created with default options for the current system.
-
+        Check that a `SparkContext` object is created with default options for
+        the current system.
         """
-        backend = Spark()
+        backend = Backend.SparkBackend()
 
-        self.assertDictEqual(backend.config, {})
-        self.assertIsInstance(backend.sparkContext, SparkContext)
+        self.assertIsInstance(backend.sc, pyspark.SparkContext)
 
     def test_set_spark_context_with_conf(self):
         """
         Check that a `SparkContext` object is correctly created for a given
         `SparkConf` object in the config dictionary.
-
         """
-        backend = Spark({'spark.app.name': 'my-pyspark-app1'})
+        conf = {"spark.app.name": "my-pyspark-app1"}
+        sconf = pyspark.SparkConf().setAll(conf.items())
+        sc = pyspark.SparkContext(conf=sconf)
 
-        self.assertIsInstance(backend.sparkContext, SparkContext)
-        appname = backend.sparkContext.getConf().get('spark.app.name')
-        self.assertEqual(appname, 'my-pyspark-app1')
+        backend = Backend.SparkBackend(sparkcontext=sc)
 
-    def test_set_npartitions_explicit(self):
-        """
-        Check that the number of partitions is correctly set for a given input
-        value in the config dictionary.
-
-        """
-        backend = Spark({"npartitions": 5})
-        self.assertEqual(backend.npartitions, 5)
+        self.assertIsInstance(backend.sc, pyspark.SparkContext)
+        appname = backend.sc.getConf().get("spark.app.name")
+        self.assertEqual(appname, "my-pyspark-app1")
 
     def test_npartitions_with_num_executors(self):
         """
         Check that the number of partitions is correctly set to number of
         executors when no input value is given in the config dictionary.
-
         """
-        backend = Spark({'spark.executor.instances': 10})
+        conf = {'spark.executor.instances': 10}
+        sconf = pyspark.SparkConf().setAll(conf.items())
+        sc = pyspark.SparkContext(conf=sconf)
+        backend = Backend.SparkBackend(sparkcontext=sc)
+
         self.assertEqual(backend.npartitions, 10)
 
     def test_npartitions_with_already_existing_spark_context(self):
         """
         Check that the number of partitions is correctly set when a Spark
         Context already exists.
-
         """
-        from pyspark import SparkConf
-        sparkConf = SparkConf().set('spark.executor.instances', 15)
-        SparkContext(conf=sparkConf)
-        backend = Spark()
+        sparkconf = pyspark.SparkConf().set('spark.executor.instances', 15)
+        pyspark.SparkContext(conf=sparkconf)
+        backend = Backend.SparkBackend()
         self.assertEqual(backend.npartitions, 15)
 
     def test_npartitions_default(self):
         """
         Check that the default number of partitions is correctly set when no
         input value is given in the config dictionary.
-
         """
-        backend = Spark()
-        self.assertEqual(backend.npartitions, Spark.MIN_NPARTITIONS)
+        backend = Backend.SparkBackend()
+        self.assertEqual(backend.npartitions,
+                         Backend.SparkBackend.MIN_NPARTITIONS)
 
 
 class OperationSupportTest(unittest.TestCase):
     """
     Ensure that incoming operations are classified accurately in distributed
     environment.
-
     """
 
     @classmethod
     def tearDown(cls):
         """Clean up the `SparkContext` objects that were created."""
-        context = SparkContext.getOrCreate()
-        context.stop()
+        pyspark.SparkContext.getOrCreate().stop()
 
     def test_action(self):
         """Check that action nodes are classified accurately."""
-        backend = Spark()
+        backend = Backend.SparkBackend()
         backend.check_supported("Histo1D")
 
     def test_transformation(self):
         """Check that transformation nodes are classified accurately."""
-        backend = Spark()
+        backend = Backend.SparkBackend()
         backend.check_supported("Define")
 
     def test_unsupported_operations(self):
         """Check that unsupported operations raise an Exception."""
-        backend = Spark()
+        backend = Backend.SparkBackend()
         with self.assertRaises(Exception):
             backend.check_supported("Take")
 
@@ -137,7 +107,7 @@ class OperationSupportTest(unittest.TestCase):
 
     def test_none(self):
         """Check that incorrect operations raise an Exception."""
-        backend = Spark()
+        backend = Backend.SparkBackend()
         with self.assertRaises(Exception):
             backend.check_supported("random")
 
@@ -145,9 +115,8 @@ class OperationSupportTest(unittest.TestCase):
         """
         Check that 'Range' operation works in single-threaded mode and raises an
         Exception in multi-threaded mode.
-
         """
-        backend = Spark()
+        backend = Backend.SparkBackend()
         with self.assertRaises(Exception):
             backend.check_supported("Range")
 
@@ -158,10 +127,8 @@ class InitializationTest(unittest.TestCase):
     def test_initialization_method(self):
         """
         Check initialization method in Spark backend.
-
         Define a method in the ROOT interpreter called getValue which returns
         the value defined by the user on the python side.
-
         """
         def init(value):
             import ROOT
@@ -169,7 +136,6 @@ class InitializationTest(unittest.TestCase):
             ROOT.gInterpreter.ProcessLine(cpp_code)
 
         PyRDF.initialize(init, 123)
-        PyRDF.current_backend = Spark()
         # Spark backend has a limited list of supported methods, so we use
         # Histo1D which is a supported action.
         # The code below creates an RDataFrame instance with one single entry
@@ -185,7 +151,8 @@ class InitializationTest(unittest.TestCase):
         # Finally, Histo1D returns a histogram filled with one value. The mean
         # of this single value has to be the value itself, independently of
         # the number of spawned workers.
-        df = PyRDF.RDataFrame(1).Define("u", "userValue").Histo1D("u")
+        df = PyRDF.make_spark_dataframe(1).Define(
+            "u", "userValue").Histo1D("u")
         h = df.GetValue()
         self.assertEqual(h.GetMean(), 123)
 
@@ -200,10 +167,10 @@ class EmptyTreeErrorTest(unittest.TestCase):
         Check that when performing operations with the distributed backend on
         an RDataFrame without entries, PyRDF raises an error.
         """
-        PyRDF.use("spark")
 
         # Create an RDataFrame from a file with an empty tree
-        rdf = PyRDF.RDataFrame("NOMINAL", "tests/unit/backend/emptytree.root")
+        rdf = PyRDF.make_spark_dataframe(
+            "NOMINAL", "tests/unit/backend/emptytree.root")
         histo = rdf.Histo1D(("empty", "empty", 10, 0, 10), "mybranch")
 
         # Get entries in the histogram, raises error
@@ -219,21 +186,17 @@ class ChangeAttributeTest(unittest.TestCase):
         Check that the `npartitions class attribute is changed when it is
         greater than the number of clusters in the ROOT file.
         """
-        PyRDF.use("spark", {"npartitions": 10})
-
-        from PyRDF import current_backend
-
-        self.assertEqual(current_backend.npartitions, 10)
 
         treename = "TotemNtuple"
         filelist = ["tests/unit/backend/Slimmed_ntuple.root"]
-        df = PyRDF.RDataFrame(treename, filelist)
+        df = PyRDF.make_spark_dataframe(treename, filelist, npartitions=10)
 
+        self.assertEqual(df._headnode.backend.npartitions, 10)
         histo = df.Histo1D("track_rp_3.x")
         nentries = histo.GetEntries()
 
         self.assertEqual(nentries, 10)
-        self.assertEqual(current_backend.npartitions, 1)
+        self.assertEqual(df._headnode.backend.npartitions, 1)
 
 
 if __name__ == "__main__":

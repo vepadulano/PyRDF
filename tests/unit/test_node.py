@@ -1,6 +1,25 @@
-from PyRDF.Node import Node
-from PyRDF.Proxy import ActionProxy, TransformationProxy
 import unittest
+
+from PyRDF import Node, Proxy
+from PyRDF.Backends import Dist
+
+
+class TestBackend(Dist.DistBackend):
+    """Dummy backend."""
+
+    def ProcessAndMerge(self, mapper, reducer):
+        """Dummy implementation of ProcessAndMerge."""
+        pass
+
+    def distribute_unique_paths(self, includes_list):
+        """
+        Dummy implementation of distribute_files. Does nothing.
+        """
+        pass
+
+    def make_dataframe(self, *args, **kwargs):
+        """Dummy make_dataframe"""
+        pass
 
 
 class OperationReadTest(unittest.TestCase):
@@ -11,19 +30,25 @@ class OperationReadTest(unittest.TestCase):
 
     def test_attr_read(self):
         """Function names are read accurately."""
-        node = TransformationProxy(Node(None, None))
+        hn = Node.HeadNode(1)
+        hn.backend = TestBackend()
+        node = Proxy.TransformationProxy(hn)
         func = node.Define  # noqa: avoid PEP8 F841
         self.assertEqual(node._new_op_name, "Define")
 
     def test_args_read(self):
         """Arguments (unnamed) are read accurately."""
-        node = TransformationProxy(Node(None, None))
+        hn = Node.HeadNode(1)
+        hn.backend = TestBackend()
+        node = Proxy.TransformationProxy(hn)
         newNode = node.Define(1, "b", a="1", b=2)
         self.assertEqual(newNode.operation.args, [1, "b"])
 
     def test_kwargs_read(self):
         """Named arguments are read accurately."""
-        node = TransformationProxy(Node(None, None))
+        hn = Node.HeadNode(1)
+        hn.backend = TestBackend()
+        node = Proxy.TransformationProxy(hn)
         newNode = node.Define(1, "b", a="1", b=2)
         self.assertEqual(newNode.operation.kwargs, {"a": "1", "b": 2})
 
@@ -31,22 +56,26 @@ class OperationReadTest(unittest.TestCase):
 class NodeReturnTest(unittest.TestCase):
     """
     A series of test cases to check that right objects are returned for a node
-    (ActionProxy, TransformationProxy or Node).
+    (Proxy.ActionProxy, Proxy.TransformationProxy or Node).
     """
 
     def test_action_proxy_return(self):
         """Proxy objects are returned for action nodes."""
-        node = TransformationProxy(Node(None, None))
+        hn = Node.HeadNode(1)
+        hn.backend = TestBackend()
+        node = Proxy.TransformationProxy(hn)
         newNode = node.Count()
-        self.assertIsInstance(newNode, ActionProxy)
-        self.assertIsInstance(newNode.proxied_node, Node)
+        self.assertIsInstance(newNode, Proxy.ActionProxy)
+        self.assertIsInstance(newNode.proxied_node, Node.Node)
 
     def test_transformation_proxy_return(self):
         """Node objects are returned for transformation nodes."""
-        node = TransformationProxy(Node(None, None))
+        hn = Node.HeadNode(1)
+        hn.backend = TestBackend()
+        node = Proxy.TransformationProxy(hn)
         newNode = node.Define(1)
-        self.assertIsInstance(newNode, TransformationProxy)
-        self.assertIsInstance(newNode.proxied_node, Node)
+        self.assertIsInstance(newNode, Proxy.TransformationProxy)
+        self.assertIsInstance(newNode.proxied_node, Node.Node)
 
 
 class DfsTest(unittest.TestCase):
@@ -106,7 +135,9 @@ class DfsTest(unittest.TestCase):
 
         """
         # Head node
-        node = TransformationProxy(Node(None, None))
+        hn = Node.HeadNode(1)
+        hn.backend = TestBackend()
+        node = Proxy.TransformationProxy(hn)
 
         # Graph nodes
         n1 = node.Define()
@@ -132,7 +163,9 @@ class DfsTest(unittest.TestCase):
 
         """
         # Head node
-        node = TransformationProxy(Node(None, None))
+        hn = Node.HeadNode(1)
+        hn.backend = TestBackend()
+        node = Proxy.TransformationProxy(hn)
 
         # Graph nodes
         n1 = node.Define()
@@ -157,7 +190,9 @@ class DfsTest(unittest.TestCase):
         and no children get pruned recursively.
         """
         # Head node
-        node = TransformationProxy(Node(None, None))
+        hn = Node.HeadNode(1)
+        hn.backend = TestBackend()
+        node = Proxy.TransformationProxy(hn)
 
         # Graph nodes
         n1 = node.Define()
@@ -183,7 +218,9 @@ class DfsTest(unittest.TestCase):
 
         """
         # Head node
-        node = TransformationProxy(Node(None, None))
+        hn = Node.HeadNode(1)
+        hn.backend = TestBackend()
+        node = Proxy.TransformationProxy(hn)
 
         # Graph nodes
         n1 = node.Define()
@@ -211,7 +248,9 @@ class DfsTest(unittest.TestCase):
 
         """
         # Head node
-        node = TransformationProxy(Node(None, None))
+        hn = Node.HeadNode(1)
+        hn.backend = TestBackend()
+        node = Proxy.TransformationProxy(hn)
 
         # Graph nodes
         n1 = node.Define()
@@ -245,7 +284,9 @@ class DfsTest(unittest.TestCase):
 
         """
         # Head node
-        node = TransformationProxy(Node(None, None))
+        hn = Node.HeadNode(1)
+        hn.backend = TestBackend()
+        node = Proxy.TransformationProxy(hn)
 
         # Graph nodes
         n1 = node.Define()
@@ -275,7 +316,9 @@ class DunderMethodsTest(unittest.TestCase):
         Node class.
 
         """
-        node = TransformationProxy(Node(None, None))  # Head node
+        hn = Node.HeadNode(1)
+        hn.backend = TestBackend()
+        node = Proxy.TransformationProxy(hn)
         n1 = node.Define("a", b="c")  # First child node
 
         # Required dictionaries
@@ -286,8 +329,8 @@ class DunderMethodsTest(unittest.TestCase):
             'operation_kwargs': {"b": "c"},
             'children': []
         }
-        # nodes are of class TransformationProxy, so the proxied nodes must be
-        # accessed in order to extract their dictionaries.
+        # Nodes are wrapped by TransformationProxies, so the proxied nodes
+        # must be accessed in order to extract their dictionaries.
         self.assertDictEqual(node.proxied_node.__getstate__(), node_dict)
         self.assertDictEqual(n1.proxied_node.__getstate__(), n1_dict)
 
@@ -297,16 +340,22 @@ class DunderMethodsTest(unittest.TestCase):
         __setstate__ method on Node class.
 
         """
-        node = TransformationProxy(Node(None, None))  # Head node
-        n1 = TransformationProxy(Node(None, None))  # First child node
+        # Head node
+        hn = Node.HeadNode(1)
+        hn.backend = TestBackend()
+        node = Proxy.TransformationProxy(hn)
+
+        nn1 = Node.Node(None, None)
+        nn1.backend = TestBackend()
+        n1 = Proxy.TransformationProxy(nn1)
 
         # State dictionaries
         node_dict = {"children": [n1]}
         n1_dict = {
-            'operation_name': "Define",
-            'operation_args': ["a"],
-            'operation_kwargs': {"b": "c"},
-            'children': []
+            "operation_name": "Define",
+            "operation_args": ["a"],
+            "operation_kwargs": {"b": "c"},
+            "children": []
         }
 
         # Set node objects with state dicts
@@ -335,7 +384,7 @@ class DunderMethodsTest(unittest.TestCase):
         Node class.
 
         """
-        node = TransformationProxy(Node(None, None))
+        node = Node.Node(None, None)
 
         # Regular dunder method must not throw an error
         node.__format__('')
@@ -383,7 +432,10 @@ class PickleTest(unittest.TestCase):
         import pickle
 
         # Node definitions
-        node = TransformationProxy(Node(None, None))  # Head node
+        # Head node
+        hn = Node.HeadNode(1)
+        hn.backend = TestBackend()
+        node = Proxy.TransformationProxy(hn)
         n1 = node.Define("a", b="c")  # First child node
         n2 = n1.Count()  # noqa: avoid PEP8 F841
         n3 = node.Filter("b")
@@ -391,7 +443,7 @@ class PickleTest(unittest.TestCase):
 
         # Pickled representation of nodes
         pickled_node = pickle.dumps(node.proxied_node)
-        # n3 is of class TransformationProxy, so the proxied node must be
+        # n3 is of class Proxy.TransformationProxy, so the proxied node must be
         # accessed before pickling.
         pickled_n3_node = pickle.dumps(n3.proxied_node)
 

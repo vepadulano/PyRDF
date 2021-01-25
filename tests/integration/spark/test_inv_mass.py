@@ -2,6 +2,7 @@ import unittest
 from collections import namedtuple
 
 import PyRDF
+import pyspark
 import ROOT
 
 
@@ -12,7 +13,7 @@ class SparkHistogramsTest(unittest.TestCase):
         """Create a PyRDF graph with a fixed set of operations and return it."""
         treename = "data"
         files = ["https://root.cern/files/teaching/CMS_Open_Dataset.root", ]
-        rdf = PyRDF.RDataFrame(treename, files)
+        rdf = PyRDF.make_spark_dataframe(treename, files, npartitions=5)
 
         # Define the analysis cuts
         chargeCutStr = "C1 != C2"
@@ -32,7 +33,6 @@ class SparkHistogramsTest(unittest.TestCase):
         pt2_h = rdf.Histo1D(("", "", 128, 1, 1200), "pt2")
         model = ("invMass", "CMS Opendata;#mu#mu mass[GeV];Events", 512, 5, 110)
         invMass_h = rdf_fd.Histo1D(model, "invMass")
-        import ROOT
         pi = ROOT.TMath.Pi()
         model = ("", "", 64, -pi, pi, 64, -pi, pi)
         phis_h = rdf_fd.Histo2D(model, "phi1", "phi2")
@@ -73,9 +73,6 @@ class SparkHistogramsTest(unittest.TestCase):
         """Check that Spark backend works the same way as ROOT RDF."""
         physics_variables = ["pt1_h", "pt2_h", "invMass_h", "phis_h"]
 
-        # Spark execution
-        PyRDF.use("spark", {"npartitions": 5})
-
         SparkResult = namedtuple("SparkResult", physics_variables)
         spark = SparkResult(*self.build_pyrdf_graph())
 
@@ -96,6 +93,9 @@ class SparkHistogramsTest(unittest.TestCase):
                          rootrdf.invMass_h.GetEntries())
         # Assert 'phis_h' histogram
         self.assertEqual(spark.phis_h.GetEntries(), rootrdf.phis_h.GetEntries())
+
+        # Stop the SparkContext before exiting
+        pyspark.SparkContext.getOrCreate().stop()
 
 
 if __name__ == "__main__":
