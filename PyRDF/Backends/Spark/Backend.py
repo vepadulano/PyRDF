@@ -1,6 +1,7 @@
 import ntpath  # Filename from path (should be platform-independent)
 
 from PyRDF import DataFrame
+from PyRDF import Node
 from PyRDF.Backends import Dist
 from PyRDF.Backends import Utils
 
@@ -18,8 +19,6 @@ class SparkBackend(Dist.DistBackend):
     for distributed execution.
 
     """
-
-    MIN_NPARTITIONS = 2
 
     def __init__(self, sparkcontext=None):
         """
@@ -54,17 +53,18 @@ class SparkBackend(Dist.DistBackend):
         else:
             self.sc = pyspark.SparkContext.getOrCreate()
 
-        # Set the value of 'npartitions' if it doesn't exist
-        self.npartitions = self._get_partitions()
+    def optimize_npartitions(self, npartitions):
+        numex = self.sc.getConf().get("spark.executor.instances")
+        numcoresperex = self.sc.getConf().get("spark.executor.cores")
 
-    def _get_partitions(self):
-        npart = (self.npartitions or
-                 self.sc.getConf().get('spark.executor.instances') or
-                 SparkBackend.MIN_NPARTITIONS)
-        # getConf().get('spark.executor.instances') could return a string
-        return int(npart)
+        if numex:
+            if numcoresperex:
+                return int(numex) * int(numcoresperex)
+            return int(numex)
+        else:
+            return npartitions
 
-    def ProcessAndMerge(self, mapper, reducer):
+    def ProcessAndMerge(self, ranges, mapper, reducer):
         """
         Performs map-reduce using Spark framework.
 
@@ -116,10 +116,8 @@ class SparkBackend(Dist.DistBackend):
 
             return mapper(current_range)
 
-        ranges = self.build_ranges()  # Get range pairs
-
         # Build parallel collection
-        parallel_collection = self.sc.parallelize(ranges, self.npartitions)
+        parallel_collection = self.sc.parallelize(ranges, len(ranges))
 
         # Map-Reduce using Spark
         return parallel_collection.map(spark_mapper).treeReduce(reducer)
@@ -141,4 +139,5 @@ class SparkBackend(Dist.DistBackend):
 
     def make_dataframe(self, *args, **kwargs):
         """Creates an instance of SparkDataFrame"""
-        return DataFrame.DistDataFrame(self, *args, **kwargs)
+        headnode = Node.HeadNode(*args)
+        return DataFrame.DistDataFrame(headnode, self, **kwargs)

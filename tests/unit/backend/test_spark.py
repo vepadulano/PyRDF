@@ -40,36 +40,17 @@ class SparkBackendInitTest(unittest.TestCase):
         appname = backend.sc.getConf().get("spark.app.name")
         self.assertEqual(appname, "my-pyspark-app1")
 
-    def test_npartitions_with_num_executors(self):
+    def test_optimize_npartitions_with_num_executors(self):
         """
         Check that the number of partitions is correctly set to number of
-        executors when no input value is given in the config dictionary.
+        executors in the SparkConf dictionary.
         """
-        conf = {'spark.executor.instances': 10}
+        conf = {"spark.executor.instances": 10}
         sconf = pyspark.SparkConf().setAll(conf.items())
         sc = pyspark.SparkContext(conf=sconf)
         backend = Backend.SparkBackend(sparkcontext=sc)
 
-        self.assertEqual(backend.npartitions, 10)
-
-    def test_npartitions_with_already_existing_spark_context(self):
-        """
-        Check that the number of partitions is correctly set when a Spark
-        Context already exists.
-        """
-        sparkconf = pyspark.SparkConf().set('spark.executor.instances', 15)
-        pyspark.SparkContext(conf=sparkconf)
-        backend = Backend.SparkBackend()
-        self.assertEqual(backend.npartitions, 15)
-
-    def test_npartitions_default(self):
-        """
-        Check that the default number of partitions is correctly set when no
-        input value is given in the config dictionary.
-        """
-        backend = Backend.SparkBackend()
-        self.assertEqual(backend.npartitions,
-                         Backend.SparkBackend.MIN_NPARTITIONS)
+        self.assertEqual(backend.optimize_npartitions(1), 10)
 
 
 class OperationSupportTest(unittest.TestCase):
@@ -191,12 +172,12 @@ class ChangeAttributeTest(unittest.TestCase):
         filelist = ["tests/unit/backend/Slimmed_ntuple.root"]
         df = PyRDF.make_spark_dataframe(treename, filelist, npartitions=10)
 
-        self.assertEqual(df._headnode.backend.npartitions, 10)
+        self.assertEqual(df._headnode.npartitions, 10)
         histo = df.Histo1D("track_rp_3.x")
         nentries = histo.GetEntries()
 
         self.assertEqual(nentries, 10)
-        self.assertEqual(df._headnode.backend.npartitions, 1)
+        self.assertEqual(df._headnode.npartitions, 1)
 
 
 if __name__ == "__main__":

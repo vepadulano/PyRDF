@@ -56,7 +56,7 @@ class AttrReadTest(unittest.TestCase):
     class TestBackend(Dist.DistBackend):
         """Dummy backend to test the _get_friend_info method in Dist class."""
 
-        def ProcessAndMerge(self, mapper, reducer):
+        def ProcessAndMerge(self, ranges, mapper, reducer):
             """Dummy implementation of ProcessAndMerge."""
             pass
 

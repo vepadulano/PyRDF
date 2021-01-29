@@ -15,7 +15,7 @@ class DistDataFrame(object):
     Interface to an RDataFrame that can run its computation graph distributedly.
     """
 
-    def __init__(self, backend, *args, **kwargs):
+    def __init__(self, headnode, backend, **kwargs):
         """Initialization of """
 
         # Early check for correctness of arguments to the RDataFrame constructor
@@ -25,7 +25,7 @@ class DistDataFrame(object):
 
         self._headnode.backend = backend
 
-        self._headnode.backend.npartitions = kwargs.get("npartitions", 2)
+        self._headnode.npartitions = kwargs.get("npartitions", 2)
 
         self._headproxy = Proxy.TransformationProxy(self._headnode)
 

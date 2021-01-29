@@ -13,7 +13,7 @@ class CallableGeneratorTest(unittest.TestCase):
     class TestBackend(Dist.DistBackend):
         """Dummy backend."""
 
-        def ProcessAndMerge(self, mapper, reducer):
+        def ProcessAndMerge(self, ranges, mapper, reducer):
             """Dummy implementation of ProcessAndMerge."""
             pass
 

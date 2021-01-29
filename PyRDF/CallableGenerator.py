@@ -3,16 +3,17 @@ class CallableGenerator(object):
     Class that generates a callable to parse a PyRDF graph.
 
     Attributes:
-        head_node: Head node of a PyRDF graph.
+        headnode: Head node of a PyRDF graph.
     """
-    def __init__(self, head_node):
+
+    def __init__(self, headnode):
         """
         Creates a new `CallableGenerator`.
 
         Args:
-            head_node: Head node of a PyRDF graph.
+            dataframe: PyRDF DataFrame object.
         """
-        self.head_node = head_node
+        self.headnode = headnode
 
     def get_action_nodes(self, node_py=None):
         """
@@ -20,7 +21,7 @@ class CallableGenerator(object):
 
         Args:
             node_py (optional): The current state's PyRDF node. If `None`, it
-                takes the value of `self.head_node`.
+                takes the value of `self.headnode`.
 
         Returns:
             list: A list of the action nodes of the graph in DFS order, which
@@ -31,7 +32,7 @@ class CallableGenerator(object):
         if not node_py:
             # In the first recursive state, just set the
             # current PyRDF node as the head node
-            node_py = self.head_node
+            node_py = self.headnode
         else:
             if (node_py.operation.is_action() or
                     node_py.operation.is_instant_action()):
@@ -57,7 +58,7 @@ class CallableGenerator(object):
             on it, recursively.
         """
         # Prune the graph to check user references
-        self.head_node.graph_prune()
+        self.headnode.graph_prune()
 
         def mapper(node_cpp, node_py=None, rdf_range=None):
             """
@@ -68,7 +69,7 @@ class CallableGenerator(object):
                 node_cpp: The current state's ROOT CPP node. Initially this
                     should be given in as a PyROOT RDataFrame object.
                 node_py (optional): The current state's PyRDF node. If `None`,
-                    it takes the value of `self.head_node`.
+                    it takes the value of `self.headnode`.
                 rdf_range (optional): The current range of the RDataFrame to run
                     the analysis on. This is an helper parameter for the
                     analysis in a distributed environment.
@@ -87,7 +88,7 @@ class CallableGenerator(object):
             if not node_py:
                 # In the first recursive state, just set the
                 # current PyRDF node as the head node
-                node_py = self.head_node
+                node_py = self.headnode
             else:
                 # Execute the current operation using the output of the parent
                 # node (node_cpp)
