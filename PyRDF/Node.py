@@ -4,7 +4,6 @@ import logging
 
 import ROOT
 
-from PyRDF import Error
 from PyRDF.Operation import Operation
 
 logger = logging.getLogger(__name__)
@@ -192,11 +191,6 @@ class HeadNode(Node):
     PyRDF's RDataFrame constructor accepts the same arguments as the ROOT's
     RDataFrame constructor (see
     `RDataFrame <https://root.cern/doc/master/classROOT_1_1RDataFrame.html>`_)
-
-    Raises:
-        RDataFrameException: An exception raised when input arguments to
-            the RDataFrame constructor are incorrect.
-
     """
 
     def __init__(self, *args):
@@ -210,15 +204,6 @@ class HeadNode(Node):
         super(HeadNode, self).__init__(None, None, *args)
 
         args = list(args)  # Make args mutable
-
-        try:
-            ROOT.RDataFrame(*args)  # Check if the args are correct
-        except TypeError as e:
-            msg = "Error creating the RDataFrame !"
-            rdf_exception = Error.RDataFrameException(e, msg)
-            rdf_exception.__cause__ = None
-            # The above line is to supress the traceback of error 'e'
-            raise rdf_exception
 
         self.args = args
 
