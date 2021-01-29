@@ -2,6 +2,8 @@ from __future__ import print_function
 
 import logging
 
+import ROOT
+
 from PyRDF import Node
 from PyRDF import Proxy
 
@@ -15,6 +17,10 @@ class DistDataFrame(object):
 
     def __init__(self, backend, *args, **kwargs):
         """Initialization of """
+
+        # Early check for correctness of arguments to the RDataFrame constructor
+        ROOT.RDataFrame(*args)
+
         self._headnode = Node.HeadNode(*args)
 
         self._headnode.backend = backend

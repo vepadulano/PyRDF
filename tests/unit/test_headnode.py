@@ -1,7 +1,6 @@
 import unittest
 
 import ROOT
-from PyRDF import Error
 from PyRDF import Node
 
 
@@ -107,20 +106,6 @@ class DataFrameConstructorTests(unittest.TestCase):
         self.assertArgs(hn_3.args, ["treename", reqd_files_vec, rdf_branches])
         self.assertArgs(
             hn_4.args, ["treename", reqd_files_vec, reqd_branches_vec])
-
-    def test_incorrect_args(self):
-        """Constructor with incorrect arguments"""
-        with self.assertRaises(Error.RDataFrameException):
-            # Incorrect first argument in 2-argument case
-            Node.HeadNode(10, "file.root")
-
-        with self.assertRaises(Error.RDataFrameException):
-            # Incorrect third argument in 3-argument case
-            Node.HeadNode("treename", "file.root", "column1")
-
-        with self.assertRaises(Error.RDataFrameException):
-            # No argument case
-            Node.HeadNode()
 
 
 class NumEntriesTest(unittest.TestCase):
