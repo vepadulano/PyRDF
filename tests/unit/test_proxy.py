@@ -3,7 +3,6 @@ import unittest
 from PyRDF import Node
 from PyRDF import Proxy
 from PyRDF.Backends import Base
-from PyRDF.Backends import Dist
 
 
 class ProxyInitTest(unittest.TestCase):
@@ -53,7 +52,7 @@ class AttrReadTest(unittest.TestCase):
             """A test method to check function call on the Temp class."""
             return arg + 123  # A simple operation to check
 
-    class TestBackend(Dist.DistBackend):
+    class TestBackend(Base.BaseBackend):
         """Dummy backend to test the _get_friend_info method in Dist class."""
 
         def ProcessAndMerge(self, ranges, mapper, reducer):

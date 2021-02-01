@@ -2,7 +2,7 @@ import unittest
 
 from PyRDF import Node
 from PyRDF import Proxy
-from PyRDF.Backends import Dist
+from PyRDF.Backends import Base
 
 
 def rangesToTuples(ranges):
@@ -10,7 +10,7 @@ def rangesToTuples(ranges):
     return list(map(lambda r: (r.start, r.end), ranges))
 
 
-class DistBackendInitTest(unittest.TestCase):
+class BaseBackendInitTest(unittest.TestCase):
     """Dist abstract class cannot be instantiated."""
 
     def test_dist_init_error(self):
@@ -20,7 +20,7 @@ class DistBackendInitTest(unittest.TestCase):
 
         """
         with self.assertRaises(TypeError):
-            Dist.DistBackend()
+            Base.BaseBackend()
 
     def test_subclass_without_method_error(self):
         """
@@ -28,7 +28,7 @@ class DistBackendInitTest(unittest.TestCase):
         method throws a `TypeError`.
 
         """
-        class TestBackend(Dist.DistBackend):
+        class TestBackend(Base.BaseBackend):
             pass
 
         with self.assertRaises(TypeError):
@@ -41,7 +41,7 @@ class DistRDataFrameInterface(unittest.TestCase):
     parameters
     """
 
-    class TestBackend(Dist.DistBackend):
+    class TestBackend(Base.BaseBackend):
         """Dummy backend to test the build_ranges method in Dist class."""
 
         def ProcessAndMerge(self, ranges, mapper, reducer):

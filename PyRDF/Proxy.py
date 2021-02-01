@@ -7,7 +7,7 @@ from contextlib import contextmanager
 
 import ROOT
 
-from PyRDF.CallableGenerator import CallableGenerator
+from PyRDF.ComputationGraphGenerator import ComputationGraphGenerator
 from PyRDF.Node import Node
 from PyRDF.Operation import Operation
 
@@ -111,7 +111,7 @@ class ActionProxy(Proxy):
         with _managed_tcontext():
             if not self.proxied_node.value:  # If event-loop not triggered
                 headnode = self.proxied_node.get_head()
-                generator = CallableGenerator(headnode)
+                generator = ComputationGraphGenerator(headnode)
                 headnode.backend.execute(generator)
 
         return self.proxied_node.value
@@ -184,7 +184,7 @@ class TransformationProxy(Proxy):
             return ActionProxy(newNode)
         elif op.name in ["AsNumpy", "Snapshot"]:
             headnode = self.proxied_node.get_head()
-            generator = CallableGenerator(headnode)
+            generator = ComputationGraphGenerator(headnode)
             headnode.backend.execute(generator)
             return newNode.value
         else:

@@ -1,10 +1,10 @@
 import unittest
 
 from PyRDF import Node, Proxy
-from PyRDF.Backends import Dist
+from PyRDF.Backends import Base
 
 
-class TestBackend(Dist.DistBackend):
+class TestBackend(Base.BaseBackend):
     """Dummy backend."""
 
     def ProcessAndMerge(self, ranges, mapper, reducer):

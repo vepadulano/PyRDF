@@ -628,10 +628,9 @@ class HeadNode(Node):
                 RDataFrame object.
         """
         super(HeadNode, self).__init__(None, None, *args)
-
-        args = list(args)  # Make args mutable
-
-        self.args = args
+        # Early check of the arguments to RDataFrame constructor
+        ROOT.RDataFrame(*args)
+        self.args = list(args)  # Make args mutable
 
         # Set at creation of the dataframe, might be optimized by the backend
         # in optimize_partitions

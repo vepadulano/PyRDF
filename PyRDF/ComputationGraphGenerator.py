@@ -1,4 +1,4 @@
-class CallableGenerator(object):
+class ComputationGraphGenerator(object):
     """
     Class that generates a callable to parse a PyRDF graph.
 
@@ -8,7 +8,7 @@ class CallableGenerator(object):
 
     def __init__(self, headnode):
         """
-        Creates a new `CallableGenerator`.
+        Creates a new `ComputationGraphGenerator`.
 
         Args:
             dataframe: PyRDF DataFrame object.
@@ -60,7 +60,7 @@ class CallableGenerator(object):
         # Prune the graph to check user references
         self.headnode.graph_prune()
 
-        def mapper(node_cpp, node_py=None, rdf_range=None):
+        def generate_computation_graph(node_cpp, node_py=None, rdf_range=None):
             """
             The callable that recurses through the PyRDF nodes and executes
             operations from a starting (PyROOT) RDF node.
@@ -129,11 +129,12 @@ class CallableGenerator(object):
 
             for n in node_py.children:
                 # Recurse through children and get their output
-                prev_vals = mapper(parent_node, node_py=n, rdf_range=rdf_range)
+                prev_vals = generate_computation_graph(
+                    parent_node, node_py=n, rdf_range=rdf_range)
 
                 # Attach the output of the children node
                 return_vals.extend(prev_vals)
 
             return return_vals
 
-        return mapper
+        return generate_computation_graph

@@ -18,10 +18,7 @@ class DistDataFrame(object):
     def __init__(self, headnode, backend, **kwargs):
         """Initialization of """
 
-        # Early check for correctness of arguments to the RDataFrame constructor
-        ROOT.RDataFrame(*args)
-
-        self._headnode = Node.HeadNode(*args)
+        self._headnode = headnode
 
         self._headnode.backend = backend
 

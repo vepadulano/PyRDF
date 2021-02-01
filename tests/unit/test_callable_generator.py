@@ -1,16 +1,16 @@
 import unittest
 
-from PyRDF import CallableGenerator, Node, Proxy
-from PyRDF.Backends import Dist
+from PyRDF import ComputationGraphGenerator, Node, Proxy
+from PyRDF.Backends import Base
 
 
-class CallableGeneratorTest(unittest.TestCase):
+class ComputationGraphGeneratorTest(unittest.TestCase):
     """
     Check mechanism to create a callable function that returns a PyROOT object
     per each PyRDF graph node. This callable takes care of the grape pruning.
     """
 
-    class TestBackend(Dist.DistBackend):
+    class TestBackend(Base.BaseBackend):
         """Dummy backend."""
 
         def ProcessAndMerge(self, ranges, mapper, reducer):
@@ -55,11 +55,11 @@ class CallableGeneratorTest(unittest.TestCase):
     def test_mapper_from_graph(self):
         """A simple test case to check the working of mapper."""
         # A mock RDF object
-        t = CallableGeneratorTest.Temp()
+        t = ComputationGraphGeneratorTest.Temp()
 
         # Head node
         hn = Node.HeadNode(1)
-        hn.backend = CallableGeneratorTest.TestBackend()
+        hn.backend = ComputationGraphGeneratorTest.TestBackend()
         node = Proxy.TransformationProxy(hn)
         # Set of operations to build the graph
         n1 = node.Define()
@@ -69,7 +69,8 @@ class CallableGeneratorTest(unittest.TestCase):
         n6 = node.Filter()  # noqa: avoid PEP8 F841
 
         # Generate and execute the mapper
-        generator = CallableGenerator.CallableGenerator(node.proxied_node)
+        generator = ComputationGraphGenerator.ComputationGraphGenerator(
+            node.proxied_node)
         mapper_func = generator.get_callable()
         values = mapper_func(t)
         nodes = generator.get_action_nodes()
@@ -87,11 +88,11 @@ class CallableGeneratorTest(unittest.TestCase):
 
         """
         # A mock RDF object
-        t = CallableGeneratorTest.Temp()
+        t = ComputationGraphGeneratorTest.Temp()
 
         # Head node
         hn = Node.HeadNode(1)
-        hn.backend = CallableGeneratorTest.TestBackend()
+        hn.backend = ComputationGraphGeneratorTest.TestBackend()
         node = Proxy.TransformationProxy(hn)
 
         # Set of operations to build the graph
@@ -105,7 +106,8 @@ class CallableGeneratorTest(unittest.TestCase):
         n5 = n1.Filter()  # noqa: avoid PEP8 F841
 
         # Generate and execute the mapper
-        generator = CallableGenerator.CallableGenerator(node.proxied_node)
+        generator = ComputationGraphGenerator.ComputationGraphGenerator(
+            node.proxied_node)
         mapper_func = generator.get_callable()
         values = mapper_func(t)
         nodes = generator.get_action_nodes()

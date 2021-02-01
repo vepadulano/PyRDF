@@ -2,7 +2,7 @@ import ntpath  # Filename from path (should be platform-independent)
 
 from PyRDF import DataFrame
 from PyRDF import Node
-from PyRDF.Backends import Dist
+from PyRDF.Backends import Base
 from PyRDF.Backends import Utils
 
 try:
@@ -13,7 +13,7 @@ except ModuleNotFoundError:
          " Please make sure Spark is installed."))
 
 
-class SparkBackend(Dist.DistBackend):
+class SparkBackend(Base.BaseBackend):
     """
     Backend that executes the computational graph using using `Spark` framework
     for distributed execution.

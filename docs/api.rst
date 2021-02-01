@@ -4,10 +4,10 @@ The PyRDF API reference
 .. automodule:: PyRDF
 	:members:
 
-The CallableGenerator module
+The ComputationGraphGenerator module
 ----------------------------
 
-.. automodule:: PyRDF.CallableGenerator
+.. automodule:: PyRDF.ComputationGraphGenerator
 	:members:
 
 The Node module
